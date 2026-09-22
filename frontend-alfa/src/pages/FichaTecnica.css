@@ -1,0 +1,189 @@
+/* Layout da Ficha Técnica (Grid de Duas Colunas) */
+.ficha-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.mb-16 {
+  margin-bottom: 16px;
+}
+
+/* Coluna de Lista de Modelos */
+.modelos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 650px;
+  overflow-y: auto;
+}
+
+.modelo-card {
+  background-color: #ffffff;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modelo-card:hover {
+  border-color: #00c875;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.modelo-card.active {
+  border-color: #00c875;
+  background-color: #f0fdf4;
+}
+
+.modelo-card-info h3 {
+  font-size: 15px;
+  color: #1f2937;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.modelo-tag {
+  font-size: 11px;
+  color: #00c875;
+  background-color: #e8f5e9;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+/* Coluna de Detalhes da Ficha */
+.detalhes-column {
+  min-height: 500px;
+}
+
+.empty-details-card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: 60px 20px;
+  text-align: center;
+  border: 2px dashed #e5e7eb;
+  color: #6b7280;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.empty-details-card h3 {
+  font-size: 18px;
+  color: #374151;
+}
+
+.ficha-detalhes-card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+.ficha-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.ficha-header h2 {
+  font-size: 20px;
+  color: #111827;
+  margin-top: 6px;
+}
+
+.primary-btn-outline {
+  background-color: transparent;
+  color: #00c875;
+  border: 2px solid #00c875;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.primary-btn-outline:hover {
+  background-color: #f0fdf4;
+}
+
+.text-green-600 {
+  color: #00c875;
+}
+
+.loading-card, .empty-card {
+  padding: 20px;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 14px;
+  background-color: #ffffff;
+  border-radius: 12px;
+}
+
+/* Adicione isso se não existir, para garantir que a tabela role no mobile */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* =========================================
+   RESPONSIVIDADE (TABLETS E SMARTPHONES)
+   ========================================= */
+
+@media (max-width: 1024px) {
+  .ficha-grid {
+    grid-template-columns: 280px 1fr;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .ficha-grid {
+    grid-template-columns: 1fr; /* Empilha a lista de modelos e os detalhes */
+  }
+
+  .ficha-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .ficha-header .primary-btn-outline {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .modelos-list {
+    max-height: 400px; /* Reduz a altura da lista no celular para caber o painel de detalhes abaixo */
+  }
+
+  .detalhes-column {
+    min-height: auto;
+    margin-top: 16px;
+  }
+  
+  /* Ajustes do Modal no Mobile (se necessário) */
+  .modal-card {
+    width: 95%;
+    padding: 20px;
+  }
+}

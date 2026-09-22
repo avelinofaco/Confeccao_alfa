@@ -1,0 +1,105 @@
+/* Card da Barra de Ações (Abas) */
+.action-bar-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f3f4f6;
+}
+
+/* Container das Abas de Configuração */
+.config-tabs {
+  display: flex;
+  gap: 16px;
+  justify-content: flex-start;
+}
+
+/* Botões das Abas */
+.tab-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border: none;
+}
+
+/* Estilos de Botões Padrão para as Abas */
+.primary-btn {
+  background-color: #00c875;
+  color: #ffffff;
+}
+
+.secondary-btn {
+  background-color: #f3f4f6;
+  color: #4b5563;
+}
+
+/* Card Principal do Formulário */
+.table-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f3f4f6;
+}
+
+.settings-card {
+  max-width: 600px;
+}
+
+/* Formulário e Inputs */
+.modal-form { display: flex; flex-direction: column; gap: 16px; }
+
+.input-group { display: flex; flex-direction: column; gap: 6px; }
+.input-group label { font-size: 13px; font-weight: 500; color: #374151; }
+.input-group input {
+  padding: 10px 12px; 
+  border: 1px solid #d1d5db; 
+  border-radius: 8px; 
+  font-size: 14px; 
+  outline: none;
+}
+.input-group input:focus { border-color: #00c875; }
+
+/* Espaçamento e Centralização do botão de Salvar/Alterar */
+.submit-btn {
+  margin-top: 24px;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+  min-width: 220px; 
+}
+
+/* Sobrescreve a cor para alterar senha */
+.btn-danger {
+  background-color: #ef4444 !important;
+}
+.btn-danger:hover {
+  background-color: #dc2626 !important;
+}
+
+/* =========================================
+   RESPONSIVIDADE (MOBILE)
+   ========================================= */
+
+@media (max-width: 768px) {
+  .config-tabs {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .tab-btn {
+    width: 100%;
+  }
+
+  .submit-btn {
+    width: 100%;
+  }
+}
