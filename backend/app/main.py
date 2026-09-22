@@ -11,8 +11,10 @@ app = FastAPI(title="API Confecção Alfa", version="1.0.0")
 # --- Configuração do CORS ---
 app.add_middleware(
     CORSMiddleware,
-    # Durante os testes da gestora, libera todas as origens
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173",
+        "https://confeccao-alfa-kolw.vercel.app" ],
+        # Link exato do domínio da Vercel
     allow_credentials=True,
     # Libera todos os métodos (GET, POST, PUT, DELETE, etc.)
     allow_methods=["*"],
