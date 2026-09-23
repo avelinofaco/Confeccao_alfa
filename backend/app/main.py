@@ -8,18 +8,19 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="API Confecção Alfa", version="1.0.0")
 
-# --- Configuração do CORS ---
+# Lista de domínios autorizados a fazer requisições para a API
+origins = [
+    "https://confeccao-alfa.vercel.app",  # Seu front-end na Vercel
+    "http://localhost:5173",              # Desenvolvimento local (Vite)
+    "http://localhost:3000",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "https://confeccao-alfa-kolw.vercel.app" ],
-        # Link exato do domínio da Vercel
+    allow_origins=origins,       # Utiliza a lista de origens explicitas
     allow_credentials=True,
-    # Libera todos os métodos (GET, POST, PUT, DELETE, etc.)
-    allow_methods=["*"],
-    # Libera todos os cabeçalhos (inclusive os de autenticação JWT)
-    allow_headers=["*"],
+    allow_methods=["*"],         # Libera POST, GET, PUT, DELETE, OPTIONS, etc.
+    allow_headers=["*"],         # Libera Authorization, Content-Type, etc.
 )
 
 # Incluindo o router de cada módulo na aplicação FastAPI
