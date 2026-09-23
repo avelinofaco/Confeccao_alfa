@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const api = axios.create({
   // Pega a URL do Render em produção ou usa localhost em desenvolvimento local
-  baseURL: import.meta.env.VITE_API_URL || 'https://confeccao-alfa-api.onrender.com',
+  baseURL: import.meta.env.VITE_API_URL || 'https://confeccao-alfa.onrender.com',
 });
 
 // Interceptador para anexa o Token JWT
