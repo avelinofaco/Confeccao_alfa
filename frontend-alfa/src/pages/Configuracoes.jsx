@@ -400,7 +400,16 @@ function Configuracoes() {
                   Configure formulários, regras de corte e etapas da produção para cada categoria (Camisetas, Lingerie/Calcinhas, Jeans, etc.)
                 </p>
               </div>
-              <div style={{ display: 'flex', gap: '10px' }}>
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                <button 
+                  className="secondary-btn tab-btn"
+                  onClick={() => navigate('/onboarding')}
+                  title="Executar o assistente interativo para redefinir o nicho da sua fábrica"
+                >
+                  <Scissors size={16} color="#00c875" />
+                  <span>Assistente de Nicho</span>
+                </button>
+
                 <button 
                   className="secondary-btn tab-btn"
                   onClick={handleSemearPadroes}
@@ -418,6 +427,7 @@ function Configuracoes() {
                   <span>Novo Tipo de Peça</span>
                 </button>
               </div>
+
             </div>
 
             {loadingContextos ? (

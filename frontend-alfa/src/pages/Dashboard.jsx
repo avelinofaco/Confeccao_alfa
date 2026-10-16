@@ -39,16 +39,32 @@ function Dashboard() {
   const [loadingRendimento, setLoadingRendimento] = useState(true);
   const [dadosProducaoMensal, setDadosProducaoMensal] = useState([]); // 🔥 NOVO ESTADO AQUI
 
+  // Contexto e personalização da confecção
+  const [perfilUsuario, setPerfilUsuario] = useState(null);
+
   useEffect(() => {
     const token = localStorage.getItem('token_confeccao');
     if (!token) {
       navigate('/');
-    } else {
-      carregarEstoqueDashboard();
-      carregarRendimentoDashboard();
-      carregarTotalEProducao(); // 🔥 FUNÇÃO UNIFICADA AQUI
+      return;
     }
+
+    // Verifica se já realizou o onboarding
+    const userStorage = localStorage.getItem('usuario_confeccao');
+    if (userStorage) {
+      const u = JSON.parse(userStorage);
+      setPerfilUsuario(u);
+      if (u.onboarding_concluido === false) {
+        navigate('/onboarding');
+        return;
+      }
+    }
+
+    carregarEstoqueDashboard();
+    carregarRendimentoDashboard();
+    carregarTotalEProducao();
   }, [navigate]);
+
 
   // 1. Busca insumos no banco de dados e formata para o gráfico de Estoque
   const carregarEstoqueDashboard = async () => {
@@ -278,10 +294,11 @@ function Dashboard() {
             <span>Equipe</span>
           </button>
           <button className="nav-item" onClick={() => { navigate('/configuracoes'); setMenuMobileAberto(false); }}>
-            <Users size={19} />
+            <Scissors size={19} />
             <span>Configurações</span>
           </button>
         </nav>
+
 
         <div className="sidebar-footer">
           <button className="nav-item logout" onClick={handleLogout}>
@@ -295,17 +312,42 @@ function Dashboard() {
       <main className="main-content">
         <header className="top-header">
           <div>
-            <h1>Painel de Controle</h1>
-            <p className="subtitle">Acompanhamento em tempo real do estoque, produção e rendimento de calcinhas</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <h1>Painel de Controle</h1>
+              {perfilUsuario?.contexto_preferido && (
+                <span style={{ 
+                  fontSize: '12px', 
+                  fontWeight: '700', 
+                  padding: '3px 10px', 
+                  borderRadius: '12px', 
+                  backgroundColor: '#dcfce7', 
+                  color: '#15803d',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}>
+                  {perfilUsuario.contexto_preferido === 'CALCINHA' ? '👙 Moda Íntima / Calcinhas' :
+                   perfilUsuario.contexto_preferido === 'CAMISETA' ? '👕 Camisetas & Básicos' :
+                   perfilUsuario.contexto_preferido === 'JEANS' ? '👖 Jeanswear & Sarja' : '✂️ Confecção Mista'}
+                </span>
+              )}
+            </div>
+            <p className="subtitle">
+              {perfilUsuario?.contexto_preferido === 'CALCINHA' ? 'Acompanhamento do estoque, consumo de microfibra/elásticos e costura de moda íntima' :
+               perfilUsuario?.contexto_preferido === 'CAMISETA' ? 'Acompanhamento do estoque de malha, rendimento em kg e estamparia' :
+               perfilUsuario?.contexto_preferido === 'JEANS' ? 'Acompanhamento do denim, costura pesada e lavanderia industrial' :
+               'Acompanhamento em tempo real do estoque, produção e esteiras de confecção'}
+            </p>
           </div>
           <div className="user-profile">
             <div className="user-info">
-              <span className="user-name">{userName}</span>
-              <span className="user-role">Administração</span>
+              <span className="user-name">{perfilUsuario?.nome_usuario || userName}</span>
+              <span className="user-role">{perfilUsuario?.nome_confeccao || 'Confecção Alfa'}</span>
             </div>
             <div className="avatar">A</div>
           </div>
         </header>
+
 
         {/* Indicadores (KPIs)*/}
         <section className="kpi-grid">

@@ -24,12 +24,21 @@ function Login() {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
       });
 
-      // Se deu certo, o FastAPI devolve um token. Vamos salvar no navegador!
+      // Se deu certo, o FastAPI devolve um token e dados do usuário. Vamos salvar no navegador!
       const token = response.data.access_token;
+      const usuario = response.data.usuario;
       localStorage.setItem('token_confeccao', token);
+      if (usuario) {
+        localStorage.setItem('usuario_confeccao', JSON.stringify(usuario));
+      }
 
-      //redirecionar para a tela principal (Dashboard)
-      navigate('/dashboard'); 
+      // Se é o primeiro login e ainda não configurou o perfil do negócio, abre o onboarding
+      if (!usuario || !usuario.onboarding_concluido) {
+        navigate('/onboarding');
+      } else {
+        navigate('/dashboard'); 
+      }
+
 
     } catch (error) {
       console.error("Erro no login:", error);

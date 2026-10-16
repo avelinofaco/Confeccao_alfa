@@ -11,6 +11,7 @@ import Comercial from './pages/Comercial';
 import Equipe from './pages/Equipe';
 import './App.css'; 
 import Configuracoes from './pages/Configuracoes'; 
+import Onboarding from './pages/Onboarding';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/cadastro" element={<Cadastro />} />
+        <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/estoque" element={<Estoque />} />
         <Route path="/ficha-tecnica" element={<FichaTecnica />} />
@@ -30,5 +32,6 @@ function App() {
     </BrowserRouter>
   );
 }
+
 
 export default App;

@@ -148,7 +148,26 @@ function FichaTecnica() {
     (p.nome_modelo || p.nome || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const abrirModalNovoModelo = () => {
+    const userStorage = localStorage.getItem('usuario_confeccao');
+    if (userStorage) {
+      try {
+        const u = JSON.parse(userStorage);
+        if (u.contexto_preferido) {
+          const match = contextosDisponiveis.find(c => c.codigo === u.contexto_preferido);
+          if (match) {
+            setIdContextoSelecionado(match.id_contexto);
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    setShowModalModelo(true);
+  };
+
   return (
+
     <div className="dashboard-container">
       
       {/* CABEÇALHO MOBILE */}
@@ -218,10 +237,11 @@ function FichaTecnica() {
               </div>
             </div>
 
-            <button className="primary-btn full-width mb-16" onClick={() => setShowModalModelo(true)}>
+            <button className="primary-btn full-width mb-16" onClick={abrirModalNovoModelo}>
               <Plus size={18} />
               <span>Novo Modelo</span>
             </button>
+
 
             <div className="modelos-list">
               {loading ? (

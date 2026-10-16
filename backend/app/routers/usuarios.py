@@ -67,3 +67,37 @@ def obter_perfil_usuario(id_usuario: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Usuário não encontrado.")
         
     return usuario
+
+@router.post("/{id_usuario}/onboarding-contexto", response_model=schemas.UsuarioResponse)
+def salvar_onboarding_contexto(id_usuario: int, req: schemas.OnboardingContextoRequest, db: Session = Depends(get_db)):
+    """Salva o nicho produtivo e as funcionalidades selecionadas no primeiro login."""
+    usuario = db.query(models_usuarios.Usuario).filter(models_usuarios.Usuario.id_usuario == id_usuario).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado.")
+
+    usuario.onboarding_concluido = True
+    usuario.contexto_preferido = req.tipo_confeccao
+    usuario.preferencias_modulos = req.modulos_selecionados
+
+    # Sincroniza as regras com a tabela de contextos
+    from app.models import contexto as models_contexto
+    ctx = db.query(models_contexto.ContextoProduto).filter(
+        models_contexto.ContextoProduto.codigo == req.tipo_confeccao
+    ).first()
+
+    if ctx:
+        mod = req.modulos_selecionados
+        if "grade_tamanhos" in mod:
+            ctx.habilita_grade_tamanhos = bool(mod["grade_tamanhos"])
+        if "estamparia" in mod:
+            ctx.habilita_estamparia = bool(mod["estamparia"])
+        if "lavanderia" in mod:
+            ctx.habilita_lavanderia = bool(mod["lavanderia"])
+        if "controle_elasticos" in mod:
+            ctx.habilita_controle_elasticos = bool(mod["controle_elasticos"])
+        if "rendimento_peso" in mod:
+            ctx.habilita_rendimento_peso = bool(mod["rendimento_peso"])
+
+    db.commit()
+    db.refresh(usuario)
+    return usuario
