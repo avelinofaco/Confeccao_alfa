@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -7,10 +7,8 @@ import {
   ShoppingCart, 
   Crop, 
   Scissors, 
-  PackageCheck, 
   Users, 
   LogOut,
-  TrendingUp,
   AlertTriangle,
   Boxes,
   Award,
@@ -25,7 +23,7 @@ import './Dashboard.css';
 
 function Dashboard() {
   const navigate = useNavigate();
-  const [userName, setUserName] = useState('Gestor Alfa');
+  const userName = 'Gestor Alfa';
   const [menuMobileAberto, setMenuMobileAberto] = useState(false);
   
   // Estados dinâmicos para o estoque e rendimento vindo diretamente do banco
@@ -37,37 +35,13 @@ function Dashboard() {
   // Novos estados para o Rendimento e Produção Mensal
   const [dadosRendimentoMalha, setDadosRendimentoMalha] = useState([]);
   const [loadingRendimento, setLoadingRendimento] = useState(true);
-  const [dadosProducaoMensal, setDadosProducaoMensal] = useState([]); // 🔥 NOVO ESTADO AQUI
+  const [dadosProducaoMensal, setDadosProducaoMensal] = useState([]);
 
   // Contexto e personalização da confecção
   const [perfilUsuario, setPerfilUsuario] = useState(null);
 
-  useEffect(() => {
-    const token = localStorage.getItem('token_confeccao');
-    if (!token) {
-      navigate('/');
-      return;
-    }
-
-    // Verifica se já realizou o onboarding
-    const userStorage = localStorage.getItem('usuario_confeccao');
-    if (userStorage) {
-      const u = JSON.parse(userStorage);
-      setPerfilUsuario(u);
-      if (u.onboarding_concluido === false) {
-        navigate('/onboarding');
-        return;
-      }
-    }
-
-    carregarEstoqueDashboard();
-    carregarRendimentoDashboard();
-    carregarTotalEProducao();
-  }, [navigate]);
-
-
   // 1. Busca insumos no banco de dados e formata para o gráfico de Estoque
-  const carregarEstoqueDashboard = async () => {
+  const carregarEstoqueDashboard = useCallback(async () => {
     try {
       setLoadingEstoque(true);
       const response = await api.get('/estoque/insumos/');
@@ -81,7 +55,6 @@ function Dashboard() {
 
       setDadosNivelEstoque(estoqueFormatado);
 
-      // Calculando com parseFloat para garantir que a matemática seja exata
       const criticos = insumos.filter(
         i => (parseFloat(i.quantidade_atual) || 0) <= (parseFloat(i.estoque_minimo_seguranca) || 0)
       ).length;
@@ -93,10 +66,10 @@ function Dashboard() {
     } finally {
       setLoadingEstoque(false);
     }
-  };
+  }, []);
 
   // 2. Busca OPs de corte e cruza com a Ficha Técnica para agrupar por TECIDO (Malha)
-  const carregarRendimentoDashboard = async () => {
+  const carregarRendimentoDashboard = useCallback(async () => {
     try {
       setLoadingRendimento(true);
       
@@ -172,12 +145,11 @@ function Dashboard() {
     } finally {
       setLoadingRendimento(false);
     }
-  };
+  }, []);
 
-  // 🔥 3. FUNÇÃO ATUALIZADA: Calcula o Total e o Gráfico de Evolução (Últimos 5 meses)
-  const carregarTotalEProducao = async () => {
+  // 3. Calcula o Total e o Gráfico de Evolução (Últimos 5 meses)
+  const carregarTotalEProducao = useCallback(async () => {
     try {
-      // 1. Cria a base dos últimos 5 meses dinamicamente
       const mesesNomes = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
       const ultimos5Meses = [];
       const hoje = new Date();
@@ -192,20 +164,16 @@ function Dashboard() {
         });
       }
 
-      // 2. Busca os dados no Back-end
       const res = await api.get('/costura/movimentacoes').catch(() => ({ data: [] }));
       const movimentacoes = res.data || [];
       
       let totalPecas = 0;
 
-      // 3. Percorre os retornos da costura
       movimentacoes.forEach(mov => {
-        // Verifica se a movimentação retornou peças
         if (mov.status_movimentacao === 'Retornado' || mov.quantidade_recebida > 0) {
           const qtd = parseInt(mov.quantidade_recebida || 0);
           totalPecas += qtd; 
 
-          // 🔥 CORREÇÃO AQUI: Procura a data em todas as possibilidades do banco
           const dataString = mov.data_retorno || mov.atualizado_em || mov.criado_em || mov.data_envio;
           
           if (dataString) {
@@ -214,7 +182,6 @@ function Dashboard() {
               m => m.mesNum === dataRetorno.getMonth() && m.ano === dataRetorno.getFullYear()
             );
 
-            // Se o mês da devolução estiver dentro dos últimos 5 meses, soma na barra do gráfico!
             if (mesIndex !== -1) {
               ultimos5Meses[mesIndex].quantidade += qtd;
             }
@@ -228,7 +195,29 @@ function Dashboard() {
     } catch (error) {
       console.error("Erro ao buscar histórico de produção:", error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token_confeccao');
+    if (!token) {
+      navigate('/');
+      return;
+    }
+
+    const userStorage = localStorage.getItem('usuario_confeccao');
+    if (userStorage) {
+      const u = JSON.parse(userStorage);
+      setPerfilUsuario(u);
+      if (u.onboarding_concluido === false) {
+        navigate('/onboarding');
+        return;
+      }
+    }
+
+    carregarEstoqueDashboard();
+    carregarRendimentoDashboard();
+    carregarTotalEProducao();
+  }, [navigate, carregarEstoqueDashboard, carregarRendimentoDashboard, carregarTotalEProducao]);
 
   const handleLogout = () => {
     localStorage.removeItem('token_confeccao');

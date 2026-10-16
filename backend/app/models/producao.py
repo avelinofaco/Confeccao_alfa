@@ -22,6 +22,10 @@ class OrdemProducao(Base):
     # Suporte a Workflow Dinâmico e Multi-Contexto
     id_etapa_atual = Column(Integer, ForeignKey("workflow_etapas.id_etapa", ondelete="SET NULL"), nullable=True)
     dados_contexto = Column(JSON, nullable=True, default=dict) # Dados extras: grade, metragem microfibra, etc.
+    grade_distribuicao = Column(JSON, nullable=True, default=dict) # Matriz 2D: {"Preto": {"P": 50, "M": 50}, ...}
+    dados_enfesto = Column(JSON, nullable=True, default=dict) # {"comprimento_enfesto_m": 4.5, "camadas_enfesto": 40}
+    horas_descanso_cumpridas = Column(Numeric(6, 2), nullable=True, default=0.00)
+    status_descanso = Column(String(30), nullable=True, default="Liberado") # "Em Descanso", "Liberado", "Dispensado"
 
     criado_em = Column(DateTime(timezone=True), default=get_utc_now)
     atualizado_em = Column(DateTime(timezone=True), default=get_utc_now, onupdate=get_utc_now)

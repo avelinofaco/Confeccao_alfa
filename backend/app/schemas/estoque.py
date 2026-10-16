@@ -15,6 +15,10 @@ class InsumoBase(BaseModel):
     tipo: str = Field(..., max_length=100, description="Tipo do material")
     unidade_medida: str = Field(..., max_length=10, description="Unidade: kg ou metros")
     estoque_minimo_seguranca: Optional[Decimal] = Field(default=0.000, max_digits=10, decimal_places=3)
+    cor: Optional[str] = Field(default=None, max_length=50, description="Cor do insumo/tingimento")
+    custo_unitario: Optional[Decimal] = Field(default=Decimal("0.00"), max_digits=10, decimal_places=2, description="Custo unitário por kg/metro/un")
+    fornecedor: Optional[str] = Field(default=None, max_length=100, description="Nome da tecelagem/fornecedor")
+    lote_fornecedor: Optional[str] = Field(default=None, max_length=50, description="Lote da tecelagem/fornecedor")
 
 # Schema usado para CADASTRAR um novo insumo
 class InsumoCreate(InsumoBase):

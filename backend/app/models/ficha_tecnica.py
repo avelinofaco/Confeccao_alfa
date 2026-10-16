@@ -1,6 +1,6 @@
 # app/models/ficha_tecnica.py
 
-from sqlalchemy import Column, Integer, String, Numeric, DateTime, ForeignKey, UniqueConstraint
+from sqlalchemy import Column, Integer, String, Numeric, DateTime, ForeignKey, UniqueConstraint, JSON
 from sqlalchemy.orm import relationship
 from app.database import Base
 from app.models.estoque import get_utc_now # Reutilizando a função de data
@@ -10,6 +10,13 @@ class Produto(Base):
 
     id_produto = Column(Integer, primary_key=True, index=True)
     nome_modelo = Column(String(150), unique=True, nullable=False, index=True)
+    referencia_codigo = Column(String(50), nullable=True) # Ex: CAM-301-CLS
+    descricao_detalhada = Column(String(255), nullable=True)
+    grade_tamanhos_disponiveis = Column(JSON, nullable=True, default=list) # Ex: ["P", "M", "G", "GG"]
+    cores_disponiveis = Column(JSON, nullable=True, default=list) # Ex: ["Preto", "Branco"]
+    tempo_padrao_total_minutos = Column(Numeric(8, 2), nullable=True, default=0.00)
+    custo_estimado_total = Column(Numeric(10, 2), nullable=True, default=0.00)
+
     criado_em = Column(DateTime(timezone=True), default=get_utc_now)
     atualizado_em = Column(DateTime(timezone=True), default=get_utc_now, onupdate=get_utc_now)
 

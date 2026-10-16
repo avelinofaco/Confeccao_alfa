@@ -285,8 +285,25 @@ function FichaTecnica() {
               <div className="ficha-detalhes-card">
                 <div className="ficha-header">
                   <div>
-                    <span className="category-badge">Ficha Técnica # {detalhesProduto?.id_produto || detalhesProduto?.id}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                      <span className="category-badge">Ficha Técnica #{detalhesProduto?.id_produto || detalhesProduto?.id}</span>
+                      {detalhesProduto?.referencia_codigo && (
+                        <span style={{ backgroundColor: '#eff6ff', color: '#2563eb', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 600 }}>
+                          Ref: {detalhesProduto.referencia_codigo}
+                        </span>
+                      )}
+                      {detalhesProduto?.nome_contexto && (
+                        <span style={{ backgroundColor: '#f0fdf4', color: '#16a34a', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 600 }}>
+                          {detalhesProduto.nome_contexto}
+                        </span>
+                      )}
+                    </div>
                     <h2>{detalhesProduto?.nome_modelo || detalhesProduto?.nome}</h2>
+                    {detalhesProduto?.descricao_detalhada && (
+                      <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#6b7280' }}>
+                        {detalhesProduto.descricao_detalhada}
+                      </p>
+                    )}
                   </div>
                   <button className="primary-btn-outline" onClick={() => setShowModalInsumo(true)}>
                     <PlusCircle size={18} />
@@ -294,13 +311,56 @@ function FichaTecnica() {
                   </button>
                 </div>
 
+                {/* Parâmetros Industriais do Modelo */}
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', 
+                  gap: '12px', 
+                  padding: '14px', 
+                  backgroundColor: '#f9fafb', 
+                  borderRadius: '10px', 
+                  border: '1px solid #e5e7eb',
+                  marginBottom: '20px'
+                }}>
+                  <div>
+                    <span style={{ fontSize: '11px', color: '#6b7280', display: 'block', fontWeight: 500 }}>Tempo Padrão (Crono)</span>
+                    <strong style={{ fontSize: '14px', color: '#1f2937' }}>
+                      {detalhesProduto?.tempo_padrao_total_minutos ? `${detalhesProduto.tempo_padrao_total_minutos} min` : 'N/A'}
+                    </strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '11px', color: '#6b7280', display: 'block', fontWeight: 500 }}>Custo Estimado Peça</span>
+                    <strong style={{ fontSize: '14px', color: '#16a34a' }}>
+                      {detalhesProduto?.custo_estimado_total ? `R$ ${parseFloat(detalhesProduto.custo_estimado_total).toFixed(2)}` : 'R$ 0,00'}
+                    </strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '11px', color: '#6b7280', display: 'block', fontWeight: 500 }}>Grade de Tamanhos</span>
+                    <span style={{ fontSize: '12px', color: '#374151', fontWeight: 500 }}>
+                      {detalhesProduto?.grade_tamanhos_disponiveis?.length > 0 
+                        ? detalhesProduto.grade_tamanhos_disponiveis.join(' • ') 
+                        : 'P • M • G • GG'}
+                    </span>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '11px', color: '#6b7280', display: 'block', fontWeight: 500 }}>Cores Homologadas</span>
+                    <span style={{ fontSize: '12px', color: '#374151', fontWeight: 500 }}>
+                      {detalhesProduto?.cores_disponiveis?.length > 0 
+                        ? detalhesProduto.cores_disponiveis.join(', ') 
+                        : 'Padrão'}
+                    </span>
+                  </div>
+                </div>
+
                 <div className="table-responsive">
                   <table className="custom-table">
                     <thead>
                       <tr>
                         <th>Código Insumo</th>
-                        <th>Material / Tipo</th>
+                        <th>Material & Fornecedor</th>
                         <th>Consumo por Peça</th>
+                        <th>Custo Unitário</th>
+                        <th>Custo no Modelo</th>
                         <th>Unidade</th>
                       </tr>
                     </thead>
@@ -315,7 +375,7 @@ function FichaTecnica() {
                         if (listaInsumos.length === 0) {
                           return (
                             <tr>
-                              <td colSpan="5" style={{ textAlign: 'center', padding: '30px', color: '#9ca3af' }}>
+                              <td colSpan="6" style={{ textAlign: 'center', padding: '30px', color: '#9ca3af' }}>
                                 Nenhum insumo vinculado a esta ficha técnica ainda.
                               </td>
                             </tr>
@@ -324,13 +384,33 @@ function FichaTecnica() {
 
                         return listaInsumos.map((comp, index) => {
                           const info = insumosDisponiveis.find(i => (i.id_insumo || i.id) === (comp.id_insumo || comp.id)) || {};
+                          const custoUnit = parseFloat(info.custo_unitario || 0);
+                          const gasto = parseFloat(comp.gasto_por_unidade || 0);
+                          const custoNoModelo = custoUnit * gasto;
                           
                           return (
                             <tr key={comp.id_ficha_tecnica || index}>
-                              <td className="font-semibold text-gray-500">{info.codigo || `-`}</td>
-                              <td className="font-semibold text-gray-800">{info.tipo || info.nome_insumo || 'Desconhecido'}</td>
+                              <td className="font-semibold text-gray-500">
+                                <span style={{ fontFamily: 'monospace' }}>{info.codigo || `-`}</span>
+                              </td>
+                              <td>
+                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                  <span style={{ fontWeight: 600, color: '#1f2937' }}>
+                                    {info.tipo || info.nome_insumo || 'Desconhecido'}
+                                  </span>
+                                  <span style={{ fontSize: '11px', color: '#6b7280' }}>
+                                    {info.cor && `Cor: ${info.cor}`} {info.fornecedor && `• ${info.fornecedor}`}
+                                  </span>
+                                </div>
+                              </td>
                               <td className="font-bold text-green-600">
                                 {comp.gasto_por_unidade}
+                              </td>
+                              <td className="text-gray-600">
+                                {custoUnit > 0 ? `R$ ${custoUnit.toFixed(2)}` : '-'}
+                              </td>
+                              <td className="font-semibold text-gray-800">
+                                {custoNoModelo > 0 ? `R$ ${custoNoModelo.toFixed(2)}` : '-'}
                               </td>
                               <td className="text-gray-500">{info.unidade_medida || 'kg'}</td>
                             </tr>

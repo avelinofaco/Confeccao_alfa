@@ -8,8 +8,24 @@ from sqlalchemy import text
 try:
     with engine.connect() as conn:
         conn.execute(text("ALTER TABLE produtos ADD COLUMN IF NOT EXISTS id_contexto INTEGER REFERENCES contextos_produto(id_contexto) ON DELETE SET NULL;"))
+        conn.execute(text("ALTER TABLE produtos ADD COLUMN IF NOT EXISTS referencia_codigo VARCHAR(50);"))
+        conn.execute(text("ALTER TABLE produtos ADD COLUMN IF NOT EXISTS descricao_detalhada VARCHAR(255);"))
+        conn.execute(text("ALTER TABLE produtos ADD COLUMN IF NOT EXISTS grade_tamanhos_disponiveis JSON DEFAULT '[]';"))
+        conn.execute(text("ALTER TABLE produtos ADD COLUMN IF NOT EXISTS cores_disponiveis JSON DEFAULT '[]';"))
+        conn.execute(text("ALTER TABLE produtos ADD COLUMN IF NOT EXISTS tempo_padrao_total_minutos NUMERIC(8, 2) DEFAULT 0.00;"))
+        conn.execute(text("ALTER TABLE produtos ADD COLUMN IF NOT EXISTS custo_estimado_total NUMERIC(10, 2) DEFAULT 0.00;"))
+
+        conn.execute(text("ALTER TABLE insumos ADD COLUMN IF NOT EXISTS cor VARCHAR(50);"))
+        conn.execute(text("ALTER TABLE insumos ADD COLUMN IF NOT EXISTS custo_unitario NUMERIC(10, 2) DEFAULT 0.00;"))
+        conn.execute(text("ALTER TABLE insumos ADD COLUMN IF NOT EXISTS fornecedor VARCHAR(100);"))
+        conn.execute(text("ALTER TABLE insumos ADD COLUMN IF NOT EXISTS lote_fornecedor VARCHAR(50);"))
+
         conn.execute(text("ALTER TABLE ordens_producao ADD COLUMN IF NOT EXISTS id_etapa_atual INTEGER REFERENCES workflow_etapas(id_etapa) ON DELETE SET NULL;"))
         conn.execute(text("ALTER TABLE ordens_producao ADD COLUMN IF NOT EXISTS dados_contexto JSON DEFAULT '{}';"))
+        conn.execute(text("ALTER TABLE ordens_producao ADD COLUMN IF NOT EXISTS grade_distribuicao JSON DEFAULT '{}';"))
+        conn.execute(text("ALTER TABLE ordens_producao ADD COLUMN IF NOT EXISTS dados_enfesto JSON DEFAULT '{}';"))
+        conn.execute(text("ALTER TABLE ordens_producao ADD COLUMN IF NOT EXISTS horas_descanso_cumpridas NUMERIC(6, 2) DEFAULT 0.00;"))
+        conn.execute(text("ALTER TABLE ordens_producao ADD COLUMN IF NOT EXISTS status_descanso VARCHAR(30) DEFAULT 'Liberado';"))
         conn.commit()
 except Exception as e:
     # Caso ocorra algum erro não-fatal (tabelas ainda sendo criadas), ignora
