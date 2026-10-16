@@ -19,6 +19,7 @@ class ComposicaoResponse(ComposicaoBase):
 # Schemas para o Produto (Modelo)
 class ProdutoBase(BaseModel):
     nome_modelo: str = Field(..., max_length=150, description="Nome do produto (Ex: Calcinha Modelo X)")
+    id_contexto: Optional[int] = Field(None, description="ID do contexto/família da peça (ex: Camisetas, Calcinhas, etc.)")
 
 class ProdutoCreate(ProdutoBase):
     pass
@@ -26,9 +27,12 @@ class ProdutoCreate(ProdutoBase):
 # Resposta do Produto SIMPLES (só o nome e ID)
 class ProdutoResponse(ProdutoBase):
     id_produto: int
+    nome_contexto: Optional[str] = None
+    codigo_contexto: Optional[str] = None
     criado_em: datetime
     
     model_config = ConfigDict(from_attributes=True)
+
 
 # Resposta do Produto COMPLETA (traz o modelo e toda a ficha técnica atrelada)
 class ProdutoFichaCompletaResponse(ProdutoResponse):

@@ -29,10 +29,13 @@ function FichaTecnica() {
 
   // Estados dos formulários
   const [nomeModelo, setNomeModelo] = useState('');
+  const [idContextoSelecionado, setIdContextoSelecionado] = useState('');
+  const [contextosDisponiveis, setContextosDisponiveis] = useState([]);
   const [novoConsumo, setNovoConsumo] = useState({
     id_insumo: '',
     gasto_por_unidade: ''
   });
+
 
   // Carregar lista de modelos e insumos do banco
   const carregarDadosIniciais = async () => {
@@ -44,6 +47,10 @@ function FichaTecnica() {
 
       const resInsumos = await api.get('/estoque/insumos/').catch(() => api.get('/insumos/'));
       setInsumosDisponiveis(resInsumos.data || []);
+
+      const resContextos = await api.get('/contextos/').catch(() => ({ data: [] }));
+      setContextosDisponiveis(resContextos.data || []);
+
 
     } catch (error) {
       console.error("Erro ao carregar dados iniciais:", error);
@@ -84,13 +91,18 @@ function FichaTecnica() {
   const handleCadastrarModelo = async (e) => {
     e.preventDefault();
     try {
-      const payload = { nome_modelo: nomeModelo };
+      const payload = { 
+        nome_modelo: nomeModelo,
+        id_contexto: idContextoSelecionado ? parseInt(idContextoSelecionado) : null
+      };
       
       const response = await api.post('/produtos/', payload);
       alert('Modelo/Ficha Técnica criado com sucesso!');
       
       setShowModalModelo(false);
       setNomeModelo('');
+      setIdContextoSelecionado('');
+
       
       await carregarDadosIniciais();
 
@@ -227,9 +239,10 @@ function FichaTecnica() {
                       onClick={() => carregarDetalhesProduto(produtoId)}
                     >
                       <div className="modelo-card-info">
-                        <span className="modelo-tag">Calcinha</span>
+                        <span className="modelo-tag">{item.nome_contexto || 'Geral'}</span>
                         <h3>{item.nome_modelo || item.nome}</h3>
                       </div>
+
                       <ChevronRight size={18} color={isSelected ? "#00c875" : "#9ca3af"} />
                     </div>
                   );
@@ -327,11 +340,36 @@ function FichaTecnica() {
                 <label>Nome do Modelo / Produto</label>
                 <input 
                   type="text" 
-                  placeholder="Ex: Calcinha Rendada Fio Dental M" 
+                  placeholder="Ex: Camiseta Algodão 30.1 ou Calcinha Fio Duplo" 
                   value={nomeModelo}
                   onChange={(e) => setNomeModelo(e.target.value)}
                   required 
                 />
+              </div>
+
+              <div className="input-group">
+                <label>Família da Peça / Fluxo de Produção</label>
+                <select 
+                  value={idContextoSelecionado} 
+                  onChange={(e) => setIdContextoSelecionado(e.target.value)}
+                  style={{
+                    padding: '10px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid #d1d5db',
+                    fontSize: '14px',
+                    outline: 'none'
+                  }}
+                >
+                  <option value="">Sem Contexto Específico (Padrão Geral)</option>
+                  {contextosDisponiveis.map(ctx => (
+                    <option key={ctx.id_contexto} value={ctx.id_contexto}>
+                      {ctx.nome} ({ctx.codigo})
+                    </option>
+                  ))}
+                </select>
+                <small style={{ fontSize: '11px', color: '#6b7280', marginTop: '2px' }}>
+                  Define a esteira produtiva (Corte, Estamparia, Costura, etc.) e campos de controle.
+                </small>
               </div>
 
               <div className="modal-actions">
@@ -339,6 +377,7 @@ function FichaTecnica() {
                 <button type="submit" className="primary-btn">Salvar Modelo</button>
               </div>
             </form>
+
           </div>
         </div>
       )}

@@ -13,9 +13,21 @@ class Produto(Base):
     criado_em = Column(DateTime(timezone=True), default=get_utc_now)
     atualizado_em = Column(DateTime(timezone=True), default=get_utc_now, onupdate=get_utc_now)
 
+    id_contexto = Column(Integer, ForeignKey("contextos_produto.id_contexto", ondelete="SET NULL"), nullable=True)
+
     # Relacionamento com a composição (Ficha Técnica)
     # cascade="all, delete-orphan" garante que se apagarmos o produto, a ficha técnica dele é apagada
     composicao = relationship("FichaTecnicaInsumo", back_populates="produto", cascade="all, delete-orphan")
+    contexto = relationship("ContextoProduto", back_populates="produtos")
+
+    @property
+    def nome_contexto(self):
+        return self.contexto.nome if self.contexto else None
+
+    @property
+    def codigo_contexto(self):
+        return self.contexto.codigo if self.contexto else None
+
 
 
 class FichaTecnicaInsumo(Base):

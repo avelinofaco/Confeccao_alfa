@@ -35,8 +35,14 @@ def enviar_para_corte(op: schemas.OPCreate, db: Session = Depends(get_db)):
     if not produto:
         raise HTTPException(status_code=404, detail="Produto não encontrado.")
 
+    # Se o produto possui workflow configurado, inicializa a primeira etapa
+    id_primeira_etapa = None
+    if produto.contexto and produto.contexto.etapas:
+        id_primeira_etapa = produto.contexto.etapas[0].id_etapa
+
     nova_op = models_prod.OrdemProducao(
         **op.model_dump(),
+        id_etapa_atual=id_primeira_etapa,
         status_op="Enviado para Corte"
     )
     
@@ -74,12 +80,16 @@ def registrar_retorno_corte(id_op: int, retorno: schemas.OPRetornoCorte, db: Ses
     # Atualiza as peças
     op.quantidade_pecas_cortadas = retorno.quantidade_pecas_cortadas
     
-    # REGRA DE NEGÓCIO: Cálculo do rendimento real (Peças / Kg)
-    rendimento = Decimal(retorno.quantidade_pecas_cortadas) / op.peso_malha_enviado
-    op.rendimento_real = round(rendimento, 2) # Arredonda para 2 casas decimais (ex: 44.44)
+    # REGRA DE NEGÓCIO: Cálculo do rendimento real (Peças / Kg) quando aplicável
+    if op.peso_malha_enviado and op.peso_malha_enviado > 0:
+        rendimento = Decimal(retorno.quantidade_pecas_cortadas) / op.peso_malha_enviado
+        op.rendimento_real = round(rendimento, 2) # Arredonda para 2 casas decimais (ex: 44.44)
+    else:
+        op.rendimento_real = None
     
     # Atualiza o status
     op.status_op = "Corte Finalizado"
+
 
     db.commit()
     db.refresh(op)
