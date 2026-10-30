@@ -7,7 +7,7 @@ from decimal import Decimal
 
 # Schema Base
 class OPBase(BaseModel):
-    codigo_op: str = Field(..., max_length=20, description="Código da OP (ex: OP#101)")
+    codigo_op: Optional[str] = Field(default=None, max_length=20, description="Código da OP (ex: OP#101)")
     id_produto: int = Field(..., description="ID do modelo a ser fabricado")
     peso_malha_enviado: Decimal = Field(..., gt=0, description="Peso em kg enviado ao cortador")
 

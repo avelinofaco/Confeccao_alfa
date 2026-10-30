@@ -1,3 +1,357 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ==========================================================================
+   CONCEITO ATELIÊ ARTESANAL - DESIGN SYSTEM TIPOGRÁFICO & VISUAL
+   Estética sob medida: Títulos em Serifa Editorial (Lora / Playfair Display),
+   Dados e Chão de Fábrica em Sem Serifa Humanista (Plus Jakarta Sans / DM Sans),
+   Etiquetas de Tecido Costuradas e Tons Orgânicos de Linho, Carvão e Café (#2C2523)
+   ========================================================================== */
+
+:root {
+  /* 1. Tipografia Editorial & Humanista */
+  --font-serif-editorial: 'Lora', 'Playfair Display', Georgia, Cambria, serif;
+  --font-sans-humanist: 'Plus Jakarta Sans', 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  
+  /* 2. Cores Orgânicas e Confortáveis (Sem preto puro #000000) */
+  --color-text-main: #2C2523;        /* Tom carvão escuro / Marrom café profundo */
+  --color-text-body: #3E3633;        /* Texto corrido natural e nítido */
+  --color-text-muted: #6E635F;       /* Subtítulos e informações de apoio */
+  --color-text-subtle: #8C8079;      /* Rótulos secundários e legendas */
+  
+  /* 3. Fundos Off-White, Creme e Linho Cru */
+  --bg-artisan-cream: #FDFBF7;       /* Fundo principal acolhedor e aconchegante */
+  --bg-artisan-surface: #FFFFFF;     /* Fundo de cards, tabelas e modais */
+  --bg-artisan-subtle: #F7F4EE;      /* Fundo suave para cabeçalhos e caixas */
+  --bg-artisan-highlight: #F0EAE1;   /* Destaque suave em caixas técnicas */
+
+  /* 4. Bordas e Detalhes de Costura / Alfaiataria */
+  --border-artisan: #EAE4DD;         /* Linha suave de alfaiate */
+  --border-artisan-strong: #D5CCC0;  /* Divisórias de maior contraste */
+  --border-stitch: 1px dashed #C8BDB0; /* Pesponto artesanal em etiquetas */
+
+  /* 5. Acentos de Cor em Harmonia Artesanal */
+  --accent-artisan-indigo: #204B72;  /* Azul índigo / Sarja nobre */
+  --accent-artisan-indigo-bg: #EEF4FB;
+  --accent-artisan-indigo-border: #BCD3EB;
+
+  --accent-artisan-sage: #236342;    /* Verde sálvia / Algodão botânico */
+  --accent-artisan-sage-bg: #EDF7F1;
+  --accent-artisan-sage-border: #A6D8BB;
+
+  --accent-artisan-amber: #9E5608;   /* Âmbar / Couro artesanal */
+  --accent-artisan-amber-bg: #FEF8EC;
+  --accent-artisan-amber-border: #F7D89C;
+
+  --accent-artisan-terracotta: #9B281E; /* Terracota / Argila */
+  --accent-artisan-terracotta-bg: #FDF2F0;
+  --accent-artisan-terracotta-border: #F5B9B2;
+}
+
+/* Base Geral do Documento */
+html, body {
+  background-color: var(--bg-artisan-cream);
+  color: var(--color-text-main);
+  font-family: var(--font-sans-humanist);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 1. TÍTULOS E CABEÇALHOS (Serifa Editorial - Lora / Playfair Display) */
+h1, h2, h3, h4,
+.titulo-editorial,
+.page-header h1,
+.dashboard-header-title h1,
+.estoque-header-title h1,
+.ficha-header h1,
+.top-header-enfesto h1,
+.costura-header h1,
+.financeiro-header h1,
+.form-card h2,
+.form-envio-card h2,
+.form-financeiro-card h2,
+.tabela-financeiro-card h2,
+.table-header-box h2,
+.table-header-box h3,
+.modal-header h3,
+.card-modelo-header h3,
+.calc-title h3,
+.sidebar-header h2 {
+  font-family: var(--font-serif-editorial) !important;
+  color: var(--color-text-main) !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.015em !important;
+}
+
+/* Nomes de Abas e Seções de Navegação */
+.tab-btn,
+.tabs-navigation button,
+.aba-btn,
+.tab-modelo-btn,
+.sidebar-nav a {
+  font-family: var(--font-serif-editorial);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.tab-btn span,
+.tabs-navigation button span {
+  font-family: var(--font-serif-editorial);
+}
+
+/* 2. DADOS, TABELAS, INPUTS E NÚMEROS (Sem Serifa Humanista - Plus Jakarta Sans / DM Sans) */
+table,
+th,
+td,
+input,
+select,
+textarea,
+button,
+.kpi-valor,
+.total-grade-badge,
+.card-estoque-kpi h3,
+.metrica-costura-card h3,
+.card-financeiro-kpi h3,
+.numero-destaque,
+.consumo-destaque,
+.preco-destaque,
+.rendimento-destaque {
+  font-family: var(--font-sans-humanist) !important;
+  font-variant-numeric: tabular-nums lining-nums;
+  -webkit-font-feature-settings: "tnum" 1, "lnum" 1;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+}
+
+/* Legibilidade Máxima para o Chão de Fábrica (Corte, Costura e Grade de Tamanhos) */
+.grade-item label {
+  font-family: var(--font-sans-humanist) !important;
+  font-weight: 800 !important;
+  font-size: 1.05rem !important;
+  color: var(--color-text-main) !important;
+  letter-spacing: 0.05em;
+}
+
+.grade-item input {
+  font-family: var(--font-sans-humanist) !important;
+  font-weight: 700 !important;
+  font-size: 1.15rem !important;
+  color: var(--color-text-main) !important;
+  background-color: #FFFFFF !important;
+  border: 1px solid var(--border-artisan-strong) !important;
+  border-radius: 6px !important;
+}
+
+/* Cabeçalhos de Tabelas com tom artesanal */
+table th,
+.estoque-table th,
+.pedidos-table th,
+.table th {
+  font-family: var(--font-sans-humanist) !important;
+  font-weight: 700 !important;
+  font-size: 0.75rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+  color: var(--color-text-muted) !important;
+  background: var(--bg-artisan-subtle) !important;
+  border-bottom: 1px solid var(--border-artisan) !important;
+}
+
+table td,
+.estoque-table td,
+.pedidos-table td,
+.table td {
+  color: var(--color-text-body) !important;
+  border-bottom: 1px solid var(--border-artisan) !important;
+}
+
+/* 3. MICRO-ELEMENTOS: ETIQUETAS DE TECIDO COSTURADAS NA TELA */
+.status-estoque-badge,
+.badge-status-pedido,
+.badge-enfesto,
+.status-corte-badge,
+.status-costura-badge,
+.tag-origem-fin,
+.grade-pill-tag,
+.badge-unidade-tabela,
+.margem-info-badge,
+.tag-artisan-stitched {
+  font-family: var(--font-sans-humanist) !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+  border-radius: 4px !important; /* Formato de etiqueta têxtil, não pílula genérica */
+  padding: 0.28rem 0.65rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.4rem !important;
+  position: relative !important;
+  box-shadow: 0 1px 3px rgba(44, 37, 35, 0.06) !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+/* Efeito de etiqueta costurada (pontos de costura sutis nas laterais) */
+.status-estoque-badge::before,
+.badge-status-pedido::before,
+.tag-origem-fin::before {
+  content: "";
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.6;
+}
+
+/* Variações de Etiquetas Têxteis */
+/* Verde / Normal / Concluído / Entregue */
+.status-estoque-badge.normal,
+.badge-status-pedido.concluido,
+.badge-status-pedido.entregue,
+.tag-origem-fin.origem-real {
+  background: var(--accent-artisan-sage-bg) !important;
+  color: var(--accent-artisan-sage) !important;
+  border: 1px dashed var(--accent-artisan-sage-border) !important;
+}
+
+/* Azul / Produção / Em Corte / Costura */
+.badge-status-pedido.producao,
+.badge-status-pedido.estoque-pronto,
+.badge-enfesto,
+.tag-origem-fin.origem-projecao {
+  background: var(--accent-artisan-indigo-bg) !important;
+  color: var(--accent-artisan-indigo) !important;
+  border: 1px dashed var(--accent-artisan-indigo-border) !important;
+}
+
+/* Âmbar / Aguardando / Atenção */
+.badge-status-pedido.aguardando {
+  background: var(--accent-artisan-amber-bg) !important;
+  color: var(--accent-artisan-amber) !important;
+  border: 1px dashed var(--accent-artisan-amber-border) !important;
+}
+
+/* Terracota / Estoque Crítico / Atraso */
+.status-estoque-badge.critico,
+.badge-status-pedido.cancelado {
+  background: var(--accent-artisan-terracotta-bg) !important;
+  color: var(--accent-artisan-terracotta) !important;
+  border: 1px dashed var(--accent-artisan-terracotta-border) !important;
+}
+
+/* Etiquetas de Grade e Unidades (Têxtil Neutro / Algodão Cru) */
+.grade-pill-tag,
+.badge-unidade-tabela {
+  background: #F4EFEA !important;
+  color: var(--color-text-main) !important;
+  border: 1px solid #DCD3C7 !important;
+}
+
+/* 4. REFINAMENTO DE CARDS, FORMULÁRIOS E SUPERFÍCIES */
+.card-estoque-kpi,
+.kpi-pedido-card,
+.metrica-costura-card,
+.card-financeiro-kpi,
+.card-destaque,
+.card-estoque-tabela,
+.form-card,
+.table-card,
+.form-envio-card,
+.tabela-remessas-card,
+.form-financeiro-card,
+.tabela-financeiro-card,
+.modal-content {
+  background: var(--bg-artisan-surface) !important;
+  border: 1px solid var(--border-artisan) !important;
+  box-shadow: 0 4px 20px rgba(44, 37, 35, 0.04) !important;
+}
+
+/* Labels e Títulos de KPIs */
+.card-estoque-kpi span,
+.kpi-label,
+.metrica-costura-card span,
+.card-financeiro-kpi span {
+  font-family: var(--font-sans-humanist) !important;
+  color: var(--color-text-muted) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+  font-size: 0.76rem !important;
+}
+
+/* 5. SUAVIZAÇÃO DOS BOTÕES (Sem cores de fundo muito fortes) */
+/* Botões Azuis: Azul Alfaiataria Suave e Elegante */
+button[style*="background: rgb(37, 99, 235)"],
+button[style*="background: #2563eb"],
+button[style*="backgroundColor: #2563eb"],
+.btn-acao-rapida:not(.secundario),
+.btn-salvar-pedido,
+.btn-criar-op-enfesto,
+.btn-novo-modelo,
+.btn-salvar,
+.btn-primario {
+  background-color: #3D7098 !important;
+  color: #FFFFFF !important;
+  border: 1px solid #336184 !important;
+  border-radius: 8px !important;
+  font-family: var(--font-sans-humanist) !important;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 6px rgba(44, 37, 35, 0.08) !important;
+  transition: all 0.2s ease !important;
+}
+
+button[style*="background: rgb(37, 99, 235)"]:hover,
+button[style*="background: #2563eb"]:hover,
+.btn-acao-rapida:not(.secundario):hover,
+.btn-salvar-pedido:hover,
+.btn-criar-op-enfesto:hover,
+.btn-novo-modelo:hover,
+.btn-salvar:hover,
+.btn-primario:hover {
+  background-color: #315C7E !important;
+  border-color: #264A66 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(44, 37, 35, 0.12) !important;
+}
+
+/* Botões Verdes: Verde Sálvia / Floresta Suave (Sem tom berrante/neon) */
+button[style*="background: rgb(16, 185, 129)"],
+button[style*="background: #10b981"],
+button[style*="background: #00c875"],
+button[style*="background-color: #00c875"],
+.btn-acao-entregar,
+.btn-action-retorno,
+.btn-sincronizar-fin,
+.login-button {
+  background-color: #387D56 !important;
+  color: #FFFFFF !important;
+  border: 1px solid #2F6947 !important;
+  border-radius: 8px !important;
+  font-family: var(--font-sans-humanist) !important;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 6px rgba(44, 37, 35, 0.08) !important;
+  transition: all 0.2s ease !important;
+}
+
+button[style*="background: rgb(16, 185, 129)"]:hover,
+button[style*="background: #10b981"]:hover,
+button[style*="background: #00c875"]:hover,
+.btn-acao-entregar:hover,
+.btn-action-retorno:hover,
+.btn-sincronizar-fin:hover,
+.login-button:hover {
+  background-color: #2D6846 !important;
+  border-color: #245437 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(44, 37, 35, 0.12) !important;
+}
+
+/* Foco em Inputs e Formulários */
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #3D7098 !important;
+  box-shadow: 0 0 0 3px rgba(61, 112, 152, 0.15) !important;
+  outline: none !important;
+}

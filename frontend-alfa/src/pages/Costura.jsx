@@ -5,6 +5,7 @@ import {
   Plus, Search, CheckCircle, Activity, X, ArrowRight, Menu
 } from 'lucide-react';
 import api from '../services/api';
+import Sidebar from '../components/Sidebar';
 import './Costura.css';
 
 function Costura() {
@@ -186,26 +187,8 @@ function Costura() {
         </button>
       </div>
 
-      {/* Sidebar Responsiva */}
-      <aside className={`sidebar ${menuMobileAberto ? 'open' : ''}`}>
-        <div className="sidebar-header">
-          <div className="logo-box-sm"><Scissors size={22} color="#00c875" strokeWidth={2} /></div>
-          <h2>Confecção Alfa</h2>
-        </div>
-        <nav className="sidebar-nav">
-          <button className="nav-item" onClick={() => { navigate('/dashboard'); setMenuMobileAberto(false); }}><LayoutDashboard size={19} /><span>Dashboard</span></button>
-          <button className="nav-item" onClick={() => { navigate('/estoque'); setMenuMobileAberto(false); }}><Package size={19} /><span>Estoque</span></button>
-          <button className="nav-item" onClick={() => { navigate('/ficha-tecnica'); setMenuMobileAberto(false); }}><FileText size={19} /><span>Ficha Técnica</span></button>
-          <button className="nav-item" onClick={() => { navigate('/comercial'); setMenuMobileAberto(false); }}><ShoppingCart size={19} /><span>Comercial</span></button>
-          <button className="nav-item" onClick={() => { navigate('/corte-rendimento'); setMenuMobileAberto(false); }}><Crop size={19} /><span>Corte/Rendimento</span></button>
-          <button className="nav-item active" onClick={() => { navigate('/costura'); setMenuMobileAberto(false); }}><Scissors size={19} /><span>Costura</span></button>
-          <button className="nav-item" onClick={() => { navigate('/equipe'); setMenuMobileAberto(false); }}><Users size={19} /><span>Equipe</span></button>
-          <button className="nav-item" onClick={() => { navigate('/configuracoes'); setMenuMobileAberto(false); }}><Users size={19} /><span>Configurações</span></button>
-        </nav>
-        <div className="sidebar-footer">
-          <button className="nav-item logout" onClick={() => { localStorage.removeItem('token_confeccao'); navigate('/'); }}><LogOut size={19} /><span>Sair</span></button>
-        </div>
-      </aside>
+      {/* Sidebar Unificada do Sistema */}
+      <Sidebar menuMobileAberto={menuMobileAberto} setMenuMobileAberto={setMenuMobileAberto} />
 
       <main className="main-content">
         <header className="top-header">

@@ -18,14 +18,22 @@ router = APIRouter(
 @router.post("/insumos", response_model=schemas.InsumoResponse, status_code=status.HTTP_201_CREATED)
 def cadastrar_insumo(insumo: schemas.InsumoCreate, db: Session = Depends(get_db)):
     """Cadastra um novo material (Malha ou Aviamento) no sistema."""
+    dados_insumo = insumo.model_dump()
+
+    # Se o código não for informado, gerar automaticamente pelo banco
+    if not dados_insumo.get("codigo"):
+        prefix = "TEC" if any(w in (dados_insumo.get("categoria") or "").lower() for w in ["tecido", "malha"]) else "AV"
+        ultimo = db.query(models.Insumo).order_by(models.Insumo.id_insumo.desc()).first()
+        next_id = (ultimo.id_insumo + 1) if ultimo else 1
+        dados_insumo["codigo"] = f"{prefix}-{next_id:03d}"
+    else:
+        # Verifica se o código já existe para não dar erro no banco
+        db_insumo = db.query(models.Insumo).filter(models.Insumo.codigo == dados_insumo["codigo"]).first()
+        if db_insumo:
+            raise HTTPException(status_code=400, detail="Já existe um material com este código.")
     
-    # Verifica se o código já existe para não dar erro no banco
-    db_insumo = db.query(models.Insumo).filter(models.Insumo.codigo == insumo.codigo).first()
-    if db_insumo:
-        raise HTTPException(status_code=400, detail="Já existe um material com este código.")
-    
-    # Transforma o Schema validado em um Model do SQLAlchemy e salva
-    novo_insumo = models.Insumo(**insumo.model_dump())
+    # Transforma em um Model do SQLAlchemy e salva
+    novo_insumo = models.Insumo(**dados_insumo)
     db.add(novo_insumo)
     db.commit()
     db.refresh(novo_insumo)

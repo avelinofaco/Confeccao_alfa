@@ -1,0 +1,806 @@
+/* PedidoCamisetas.css - Estilos para o Cadastro Comercial e Entrega de Camisetas */
+/* Conceito Ateliê Artesanal: Tipografia Editorial, Cores Orgânicas e Tags Costuradas */
+
+.pedido-camisetas-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--bg-artisan-cream, #FDFBF7);
+  color: var(--color-text-main, #2C2523);
+  font-family: var(--font-sans-humanist, 'Plus Jakarta Sans', sans-serif);
+}
+
+.pedido-camisetas-main {
+  flex: 1;
+  padding: 2.2rem 2.8rem;
+  overflow-y: auto;
+  position: relative;
+}
+
+/* Toast Notificação */
+.toast-alerta-flutuante {
+  position: fixed;
+  top: 1.5rem;
+  right: 2rem;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem 1.4rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 0 10px 30px rgba(44, 37, 35, 0.12);
+  animation: slideInDown 0.3s ease;
+}
+
+.toast-alerta-flutuante.sucesso {
+  background: #EDF7F1;
+  color: #236342;
+  border: 1px dashed #A6D8BB;
+}
+
+.toast-alerta-flutuante.info {
+  background: #EEF4FB;
+  color: #204B72;
+  border: 1px dashed #BCD3EB;
+}
+
+.toast-btn-fechar {
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.toast-btn-fechar:hover {
+  opacity: 1;
+}
+
+@keyframes slideInDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.page-header {
+  margin-bottom: 1.8rem;
+}
+
+.page-header h1 {
+  font-family: var(--font-serif-editorial, 'Lora', 'Playfair Display', serif);
+  font-size: 1.95rem;
+  font-weight: 600;
+  color: var(--color-text-main, #2C2523);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.35rem;
+  letter-spacing: -0.015em;
+}
+
+.page-header p {
+  color: var(--color-text-muted, #6E635F);
+  font-size: 0.95rem;
+}
+
+/* CARDS DE VISÃO RÁPIDA / IHC */
+.kpi-pedidos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.2rem;
+  margin-bottom: 2rem;
+}
+
+.kpi-pedido-card {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 1.3rem 1.5rem;
+  box-shadow: 0 2px 12px rgba(44, 37, 35, 0.04);
+  border: 1px solid var(--border-artisan, #EAE4DD);
+  display: flex;
+  flex-direction: column;
+  border-left: 4px solid #D5CCC0;
+}
+
+.kpi-pedido-card.aberto {
+  border-left-color: var(--accent-artisan-amber, #B45309);
+}
+
+.kpi-pedido-card.entregue {
+  border-left-color: var(--accent-artisan-sage, #236342);
+}
+
+.kpi-pedido-card.estoque-pronto {
+  border-left-color: var(--accent-artisan-indigo, #204B72);
+}
+
+.kpi-label {
+  font-family: var(--font-sans-humanist, sans-serif);
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--color-text-muted, #6E635F);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.35rem;
+}
+
+.kpi-valor {
+  font-family: var(--font-sans-humanist, sans-serif);
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--color-text-main, #2C2523);
+  line-height: 1.1;
+  margin-bottom: 0.25rem;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.kpi-desc {
+  font-size: 0.8rem;
+  color: var(--color-text-subtle, #8C8079);
+}
+
+/* Card do Formulário */
+.form-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.8rem 2.2rem;
+  box-shadow: 0 4px 18px rgba(44, 37, 35, 0.04);
+  border: 1px solid var(--border-artisan, #EAE4DD);
+  margin-bottom: 2.5rem;
+}
+
+.form-card h2 {
+  font-family: var(--font-serif-editorial, 'Lora', 'Playfair Display', serif);
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--color-text-main, #2C2523);
+  margin-bottom: 1.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  letter-spacing: -0.01em;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.2rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.form-group label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 0.65rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  font-size: 0.92rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.form-group input.input-error {
+  border-color: #ef4444;
+  background-color: #fff5f5;
+}
+
+.form-group input.input-error:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
+
+.form-help-text {
+  font-size: 0.78rem;
+  color: #64748b;
+  margin-top: 0.1rem;
+}
+
+.form-error-text {
+  font-size: 0.78rem;
+  color: #dc2626;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.15rem;
+}
+
+/* Seção de Grade de Tamanhos (Chão de Fábrica e Ergonomia Artesanal) */
+.grade-box-container {
+  background: #FAF7F2;
+  border: 1px solid var(--border-artisan, #EAE4DD);
+  border-radius: 8px;
+  padding: 1.2rem 1.4rem;
+  margin-bottom: 1.5rem;
+}
+
+.grade-box-title {
+  font-family: var(--font-serif-editorial, 'Lora', serif);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text-main, #2C2523);
+  margin-bottom: 0.8rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.grade-inputs-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.grade-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  background: #ffffff;
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #D5CCC0;
+  box-shadow: 0 1px 3px rgba(44, 37, 35, 0.04);
+}
+
+.grade-item label {
+  font-family: var(--font-sans-humanist, sans-serif);
+  font-weight: 800;
+  color: var(--accent-artisan-indigo, #204B72);
+  font-size: 1.05rem;
+  letter-spacing: 0.05em;
+}
+
+.grade-item input {
+  width: 100%;
+  text-align: center;
+  font-family: var(--font-sans-humanist, sans-serif);
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--color-text-main, #2C2523);
+  padding: 0.45rem;
+  border: 1px solid #C8BCB0;
+  border-radius: 6px;
+  background: #FFFFFF;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.total-grade-badge {
+  font-family: var(--font-sans-humanist, sans-serif);
+  background: #F4EFEA;
+.total-grade-badge {
+  font-family: var(--font-sans-humanist, sans-serif);
+  background: #F4EFEA;
+  color: var(--color-text-main, #2C2523);
+  font-weight: 700;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  border: 1px solid #D5CCC0;
+  letter-spacing: 0.03em;
+}
+
+/* Botão Salvar Pedido (Azul Suave Alfaiataria) */
+.btn-salvar-pedido {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: #3D7098;
+  color: #ffffff;
+  padding: 0.75rem 1.6rem;
+  border-radius: 8px;
+  font-family: var(--font-sans-humanist, sans-serif);
+  font-weight: 600;
+  font-size: 0.92rem;
+  border: 1px solid #336184;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(44, 37, 35, 0.08);
+}
+
+.btn-salvar-pedido:hover:not(:disabled) {
+  background: #315C7E;
+  border-color: #264A66;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(44, 37, 35, 0.12);
+}
+
+.btn-salvar-pedido:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Tabela de Pedidos */
+.table-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 1.8rem 2.2rem;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
+  border: 1px solid #e2e8f0;
+}
+
+.table-header-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.2rem;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+.table-header-box h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.table-responsive {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid var(--border-artisan, #EAE4DD);
+  background: #FFFFFF;
+  margin-top: 0.8rem;
+  box-shadow: 0 1px 4px rgba(44, 37, 35, 0.03);
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f8fafc;
+}
+
+.table-responsive::-webkit-scrollbar {
+  height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+  background: #f8fafc;
+  border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.pedidos-table {
+  width: 100%;
+  min-width: 1450px;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: left;
+}
+
+.pedidos-table th {
+  background: #F7F4EE;
+  padding: 1.15rem 1.6rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #5C524D;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border-artisan, #EAE4DD);
+  font-family: var(--font-sans-humanist, sans-serif);
+  white-space: nowrap;
+}
+
+.pedidos-table td {
+  padding: 1.25rem 1.6rem;
+  border-bottom: 1px solid #F0ECE4;
+  font-size: 0.94rem;
+  color: #3E3633;
+  vertical-align: middle;
+  font-family: var(--font-sans-humanist, sans-serif);
+  font-variant-numeric: tabular-nums lining-nums;
+  white-space: nowrap;
+}
+
+.pedidos-table tr:hover td {
+  background-color: #FAF8F5;
+}
+
+.pedidos-table tr.linha-entregue td {
+  background-color: #F8FBF9;
+}
+
+/* MICRO-ELEMENTO: ETIQUETAS DE TECIDO COSTURADAS DE PEDIDO */
+.badge-status-pedido {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.68rem;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  font-family: var(--font-sans-humanist, sans-serif);
+  box-shadow: 0 1px 3px rgba(44, 37, 35, 0.06);
+}
+
+.badge-status-pedido.aguardando {
+  background: #FEF8EC;
+  color: #9A5809;
+  border: 1px dashed #F7D89C;
+}
+
+.badge-status-pedido.producao {
+  background: #EEF4FB;
+  color: #204B72;
+  border: 1px dashed #BCD3EB;
+}
+
+.badge-status-pedido.concluido {
+  background: #EDF7F1;
+  color: #236342;
+  border: 1px dashed #A6D8BB;
+}
+
+.grade-pill-tag {
+  display: inline-flex;
+  gap: 0.35rem;
+  font-size: 0.76rem;
+  background: #F4EFEA;
+  padding: 0.25rem 0.55rem;
+  border-radius: 4px;
+  color: #2C2523;
+  font-weight: 700;
+  white-space: nowrap;
+  border: 1px solid #D5CCC0;
+  font-family: var(--font-sans-humanist, sans-serif);
+}
+
+/* Botões de Ação na Tabela */
+.btn-acao-entregar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #387D56;
+  color: #ffffff;
+  padding: 0.45rem 0.85rem;
+  border-radius: 6px;
+  font-family: var(--font-sans-humanist, sans-serif);
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid #2F6947;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(44, 37, 35, 0.08);
+}
+
+.btn-acao-entregar:hover {
+  background: #2D6846;
+  border-color: #245437;
+  box-shadow: 0 4px 10px rgba(44, 37, 35, 0.12);
+  transform: translateY(-1px);
+}
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-acao-reverter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #ffffff;
+  color: #64748b;
+  border: 1px solid #cbd5e1;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-acao-reverter:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #94a3b8;
+}
+
+/* MODAL DE ENTREGA AO CLIENTE (IHC) */
+.modal-entrega-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal-entrega-card {
+  background: #ffffff;
+  width: 100%;
+  max-width: 620px;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.25);
+  overflow: hidden;
+  animation: scaleUp 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+  from { transform: scale(0.96); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.modal-entrega-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.4rem 1.8rem;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.modal-header-icone-titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.modal-icone-box {
+  width: 44px;
+  height: 44px;
+  background: #eff6ff;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-entrega-header h2 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.modal-entrega-header p {
+  font-size: 0.82rem;
+  color: #64748b;
+  margin: 0.2rem 0 0 0;
+}
+
+.modal-btn-fechar {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 0.4rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.modal-btn-fechar:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.modal-entrega-body {
+  padding: 1.6rem 1.8rem;
+  overflow-y: auto;
+  max-height: 75vh;
+}
+
+/* Caixa de Resumo do Pedido */
+.resumo-pedido-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 1.1rem 1.3rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1.2rem;
+}
+
+.resumo-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.85rem;
+}
+
+.resumo-rotulo {
+  font-size: 0.75rem;
+  color: #64748b;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.resumo-item.destaque {
+  grid-column: span 2;
+  background: #ffffff;
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.destaque-qtd {
+  font-size: 1.1rem;
+  color: #2563eb;
+  font-weight: 800;
+}
+
+/* Caixa de Verificação de Estoque Pronto */
+.estoque-verificacao-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 1rem 1.2rem;
+  border-radius: 10px;
+  margin-bottom: 1.3rem;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.estoque-verificacao-box.suficiente {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+}
+
+.estoque-verificacao-box.alerta {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+}
+
+.estoque-verificacao-box.bloqueado {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+.texto-estoque-bloqueado {
+  color: #b91c1c;
+  font-size: 0.92rem;
+  display: block;
+}
+
+.estoque-verificacao-box p {
+  margin: 0.2rem 0 0 0;
+  font-size: 0.8rem;
+  opacity: 0.9;
+}
+
+.modal-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/* Aviso de Impacto IHC */
+.aviso-impacto-ihc {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  margin-top: 1.2rem;
+  font-size: 0.82rem;
+  color: #1e40af;
+  line-height: 1.45;
+}
+
+.modal-entrega-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.9rem;
+  padding: 1.2rem 1.8rem;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+}
+
+.modal-btn-cancelar {
+  background: #ffffff;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  padding: 0.65rem 1.3rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.modal-btn-cancelar:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.modal-btn-confirmar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #10b981;
+  color: #ffffff;
+  border: none;
+  padding: 0.65rem 1.4rem;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.modal-btn-confirmar:hover:not(:disabled) {
+  background: #059669;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+  transform: translateY(-1px);
+}
+
+.modal-btn-confirmar:disabled,
+.modal-btn-confirmar.btn-bloqueado {
+  background: #cbd5e1 !important;
+  color: #64748b !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+  transform: none !important;
+  opacity: 0.85;
+}
+
+@media (max-width: 768px) {
+  .pedido-camisetas-main {
+    padding: 1.2rem;
+  }
+  .grade-inputs-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .modal-form-grid,
+  .resumo-pedido-box {
+    grid-template-columns: 1fr;
+  }
+}

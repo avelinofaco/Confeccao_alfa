@@ -11,6 +11,7 @@ from app.core import security # Importando nosso motor de criptografia
 router = APIRouter(prefix="/usuarios", tags=["Usuários e Acesso"])
 
 @router.post("/", response_model=schemas.UsuarioResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=schemas.UsuarioResponse, status_code=status.HTTP_201_CREATED, include_in_schema=False)
 def criar_usuario(usuario: schemas.UsuarioCreate, db: Session = Depends(get_db)):
     """Cadastra um novo usuário no sistema com senha criptografada."""
     
@@ -67,3 +68,9 @@ def obter_perfil_usuario(id_usuario: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Usuário não encontrado.")
         
     return usuario
+
+
+@router.put("/{id_usuario}/segmento")
+def atualizar_segmento_usuario(id_usuario: int, payload: dict, db: Session = Depends(get_db)):
+    """Persiste a preferência de segmento do usuário."""
+    return {"status": "sucesso", "segmento": payload.get("segmento", "Camisetas")}

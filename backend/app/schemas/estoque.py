@@ -10,7 +10,7 @@ from decimal import Decimal
 # ==========================================
 
 class InsumoBase(BaseModel):
-    codigo: str = Field(..., max_length=20, description="Código único do material")
+    codigo: Optional[str] = Field(default=None, max_length=20, description="Código único do material")
     categoria: str = Field(..., max_length=30, description="Categoria: MALHA ou AVIAMENTO")
     tipo: str = Field(..., max_length=100, description="Tipo do material")
     unidade_medida: str = Field(..., max_length=10, description="Unidade: kg ou metros")

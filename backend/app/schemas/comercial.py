@@ -6,7 +6,7 @@ from datetime import date, datetime
 from decimal import Decimal
 
 class PedidoBase(BaseModel):
-    codigo_pedido: str = Field(..., max_length=20, description="Código único (Ex: #PED-01)")
+    codigo_pedido: Optional[str] = Field(default=None, max_length=20, description="Código único (Ex: #PED-01)")
     nome_cliente: str = Field(..., max_length=150, description="Nome do cliente ou loja")
     id_produto: int = Field(..., description="ID do modelo desejado")
     quantidade_pecas: int = Field(..., gt=0, description="Quantidade total de peças encomendadas")

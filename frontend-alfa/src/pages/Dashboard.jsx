@@ -21,6 +21,7 @@ import {
   AreaChart, Area
 } from 'recharts';
 import api from '../services/api';
+import Sidebar from '../components/Sidebar';
 import './Dashboard.css';
 
 function Dashboard() {
@@ -176,20 +177,23 @@ function Dashboard() {
         });
       }
 
-      // 2. Busca os dados no Back-end
-      const res = await api.get('/costura/movimentacoes').catch(() => ({ data: [] }));
-      const movimentacoes = res.data || [];
-      
-      let totalPecas = 0;
+      // 2. Busca os dados no Back-end: retornos de costura e pedidos comerciais
+      const [resCostura, resPedidos] = await Promise.all([
+        api.get('/costura/movimentacoes').catch(() => ({ data: [] })),
+        api.get('/comercial/pedidos').catch(() => ({ data: [] }))
+      ]);
 
-      // 3. Percorre os retornos da costura
+      const movimentacoes = resCostura.data || [];
+      const pedidos = resPedidos.data || [];
+      
+      let totalPecasProduzidas = 0;
+
+      // 3. Percorre os retornos da costura (peças finalizadas que deram entrada no estoque pronto)
       movimentacoes.forEach(mov => {
-        // Verifica se a movimentação retornou peças
         if (mov.status_movimentacao === 'Retornado' || mov.quantidade_recebida > 0) {
           const qtd = parseInt(mov.quantidade_recebida || 0);
-          totalPecas += qtd; 
+          totalPecasProduzidas += qtd; 
 
-          // 🔥 CORREÇÃO AQUI: Procura a data em todas as possibilidades do banco
           const dataString = mov.data_retorno || mov.atualizado_em || mov.criado_em || mov.data_envio;
           
           if (dataString) {
@@ -198,7 +202,6 @@ function Dashboard() {
               m => m.mesNum === dataRetorno.getMonth() && m.ano === dataRetorno.getFullYear()
             );
 
-            // Se o mês da devolução estiver dentro dos últimos 5 meses, soma na barra do gráfico!
             if (mesIndex !== -1) {
               ultimos5Meses[mesIndex].quantidade += qtd;
             }
@@ -206,11 +209,22 @@ function Dashboard() {
         }
       });
 
-      setTotalPecasProntas(totalPecas);
+      // 4. Calcula o total de peças já entregues aos clientes no Comercial (saídas de estoque)
+      let totalPecasEntregues = 0;
+      pedidos.forEach(p => {
+        if ((p.status_pedido || '').toLowerCase() === 'entregue') {
+          totalPecasEntregues += parseInt(p.quantidade_pecas || 0);
+        }
+      });
+
+      // 5. Saldo Real em Estoque = Total Produzido - Total Entregue ao Cliente
+      const saldoFinalEstoque = Math.max(0, totalPecasProduzidas - totalPecasEntregues);
+
+      setTotalPecasProntas(saldoFinalEstoque);
       setDadosProducaoMensal(ultimos5Meses);
 
     } catch (error) {
-      console.error("Erro ao buscar histórico de produção:", error);
+      console.error("Erro ao buscar histórico de produção e pedidos:", error);
     }
   };
 
@@ -239,57 +253,8 @@ function Dashboard() {
         </button>
       </div>
 
-      {/* SIDEBAR UNIFICADA (Dinâmica para Desktop e Mobile) */}
-      <aside className={`sidebar ${menuMobileAberto ? 'open' : ''}`}>
-        <div className="sidebar-header">
-          <div className="logo-box-sm">
-            <Scissors size={22} color="#00c875" strokeWidth={2} />
-          </div>
-          <h2>Confecção Alfa</h2>
-        </div>
-
-        <nav className="sidebar-nav">
-          <button className="nav-item active" onClick={() => { navigate('/dashboard'); setMenuMobileAberto(false); }}>
-            <LayoutDashboard size={19} />
-            <span>Dashboard</span>
-          </button>
-          <button className="nav-item" onClick={() => { navigate('/estoque'); setMenuMobileAberto(false); }}>
-            <Package size={19} />
-            <span>Estoque</span>
-          </button>
-          <button className="nav-item" onClick={() => { navigate('/ficha-tecnica'); setMenuMobileAberto(false); }}>
-            <FileText size={19} />
-            <span>Ficha Técnica</span>
-          </button>
-          <button className="nav-item" onClick={() => { navigate('/comercial'); setMenuMobileAberto(false); }}>
-            <ShoppingCart size={19} />
-            <span>Comercial</span>
-          </button>
-          <button className="nav-item" onClick={() => { navigate('/corte-rendimento'); setMenuMobileAberto(false); }}>
-            <Crop size={19} />
-            <span>Corte/Rendimento</span>
-          </button>
-          <button className="nav-item" onClick={() => { navigate('/costura'); setMenuMobileAberto(false); }}>
-            <Scissors size={19} />
-            <span>Costura</span>
-          </button>
-          <button className="nav-item" onClick={() => { navigate('/equipe'); setMenuMobileAberto(false); }}>
-            <Users size={19} />
-            <span>Equipe</span>
-          </button>
-          <button className="nav-item" onClick={() => { navigate('/configuracoes'); setMenuMobileAberto(false); }}>
-            <Users size={19} />
-            <span>Configurações</span>
-          </button>
-        </nav>
-
-        <div className="sidebar-footer">
-          <button className="nav-item logout" onClick={handleLogout}>
-            <LogOut size={19} />
-            <span>Sair</span>
-          </button>
-        </div>
-      </aside>
+      {/* SIDEBAR UNIFICADA (Com switcher dinâmico de segmento e menus especializados) */}
+      <Sidebar menuMobileAberto={menuMobileAberto} setMenuMobileAberto={setMenuMobileAberto} />
 
       {/* CONTEÚDO PRINCIPAL */}
       <main className="main-content">
@@ -437,16 +402,20 @@ function Dashboard() {
                   Nenhum insumo cadastrado no estoque ainda.
                 </div>
               ) : (
-                <ResponsiveContainer width="100%" height={260}>
-                  <BarChart data={dadosNivelEstoque} layout="vertical" margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e5e7eb" />
-                    <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 13 }} />
-                    <YAxis dataKey="item" type="category" axisLine={false} tickLine={false} tick={{ fill: '#374151', fontSize: 13 }} width={140} />
-                    <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                    <Bar dataKey="quantidade" name="Quantidade Atual" fill="#8b5cf6" radius={[0, 6, 6, 0]} barSize={20} />
-                    <Bar dataKey="min" name="Estoque Mínimo" fill="#f59e0b" radius={[0, 6, 6, 0]} barSize={20} />
-                  </BarChart>
-                </ResponsiveContainer>
+                <div className="estoque-chart-scrollable">
+                  <div style={{ width: '100%', height: `${Math.max(260, dadosNivelEstoque.length * 48)}px` }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={dadosNivelEstoque} layout="vertical" margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e5e7eb" />
+                        <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 13 }} />
+                        <YAxis dataKey="item" type="category" axisLine={false} tickLine={false} tick={{ fill: '#374151', fontSize: 13 }} width={140} />
+                        <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                        <Bar dataKey="quantidade" name="Quantidade Atual" fill="#8b5cf6" radius={[0, 6, 6, 0]} barSize={20} />
+                        <Bar dataKey="min" name="Estoque Mínimo" fill="#f59e0b" radius={[0, 6, 6, 0]} barSize={20} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
               )}
             </div>
           </div>

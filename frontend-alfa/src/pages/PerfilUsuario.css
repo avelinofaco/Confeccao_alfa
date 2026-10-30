@@ -1,0 +1,424 @@
+/* PerfilUsuario.css - Configurações de Perfil do Usuário */
+
+.perfil-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f8fafc;
+  color: #0f172a;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.perfil-main {
+  flex: 1;
+  padding: 2.2rem 2.8rem;
+  overflow-y: auto;
+}
+
+/* Header */
+.perfil-header {
+  margin-bottom: 2rem;
+}
+
+.perfil-header h1 {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.35rem;
+}
+
+.perfil-header p {
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+/* Hero Profile Card */
+.perfil-hero-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 1.8rem 2.2rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.perfil-hero-left {
+  display: flex;
+  align-items: center;
+  gap: 1.4rem;
+}
+
+.perfil-avatar-circle {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  font-size: 1.7rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
+  border: 3px solid #ffffff;
+  position: relative;
+}
+
+.perfil-avatar-circle.moda-intima {
+  background: linear-gradient(135deg, #00c875, #059669);
+  box-shadow: 0 8px 20px rgba(0, 200, 117, 0.25);
+}
+
+.perfil-status-dot {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #10b981;
+  border: 2px solid #ffffff;
+}
+
+.perfil-hero-info h2 {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 0.25rem;
+}
+
+.perfil-hero-info p {
+  color: #64748b;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.perfil-hero-badges {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.badge-perfil-role {
+  background: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.35rem 0.8rem;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.badge-perfil-segmento {
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.35rem 0.8rem;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* Abas de Navegação */
+.perfil-tabs-bar {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.8rem;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 0.8rem;
+}
+
+.perfil-tab-btn {
+  background: transparent;
+  border: none;
+  padding: 0.75rem 1.3rem;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.perfil-tab-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.perfil-tab-btn.active {
+  background: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.perfil-tab-btn.active.moda-intima {
+  background: #00c875;
+  box-shadow: 0 4px 12px rgba(0, 200, 117, 0.2);
+}
+
+/* Card do Conteúdo */
+.perfil-card-content {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 2.2rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+  max-width: 760px;
+}
+
+.perfil-card-content h3 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 0.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.perfil-card-subtitle {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin-bottom: 1.8rem;
+}
+
+/* Formulário de Perfil */
+.form-grid-perfil {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.4rem;
+  margin-bottom: 1.6rem;
+}
+
+.form-group-perfil {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.form-group-perfil label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #334155;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.form-group-perfil input,
+.form-group-perfil select {
+  padding: 0.75rem 1rem;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  color: #0f172a;
+  background: #ffffff;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.form-group-perfil input:focus,
+.form-group-perfil select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.input-password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-password-wrapper input {
+  width: 100%;
+  padding-right: 2.8rem;
+}
+
+.btn-toggle-password {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  padding: 0.3rem;
+  transition: color 0.2s;
+}
+
+.btn-toggle-password:hover {
+  color: #0f172a;
+}
+
+/* Indicador de Força de Senha */
+.forca-senha-box {
+  margin-top: 0.5rem;
+}
+
+.forca-senha-barra {
+  height: 5px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 0.3rem;
+}
+
+.forca-senha-preenchimento {
+  height: 100%;
+  transition: width 0.3s ease, background 0.3s ease;
+}
+
+.forca-senha-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* Switch / Toggle de Preferências */
+.preferencia-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.2rem 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.preferencia-item:last-child {
+  border-bottom: none;
+}
+
+.preferencia-texto h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 0.2rem;
+}
+
+.preferencia-texto p {
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+/* Switch Toggle Switcher */
+.switch-toggle {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 26px;
+}
+
+.switch-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider-toggle {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: #cbd5e1;
+  transition: 0.3s;
+  border-radius: 34px;
+}
+
+.slider-toggle:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+input:checked + .slider-toggle {
+  background-color: #2563eb;
+}
+
+input:checked + .slider-toggle:before {
+  transform: translateX(22px);
+}
+
+/* Botão Salvar */
+.btn-salvar-perfil {
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  padding: 0.85rem 1.6rem;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+  margin-top: 1rem;
+}
+
+.btn-salvar-perfil:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.btn-salvar-perfil:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Banner de Sucesso */
+.alerta-sucesso-perfil {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+  padding: 0.9rem 1.2rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+  .perfil-main {
+    padding: 1.5rem 1.2rem;
+  }
+  .perfil-hero-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .perfil-tabs-bar {
+    overflow-x: auto;
+  }
+}

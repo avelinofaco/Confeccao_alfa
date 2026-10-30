@@ -5,6 +5,7 @@ import {
   Plus, Search, CheckCircle, Activity, X, ArrowRight, Menu
 } from 'lucide-react';
 import api from '../services/api';
+import Sidebar from '../components/Sidebar';
 import './CorteRendimento.css';
 
 function CorteRendimento() {
@@ -65,12 +66,11 @@ function CorteRendimento() {
     e.preventDefault();
     try {
       const payload = {
-        codigo_op: novaOP.codigo_op,
         id_produto: parseInt(novaOP.id_produto),
         peso_malha_enviado: parseFloat(novaOP.peso_malha_enviado)
       };
 
-      // Endpoint: enviar para o corte
+      // Endpoint: enviar para o corte (código gerado pelo banco)
       await api.post('/producao/ordens', payload);
       alert('OP enviada para o corte com sucesso!');
       
@@ -131,26 +131,8 @@ function CorteRendimento() {
         </button>
       </div>
 
-      {/* Sidebar Dinâmica */}
-      <aside className={`sidebar ${menuMobileAberto ? 'open' : ''}`}>
-        <div className="sidebar-header">
-          <div className="logo-box-sm"><Scissors size={22} color="#00c875" strokeWidth={2} /></div>
-          <h2>Confecção Alfa</h2>
-        </div>
-        <nav className="sidebar-nav">
-          <button className="nav-item" onClick={() => { navigate('/dashboard'); setMenuMobileAberto(false); }}><LayoutDashboard size={19} /><span>Dashboard</span></button>
-          <button className="nav-item" onClick={() => { navigate('/estoque'); setMenuMobileAberto(false); }}><Package size={19} /><span>Estoque</span></button>
-          <button className="nav-item" onClick={() => { navigate('/ficha-tecnica'); setMenuMobileAberto(false); }}><FileText size={19} /><span>Ficha Técnica</span></button>
-          <button className="nav-item" onClick={() => { navigate('/comercial'); setMenuMobileAberto(false); }}><ShoppingCart size={19} /><span>Comercial</span></button>
-          <button className="nav-item active" onClick={() => { navigate('/corte-rendimento'); setMenuMobileAberto(false); }}><Crop size={19} /><span>Corte/Rendimento</span></button>
-          <button className="nav-item" onClick={() => { navigate('/costura'); setMenuMobileAberto(false); }}><Scissors size={19} /><span>Costura</span></button>
-          <button className="nav-item" onClick={() => { navigate('/equipe'); setMenuMobileAberto(false); }}><Users size={19} /><span>Equipe</span></button>
-          <button className="nav-item" onClick={() => { navigate('/configuracoes'); setMenuMobileAberto(false); }}><Users size={19} /><span>Configurações</span></button>
-        </nav>
-        <div className="sidebar-footer">
-          <button className="nav-item logout" onClick={() => { localStorage.removeItem('token_confeccao'); navigate('/'); }}><LogOut size={19} /><span>Sair</span></button>
-        </div>
-      </aside>
+      {/* Sidebar Unificada do Sistema */}
+      <Sidebar menuMobileAberto={menuMobileAberto} setMenuMobileAberto={setMenuMobileAberto} />
 
       <main className="main-content">
         <header className="top-header">
@@ -259,16 +241,7 @@ function CorteRendimento() {
             </div>
             <form onSubmit={handleEnviarParaCorte} className="modal-form">
               <div className="input-group">
-                <label>Código da OP</label>
-                <input 
-                  type="text" 
-                  value={novaOP.codigo_op}
-                  onChange={(e) => setNovaOP({...novaOP, codigo_op: e.target.value})}
-                  required 
-                />
-              </div>
-              <div className="input-group">
-                <label>Produto (ID)</label>
+                <label>Produto / Modelo</label>
                 <select 
                   value={novaOP.id_produto}
                   onChange={(e) => setNovaOP({...novaOP, id_produto: e.target.value})}
@@ -292,6 +265,9 @@ function CorteRendimento() {
                   required 
                 />
               </div>
+              <p style={{ fontSize: "12px", color: "#6b7280", margin: "2px 0 14px" }}>
+                * O código da OP é gerado automaticamente pelo banco de dados.
+              </p>
               <div className="modal-actions">
                 <button type="button" className="secondary-btn" onClick={() => setShowModalEnvio(false)}>Cancelar</button>
                 <button type="submit" className="primary-btn">Salvar OP</button>

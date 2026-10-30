@@ -21,6 +21,7 @@ import {
   Menu
 } from "lucide-react";
 import api from "../services/api";
+import Sidebar from "../components/Sidebar";
 import "./Estoque.css";
 
 function Estoque() {
@@ -78,7 +79,6 @@ function Estoque() {
     e.preventDefault();
     try {
       const payload = {
-        codigo: novoInsumo.codigo,
         categoria: novoInsumo.categoria,
         tipo: novoInsumo.tipo,
         unidade_medida: novoInsumo.unidade_medida,
@@ -108,6 +108,7 @@ function Estoque() {
     setDadosEntrada({
       id_insumo: insumo.id_insumo,
       nome_exibicao: `${insumo.codigo} - ${insumo.tipo}`,
+      unidade_medida: insumo.unidade_medida || 'un',
       quantidade_recebida: "",
     });
     setShowModalEntrada(true);
@@ -169,57 +170,8 @@ function Estoque() {
         </button>
       </div>
 
-      {/* Sidebar - Menu Lateral Responsivo */}
-      <aside className={`sidebar ${menuMobileAberto ? 'open' : ''}`}>
-        <div className="sidebar-header">
-          <div className="logo-box-sm">
-            <Scissors size={22} color="#00c875" strokeWidth={2} />
-          </div>
-          <h2>Confecção Alfa</h2>
-        </div>
-
-        <nav className="sidebar-nav">
-          <button className="nav-item" onClick={() => { navigate('/dashboard'); setMenuMobileAberto(false); }}>
-            <LayoutDashboard size={19} />
-            <span>Dashboard</span>
-          </button>
-          <button className="nav-item active" onClick={() => { navigate('/estoque'); setMenuMobileAberto(false); }}>
-            <Package size={19} />
-            <span>Estoque</span>
-          </button>
-          <button className="nav-item" onClick={() => { navigate('/ficha-tecnica'); setMenuMobileAberto(false); }}>
-            <FileText size={19} />
-            <span>Ficha Técnica</span>
-          </button>
-          <button className="nav-item" onClick={() => { navigate('/comercial'); setMenuMobileAberto(false); }}>
-            <ShoppingCart size={19} />
-            <span>Comercial</span>
-          </button>
-          <button className="nav-item" onClick={() => { navigate('/corte-rendimento'); setMenuMobileAberto(false); }}>
-            <Crop size={19} />
-            <span>Corte/Rendimento</span>
-          </button>
-          <button className="nav-item" onClick={() => { navigate('/costura'); setMenuMobileAberto(false); }}>
-            <Scissors size={19} />
-            <span>Costura</span>
-          </button>
-          <button className="nav-item" onClick={() => { navigate('/equipe'); setMenuMobileAberto(false); }}>
-            <Users size={19} />
-            <span>Equipe</span>
-          </button>
-          <button className="nav-item" onClick={() => { navigate('/configuracoes'); setMenuMobileAberto(false); }}>
-            <Users size={19} />
-            <span>Configurações</span>
-          </button>
-        </nav>
-
-        <div className="sidebar-footer">
-          <button className="nav-item logout" onClick={() => { localStorage.removeItem("token_confeccao"); navigate("/"); }}>
-            <LogOut size={19} />
-            <span>Sair</span>
-          </button>
-        </div>
-      </aside>
+      {/* Sidebar - Menu Lateral Responsivo com Troca de Segmento */}
+      <Sidebar menuMobileAberto={menuMobileAberto} setMenuMobileAberto={setMenuMobileAberto} />
 
       {/* Conteúdo Principal */}
       <main className="main-content">
@@ -341,11 +293,11 @@ function Estoque() {
                         <td style={{ textAlign: "right", display: "flex", justifyContent: "flex-end", gap: "8px" }}>
                           <button
                             className="icon-action-btn primary"
-                            title="Registrar Entrada"
+                            title="Adicionar Quantidade"
                             onClick={() => abrirModalEntrada(item)}
-                            style={{ backgroundColor: "#e8f5e9", color: "#00c875" }}
+                            style={{ backgroundColor: "#e8f5e9", color: "#00c875", padding: "6px 12px", whiteSpace: "nowrap" }}
                           >
-                            <PlusCircle size={16} /> Entrada
+                            <PlusCircle size={16} /> Adicionar Quantidade
                           </button>
                           <button className="icon-action-btn delete" title="Excluir" onClick={() => handleExcluirInsumo(item.id_insumo)}>
                             <Trash2 size={16} />
@@ -372,38 +324,35 @@ function Estoque() {
               </button>
             </div>
             <form onSubmit={handleCadastrarInsumo} className="modal-form">
-              <div className="form-row">
-                <div className="input-group">
-                  <label>Código (Referência)</label>
-                  <input type="text" placeholder="Ex: TEC-001" value={novoInsumo.codigo} onChange={(e) => setNovoInsumo({ ...novoInsumo, codigo: e.target.value })} required />
-                </div>
-                <div className="input-group">
-                  <label>Categoria</label>
-                  <select value={novoInsumo.categoria} onChange={(e) => setNovoInsumo({ ...novoInsumo, categoria: e.target.value })}>
-                    <option value="Tecidos">Tecidos / Malhas</option>
-                    <option value="Aviamentos">Aviamentos e Elásticos</option>
-                    <option value="Linhas/Fios">Linhas e Fios</option>
-                  </select>
-                </div>
+              <div className="input-group">
+                <label>Categoria do Insumo</label>
+                <select value={novoInsumo.categoria} onChange={(e) => setNovoInsumo({ ...novoInsumo, categoria: e.target.value })}>
+                  <option value="Tecidos">Tecidos / Malhas</option>
+                  <option value="Aviamentos">Aviamentos e Elásticos</option>
+                  <option value="Linhas/Fios">Linhas e Fios</option>
+                </select>
               </div>
               <div className="input-group">
-                <label>Tipo / Nome</label>
+                <label>Tipo / Nome do Material</label>
                 <input type="text" placeholder="Ex: Microfibra Poliamida" value={novoInsumo.tipo} onChange={(e) => setNovoInsumo({ ...novoInsumo, tipo: e.target.value })} required />
               </div>
               <div className="form-row">
                 <div className="input-group">
-                  <label>Unidade</label>
+                  <label>Unidade de Medida</label>
                   <select value={novoInsumo.unidade_medida} onChange={(e) => setNovoInsumo({ ...novoInsumo, unidade_medida: e.target.value })}>
                     <option value="kg">Quilogramas (kg)</option>
                     <option value="m">Metros (m)</option>
                     <option value="un">Unidades (un)</option>
                   </select>
                 </div>
+                <div className="input-group">
+                  <label>Estoque Mínimo (Segurança)</label>
+                  <input type="number" step="0.01" placeholder="Ex: 150" value={novoInsumo.estoque_minimo_seguranca} onChange={(e) => setNovoInsumo({ ...novoInsumo, estoque_minimo_seguranca: e.target.value })} required />
+                </div>
               </div>
-              <div className="input-group">
-                <label>Estoque Mínimo (Segurança)</label>
-                <input type="number" step="0.01" placeholder="Ex: 150" value={novoInsumo.estoque_minimo_seguranca} onChange={(e) => setNovoInsumo({ ...novoInsumo, estoque_minimo_seguranca: e.target.value })} required />
-              </div>
+              <p style={{ fontSize: "12px", color: "#6b7280", margin: "2px 0 14px" }}>
+                * O código de referência é gerado automaticamente pelo banco de dados.
+              </p>
               <div className="modal-actions">
                 <button type="button" className="secondary-btn" onClick={() => setShowModalCadastro(false)}>Cancelar</button>
                 <button type="submit" className="primary-btn">Cadastrar Catálogo</button>
@@ -428,8 +377,39 @@ function Estoque() {
                 <strong style={{ color: "#1f2937" }}>{dadosEntrada.nome_exibicao}</strong>
               </p>
               <div className="input-group">
-                <label>Quantidade Recebida</label>
-                <input type="number" step="0.01" placeholder="0.00" value={dadosEntrada.quantidade_recebida} onChange={(e) => setDadosEntrada({ ...dadosEntrada, quantidade_recebida: e.target.value })} required />
+                <label>
+                  Quantidade Recebida
+                  {dadosEntrada.unidade_medida && (
+                    <span style={{ marginLeft: "6px", color: "#00c875", fontWeight: 700 }}>
+                      ({dadosEntrada.unidade_medida})
+                    </span>
+                  )}
+                </label>
+                <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+                  <input 
+                    type="number" 
+                    step="0.01" 
+                    placeholder={dadosEntrada.unidade_medida ? `Ex: 10.00 (${dadosEntrada.unidade_medida})` : "0.00"} 
+                    value={dadosEntrada.quantidade_recebida} 
+                    onChange={(e) => setDadosEntrada({ ...dadosEntrada, quantidade_recebida: e.target.value })} 
+                    required 
+                    style={{ paddingRight: dadosEntrada.unidade_medida ? "55px" : "12px" }}
+                  />
+                  {dadosEntrada.unidade_medida && (
+                    <span style={{ 
+                      position: "absolute", 
+                      right: "12px", 
+                      color: "#6b7280", 
+                      fontSize: "13px", 
+                      fontWeight: "600",
+                      backgroundColor: "#f3f4f6",
+                      padding: "2px 8px",
+                      borderRadius: "4px"
+                    }}>
+                      {dadosEntrada.unidade_medida}
+                    </span>
+                  )}
+                </div>
               </div>
               <div className="modal-actions">
                 <button type="button" className="secondary-btn" onClick={() => setShowModalEntrada(false)}>Cancelar</button>

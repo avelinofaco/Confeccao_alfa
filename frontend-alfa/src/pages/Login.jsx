@@ -28,12 +28,16 @@ function Login() {
       const token = response.data.access_token;
       localStorage.setItem('token_confeccao', token);
 
-      //redirecionar para a tela principal (Dashboard)
-      navigate('/dashboard'); 
+      // Redireciona para a tela de decisão de segmento (Camisetas ou Moda Íntima)
+      navigate('/selecao-segmento'); 
 
     } catch (error) {
       console.error("Erro no login:", error);
-      alert('Credenciais inválidas ou erro no servidor. Verifique os dados digitados.');
+      if (error.message === 'Network Error' || !error.response) {
+        alert('Não foi possível conectar ao servidor (Erro de Conexão).\n\n• Se estiver usando a nuvem (Render), o servidor gratuito pode estar acordando (aguarde cerca de 1 minuto e tente novamente).\n• Para acesso imediato, utilize o ambiente local em: http://localhost:5173');
+      } else {
+        alert(error.response?.data?.detail || 'Credenciais inválidas ou erro no servidor. Verifique os dados digitados.');
+      }
     }
   };
 

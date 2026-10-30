@@ -1,0 +1,347 @@
+/* DashboardCamisetas.css - Estilos premium para o painel de controle de camisetas */
+/* Conceito Ateliê Artesanal: Tipografia Editorial, Cores Orgânicas e Tags Costuradas */
+
+.dashboard-camisetas-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--bg-artisan-cream, #FDFBF7);
+  color: var(--color-text-main, #2C2523);
+  font-family: var(--font-sans-humanist, 'Plus Jakarta Sans', sans-serif);
+}
+
+.dashboard-camisetas-main {
+  flex: 1;
+  padding: 2.2rem 2.8rem;
+  overflow-y: auto;
+}
+
+/* Header */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.dashboard-header-title h1 {
+  font-family: var(--font-serif-editorial, 'Lora', 'Playfair Display', serif);
+  font-size: 1.95rem;
+  font-weight: 600;
+  color: var(--color-text-main, #2C2523);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.35rem;
+  letter-spacing: -0.015em;
+}
+
+.dashboard-header-title p {
+  font-size: 0.95rem;
+  color: var(--color-text-muted, #6E635F);
+  margin: 0;
+}
+
+/* MICRO-ELEMENTO: TAG COSTURADA DE SEGMENTO */
+.badge-segmento-camisetas {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #EEF4FB;
+  color: #204B72;
+  padding: 0.3rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border: 1px dashed #BCD3EB;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-family: var(--font-sans-humanist, sans-serif);
+  box-shadow: 0 1px 3px rgba(44, 37, 35, 0.05);
+}
+
+.dashboard-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.btn-seed-dados {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #ffffff;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+  padding: 0.65rem 1.1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-seed-dados:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+/* 3 CARDS DE DESTAQUE */
+.cards-destaque-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.card-destaque {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 1.6rem 1.8rem;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-destaque:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.09);
+}
+
+.card-destaque::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+}
+
+.card-destaque.card-producao::before {
+  background: linear-gradient(90deg, #2563eb, #3b82f6);
+}
+
+.card-destaque.card-estoque-critico::before {
+  background: linear-gradient(90deg, #f59e0b, #ef4444);
+}
+
+.card-destaque.card-tecido-lucro::before {
+  background: linear-gradient(90deg, #10b981, #059669);
+}
+
+.card-destaque-top {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.card-destaque-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.card-destaque-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-producao .card-destaque-icon {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.card-estoque-critico .card-destaque-icon {
+  background: #fef2f2;
+  color: #ef4444;
+}
+
+.card-tecido-lucro .card-destaque-icon {
+  background: #ecfdf5;
+  color: #10b981;
+}
+
+.card-destaque-valor {
+  font-size: 2.3rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.1;
+  margin-bottom: 0.4rem;
+}
+
+.card-destaque-subtexto {
+  font-size: 0.85rem;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.card-destaque-subtexto strong {
+  color: #0f172a;
+}
+
+.tag-alerta-critico {
+  color: #dc2626;
+  font-weight: 700;
+  background: #fee2e2;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+}
+
+.tag-sucesso {
+  color: #059669;
+  font-weight: 700;
+  background: #d1fae5;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+}
+
+/* SEÇÃO GRÁFICO FINANCEIRO 12 MESES */
+.secao-grafico-financeiro {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 1.8rem 2rem;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
+  border: 1px solid #e2e8f0;
+  margin-bottom: 2rem;
+}
+
+.grafico-financeiro-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+.grafico-financeiro-title h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 0.25rem;
+}
+
+.grafico-financeiro-title p {
+  font-size: 0.88rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.legendas-grafico-custom {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.legenda-item {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.legenda-cor-saidas {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background-color: #B94A3E;
+}
+
+.legenda-cor-entradas {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background-color: #387D56;
+}
+
+.grafico-wrapper {
+  width: 100%;
+  height: 380px;
+}
+
+/* ATALHOS RÁPIDOS */
+.secao-atalhos-fluxo {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.6rem 2rem;
+  box-shadow: 0 4px 18px rgba(44, 37, 35, 0.04);
+  border: 1px solid var(--border-artisan, #EAE4DD);
+}
+
+.secao-atalhos-fluxo h3 {
+  font-family: var(--font-serif-editorial, 'Lora', serif);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-main, #2C2523);
+  margin-bottom: 1.2rem;
+  letter-spacing: -0.01em;
+}
+
+.atalhos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.card-atalho-btn {
+  background: #FAF8F5;
+  border: 1px solid var(--border-artisan, #EAE4DD);
+  border-radius: 8px;
+  padding: 1rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.card-atalho-btn:hover {
+  background: #F4EFEA;
+  border-color: #D5CCC0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(44, 37, 35, 0.06);
+}
+
+.card-atalho-btn .atalho-icon {
+  color: #3D7098;
+}
+
+.card-atalho-btn .atalho-label {
+  font-family: var(--font-serif-editorial, 'Lora', serif);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text-main, #2C2523);
+}
+
+.card-atalho-btn .atalho-desc {
+  font-family: var(--font-sans-humanist, sans-serif);
+  font-size: 0.78rem;
+  color: var(--color-text-muted, #6E635F);
+}
+
+@media (max-width: 768px) {
+  .dashboard-camisetas-main {
+    padding: 1.2rem;
+  }
+  .cards-destaque-grid {
+    grid-template-columns: 1fr;
+  }
+}

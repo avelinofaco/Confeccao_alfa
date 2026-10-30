@@ -1,0 +1,221 @@
+/* Sidebar.css - Estilo refinado para navegação Ateliê Artesanal com suporte a Segmentos */
+.sidebar {
+  width: 260px;
+  background-color: #FAF8F5;
+  border-right: 1px solid #EAE4DD;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  transition: transform 0.3s ease;
+  z-index: 50;
+  flex-shrink: 0;
+}
+
+.sidebar-header {
+  padding: 24px 20px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid #EAE4DD;
+}
+
+.logo-box-sm {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background-color: #F4EFEA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #D5CCC0;
+  box-shadow: 0 1px 3px rgba(44, 37, 35, 0.05);
+}
+
+.sidebar.camisetas-mode .logo-box-sm {
+  background-color: #EEF4FB;
+  border-color: #BCD3EB;
+}
+
+.sidebar-header h2 {
+  font-family: var(--font-serif-editorial, 'Lora', serif);
+  font-size: 19px;
+  font-weight: 600;
+  color: #2C2523;
+  letter-spacing: -0.3px;
+}
+
+/* Badge e Seletor Dinâmico de Segmento */
+.segmento-switcher-card {
+  margin: 14px 16px 8px;
+  padding: 10px 12px;
+  background: #FFFFFF;
+  border-radius: 10px;
+  border: 1px solid #E2D9CE;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 1px 4px rgba(44, 37, 35, 0.04);
+}
+
+.sidebar.camisetas-mode .segmento-switcher-card {
+  background: #F8FAFC;
+  border-color: #DDE7F2;
+}
+
+.segmento-switcher-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.segmento-tag-label {
+  font-family: var(--font-sans-humanist, sans-serif);
+  font-size: 10px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #8C8079;
+  letter-spacing: 0.6px;
+}
+
+.segmento-name-active {
+  font-family: var(--font-sans-humanist, sans-serif);
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #2C2523;
+}
+
+.segmento-name-active.camisetas {
+  color: #204B72;
+}
+
+.segmento-name-active.modinha,
+.segmento-name-active.moda-intima,
+.segmento-name-active.moda_intima {
+  color: #236342;
+}
+
+.btn-trocar-segmento-pill {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 5px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+.btn-trocar-segmento-pill:hover {
+  background: #00c875;
+  color: #ffffff;
+  border-color: #00c875;
+}
+
+.sidebar.camisetas-mode .btn-trocar-segmento-pill:hover {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: #ffffff;
+}
+
+/* Navegação */
+.sidebar-nav {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.nav-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin: 12px 8px 6px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #4A403B;
+  font-family: var(--font-sans-humanist, sans-serif);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.nav-item:hover {
+  background-color: #F4EFEA;
+  color: #2C2523;
+  border-color: #EAE4DD;
+}
+
+.nav-item.active {
+  background-color: #EDF7F1;
+  color: #236342;
+  font-weight: 600;
+  border-color: #C6E3D1;
+}
+
+.sidebar.camisetas-mode .nav-item.active {
+  background-color: #EEF4FB;
+  color: #204B72;
+  font-weight: 600;
+  border-color: #BCD3EB;
+}
+
+.nav-item-badge {
+  margin-left: auto;
+  font-family: var(--font-sans-humanist, sans-serif);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 1px 2px rgba(44, 37, 35, 0.05);
+}
+
+.nav-item-badge.camisetas {
+  background-color: #EEF4FB;
+  color: #204B72;
+  border: 1px dashed #BCD3EB;
+}
+
+.nav-item-badge.modinha {
+  background-color: #EDF7F1;
+  color: #236342;
+  border: 1px dashed #A6D8BB;
+}
+
+.sidebar-footer {
+  padding: 16px 14px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.nav-item.logout {
+  color: #ef4444;
+}
+
+.nav-item.logout:hover {
+  background-color: #fef2f2;
+  color: #dc2626;
+}

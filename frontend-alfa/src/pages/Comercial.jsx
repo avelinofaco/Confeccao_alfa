@@ -5,6 +5,7 @@ import {
   Plus, Search, X, Calendar, Check, Trash2, Menu
 } from 'lucide-react';
 import api from '../services/api';
+import Sidebar from '../components/Sidebar';
 import './Comercial.css';
 
 function Comercial() {
@@ -51,11 +52,17 @@ function Comercial() {
     else carregarDados();
   }, [navigate]);
 
+  const dataHoje = new Date().toISOString().split('T')[0];
+
   const handleCriarPedido = async (e) => {
     e.preventDefault();
+    if (novoPedido.data_entrega_desejada && novoPedido.data_entrega_desejada < dataHoje) {
+      alert("A Data de Entrega não pode ser anterior à data de hoje.");
+      return;
+    }
+
     try {
       const payload = {
-        codigo_pedido: novoPedido.codigo_pedido,
         nome_cliente: novoPedido.nome_cliente,
         id_produto: parseInt(novoPedido.id_produto),
         quantidade_pecas: parseInt(novoPedido.quantidade_pecas),
@@ -80,11 +87,14 @@ function Comercial() {
     }
   };
 
-  // AÇÃO: Confirmar Entrega
-  const handleConfirmarEntrega = async (id) => {
-    if (window.confirm("Deseja confirmar a entrega deste pedido ao cliente?")) {
+  // AÇÃO: Confirmar Entrega (com baixa no estoque do Dashboard)
+  const handleConfirmarEntrega = async (ped) => {
+    const id = ped.id_pedido || ped.id;
+    const qtd = ped.quantidade_pecas || 0;
+    if (window.confirm(`Deseja confirmar a entrega deste pedido (${ped.codigo_pedido}) ao cliente?\n\nEsta ação descontará ${qtd} peças do "Total de Peças em Estoque" no Dashboard.`)) {
       try {
         await api.put(`/comercial/pedidos/${id}/status`, { status_pedido: 'Entregue' });
+        alert(`Pedido ${ped.codigo_pedido} marcado como Entregue! As ${qtd} peças foram baixadas do estoque no Dashboard.`);
         carregarDados();
       } catch (error) {
         console.error("Erro ao confirmar entrega:", error);
@@ -127,26 +137,8 @@ function Comercial() {
         </button>
       </div>
 
-      {/* Sidebar - Menu Lateral Responsivo */}
-      <aside className={`sidebar ${menuMobileAberto ? 'open' : ''}`}>
-        <div className="sidebar-header">
-          <div className="logo-box-sm"><Scissors size={22} color="#00c875" strokeWidth={2} /></div>
-          <h2>Confecção Alfa</h2>
-        </div>
-        <nav className="sidebar-nav">
-          <button className="nav-item" onClick={() => { navigate('/dashboard'); setMenuMobileAberto(false); }}><LayoutDashboard size={19} /><span>Dashboard</span></button>
-          <button className="nav-item" onClick={() => { navigate('/estoque'); setMenuMobileAberto(false); }}><Package size={19} /><span>Estoque</span></button>
-          <button className="nav-item" onClick={() => { navigate('/ficha-tecnica'); setMenuMobileAberto(false); }}><FileText size={19} /><span>Ficha Técnica</span></button>
-          <button className="nav-item active" onClick={() => { navigate('/comercial'); setMenuMobileAberto(false); }}><ShoppingCart size={19} /><span>Comercial</span></button>
-          <button className="nav-item" onClick={() => { navigate('/corte-rendimento'); setMenuMobileAberto(false); }}><Crop size={19} /><span>Corte/Rendimento</span></button>
-          <button className="nav-item" onClick={() => { navigate('/costura'); setMenuMobileAberto(false); }}><Scissors size={19} /><span>Costura</span></button>
-          <button className="nav-item" onClick={() => { navigate('/equipe'); setMenuMobileAberto(false); }}><Users size={19} /><span>Equipe</span></button>
-          <button className="nav-item" onClick={() => { navigate('/configuracoes'); setMenuMobileAberto(false); }}><Users size={19} /><span>Configurações</span></button>
-        </nav>
-        <div className="sidebar-footer">
-          <button className="nav-item logout" onClick={() => { localStorage.removeItem('token_confeccao'); navigate('/'); }}><LogOut size={19} /><span>Sair</span></button>
-        </div>
-      </aside>
+      {/* Sidebar - Menu Lateral Responsivo com Troca de Segmento */}
+      <Sidebar menuMobileAberto={menuMobileAberto} setMenuMobileAberto={setMenuMobileAberto} />
 
       <main className="main-content">
         <header className="top-header">
@@ -192,18 +184,19 @@ function Comercial() {
                   <th>Qtd.</th>
                   <th>Data de Entrega</th>
                   <th>Valor Total</th>
-                  <th style={{ textAlign: 'right' }}>Ações</th>
+                  <th>Status</th>
+                  <th style={{ textAlign: 'right' }}>Ação de Entrega</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan="7" style={{textAlign: 'center', padding: '20px'}}>Carregando pedidos...</td></tr>
+                  <tr><td colSpan="8" style={{textAlign: 'center', padding: '20px'}}>Carregando pedidos...</td></tr>
                 ) : pedidosFiltrados.length === 0 ? (
-                  <tr><td colSpan="7" style={{textAlign: 'center', padding: '20px'}}>Nenhum pedido encontrado.</td></tr>
+                  <tr><td colSpan="8" style={{textAlign: 'center', padding: '20px'}}>Nenhum pedido encontrado.</td></tr>
                 ) : (
                   pedidosFiltrados.map((ped) => {
                     const infoProduto = produtos.find(p => (p.id_produto || p.id) === ped.id_produto) || {};
-                    const isEntregue = ped.status_pedido === 'Entregue';
+                    const isEntregue = (ped.status_pedido || '').toLowerCase() === 'entregue';
                     const idPedido = ped.id_pedido || ped.id;
 
                     return (
@@ -221,25 +214,54 @@ function Comercial() {
                         <td className="font-bold text-green-600">
                           R$ {Number(ped.valor_total).toFixed(2).replace('.', ',')}
                         </td>
-                        <td style={{ textAlign: 'right', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                          <button 
-                            title={isEntregue ? "Pedido Entregue" : "Confirmar Entrega"}
-                            onClick={() => !isEntregue && handleConfirmarEntrega(idPedido)}
-                            style={{ 
-                              backgroundColor: isEntregue ? '#00c875' : '#e8f5e9', 
-                              color: isEntregue ? '#ffffff' : '#00c875',
-                              border: 'none',
-                              padding: '6px',
-                              borderRadius: '6px',
-                              cursor: isEntregue ? 'default' : 'pointer',
-                              transition: 'all 0.2s ease',
-                              display: 'flex',
+                        <td>
+                          {isEntregue ? (
+                            <span className="status-badge green">Entregue</span>
+                          ) : (
+                            <span className="status-badge blue">{ped.status_pedido || 'Aguardando Produção'}</span>
+                          )}
+                        </td>
+                        <td style={{ textAlign: 'right', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '8px' }}>
+                          {isEntregue ? (
+                            <span style={{ 
+                              color: '#00c875', 
+                              backgroundColor: '#e8f5e9', 
+                              padding: '5px 10px', 
+                              borderRadius: '6px', 
+                              fontWeight: 700, 
+                              fontSize: '12px',
+                              display: 'inline-flex',
                               alignItems: 'center',
-                              justifyContent: 'center'
-                            }}
-                          >
-                            <Check size={16} />
-                          </button>
+                              gap: '4px'
+                            }}>
+                              <Check size={14} strokeWidth={3} /> Entregue
+                            </span>
+                          ) : (
+                            <button 
+                              type="button"
+                              className="btn-confirmar-entrega-acao"
+                              onClick={() => handleConfirmarEntrega(ped)}
+                              title="Confirmar entrega do pedido e descontar peças do estoque do dashboard"
+                              style={{ 
+                                backgroundColor: '#00c875', 
+                                color: '#ffffff',
+                                border: 'none',
+                                padding: '6px 12px',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                fontSize: '12px',
+                                fontWeight: 700,
+                                boxShadow: '0 2px 6px rgba(0, 200, 117, 0.2)'
+                              }}
+                            >
+                              <PackageCheck size={15} />
+                              <span>Confirmar Entrega</span>
+                            </button>
+                          )}
 
                           <button 
                             title="Excluir Pedido" 
@@ -278,19 +300,19 @@ function Comercial() {
               <button className="close-btn" onClick={() => setShowModal(false)}><X size={20} /></button>
             </div>
             <form onSubmit={handleCriarPedido} className="modal-form">
-              <div className="form-row">
-                <div className="input-group">
-                  <label>Código do Pedido</label>
-                  <input type="text" value={novoPedido.codigo_pedido} onChange={(e) => setNovoPedido({...novoPedido, codigo_pedido: e.target.value})} required />
-                </div>
-                <div className="input-group">
-                  <label>Nome do Cliente</label>
-                  <input type="text" value={novoPedido.nome_cliente} onChange={(e) => setNovoPedido({...novoPedido, nome_cliente: e.target.value})} required />
-                </div>
+              <div className="input-group">
+                <label>Nome do Cliente</label>
+                <input 
+                  type="text" 
+                  placeholder="Ex: Lojas Renner, Boutique Elegance..." 
+                  value={novoPedido.nome_cliente} 
+                  onChange={(e) => setNovoPedido({...novoPedido, nome_cliente: e.target.value})} 
+                  required 
+                />
               </div>
 
               <div className="input-group">
-                <label>Produto</label>
+                <label>Produto / Modelo</label>
                 <select value={novoPedido.id_produto} onChange={(e) => setNovoPedido({...novoPedido, id_produto: e.target.value})} required>
                   <option value="">Selecione o produto...</option>
                   {produtos.map(p => (
@@ -303,18 +325,28 @@ function Comercial() {
 
               <div className="form-row-three">
                 <div className="input-group">
-                  <label>Quantidade</label>
+                  <label>Quantidade (Peças)</label>
                   <input type="number" min="1" value={novoPedido.quantidade_pecas} onChange={(e) => setNovoPedido({...novoPedido, quantidade_pecas: e.target.value})} required />
                 </div>
                 <div className="input-group">
-                  <label>Data Desejada</label>
-                  <input type="date" value={novoPedido.data_entrega_desejada} onChange={(e) => setNovoPedido({...novoPedido, data_entrega_desejada: e.target.value})} required />
+                  <label>Data de Entrega</label>
+                  <input 
+                    type="date" 
+                    min={dataHoje}
+                    value={novoPedido.data_entrega_desejada} 
+                    onChange={(e) => setNovoPedido({...novoPedido, data_entrega_desejada: e.target.value})} 
+                    required 
+                  />
                 </div>
                 <div className="input-group">
                   <label>Valor Total (R$)</label>
                   <input type="number" step="0.01" value={novoPedido.valor_total} onChange={(e) => setNovoPedido({...novoPedido, valor_total: e.target.value})} required />
                 </div>
               </div>
+
+              <p style={{ fontSize: "12px", color: "#6b7280", margin: "2px 0 14px" }}>
+                * O código do pedido é gerado automaticamente pelo banco de dados.
+              </p>
 
               <div className="input-group">
                 <label>Observações</label>

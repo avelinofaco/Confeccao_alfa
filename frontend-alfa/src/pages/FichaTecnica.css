@@ -1,69 +1,102 @@
-/* Layout da Ficha Técnica (Grid de Duas Colunas) */
-.ficha-grid {
-  display: grid;
-  grid-template-columns: 320px 1fr;
-  gap: 24px;
-  align-items: start;
-}
-
-.full-width {
-  width: 100%;
-}
-
-.mb-16 {
-  margin-bottom: 16px;
-}
-
-/* Coluna de Lista de Modelos */
-.modelos-list {
+/* Seção Horizontal de Modelos (Sem comprimir a Sidebar) */
+.modelos-horizontal-container {
+  background-color: #ffffff;
+  padding: 18px 24px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  margin-bottom: 24px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  max-height: 650px;
-  overflow-y: auto;
+  gap: 14px;
 }
 
-.modelo-card {
-  background-color: #ffffff;
-  padding: 16px;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
+.modelos-horizontal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.modelos-search {
+  max-width: 380px;
+  width: 100%;
+}
+
+.modelos-horizontal-strip {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 4px 2px 10px;
+  align-items: center;
+}
+
+.modelos-horizontal-strip::-webkit-scrollbar {
+  height: 6px;
+}
+
+.modelos-horizontal-strip::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.modelos-horizontal-strip::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.modelos-horizontal-strip::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.modelo-chip {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  background-color: #f9fafb;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
+  text-align: left;
 }
 
-.modelo-card:hover {
+.modelo-chip:hover {
   border-color: #00c875;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  background-color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 }
 
-.modelo-card.active {
-  border-color: #00c875;
+.modelo-chip.active {
   background-color: #f0fdf4;
+  border-color: #00c875;
+  box-shadow: 0 2px 8px rgba(0, 200, 117, 0.15);
 }
 
-.modelo-card-info h3 {
-  font-size: 15px;
-  color: #1f2937;
-  font-weight: 600;
-  margin-top: 4px;
-}
-
-.modelo-tag {
+.modelo-chip-tag {
   font-size: 11px;
+  font-weight: 700;
   color: #00c875;
   background-color: #e8f5e9;
   padding: 2px 8px;
-  border-radius: 10px;
-  font-weight: 600;
+  border-radius: 6px;
+  text-transform: uppercase;
 }
 
-/* Coluna de Detalhes da Ficha */
-.detalhes-column {
-  min-height: 500px;
+.modelo-chip-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  white-space: nowrap;
+}
+
+/* Container de Detalhes da Ficha em Largura Total */
+.detalhes-full-container {
+  width: 100%;
+  min-height: 480px;
 }
 
 .empty-details-card {

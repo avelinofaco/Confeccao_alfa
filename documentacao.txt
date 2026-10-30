@@ -1,0 +1,371 @@
+================================================================================
+                    SISTEMA DE GESTÃO INDUSTRIAL E COMERCIAL
+                             CONFECÇÃO ALFA (CAMISETAS)
+                  DOCUMENTAÇÃO COMPLETA DO PROJETO E FLUXO OPERACIONAL
+================================================================================
+
+Data de Atualização: Outubro/2026
+Versão: 2.0 - Módulo Especializado de Camisetas & Malharia
+Tecnologias: Backend Python (FastAPI + SQLAlchemy + SQLite/PostgreSQL) 
+             Frontend React (Vite + JavaScript + Vanilla CSS Moderno)
+
+--------------------------------------------------------------------------------
+1. RESUMO EXECUTIVO E OBJETIVO DO SISTEMA
+--------------------------------------------------------------------------------
+A Confecção Alfa é uma solução completa desenvolvida sob medida para a indústria
+de confecção de camisetas e artigos de malharia. O software integra todas as
+etapas da fábrica em um único fluxo contínuo e automatizado:
+
+  [Estoque de Tecidos & Aviamentos]
+              ↓
+  [Pedidos de Vendas aos Clientes]
+              ↓
+  [Ficha Técnica & Modelagem]
+              ↓
+  [Enfesto, Corte & Rendimento Têxtil]
+              ↓
+  [Oficinas de Costura & Facções]
+              ↓
+  [Estoque de Produtos Prontos]
+              ↓
+  [Fechamento Financeiro & DRE Mensal]
+
+O sistema elimina planilhas manuais, evita desperdício de malha na mesa de corte,
+garante controle de estoque em tempo real e calcula automaticamente o faturamento,
+os custos e o lucro líquido real de cada mês.
+
+
+--------------------------------------------------------------------------------
+2. FLUXO OPERACIONAL DETALHADO (PASSO A PASSO DA FÁBRICA)
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+ETAPA 1: DASHBOARD GERAL & KPIs INDUSTRIAIS
+--------------------------------------------------------------------------------
+Localização: Tela Inicial (Menu 1. Dashboard Camisetas)
+
+O que faz:
+- Apresenta um panorama executivo em tempo real para a diretoria e gerência:
+  1. Total de Camisetas Produzidas no Ano (acumulado de OPs cortadas).
+  2. Peças Prontas no Estoque de Acabados (por modelo e tamanho).
+  3. Total de Camisetas já Entregues aos clientes.
+  4. Alertas de Estoque Crítico (insumos com saldo abaixo do ponto de pedido).
+  5. Tecido Campeão em Rendimento e Média da Fábrica (peças por kg).
+  6. Gráfico de Barras Financeiro Anual (12 Meses):
+     Exibe lado a lado: Gastos em Matéria-Prima (saídas) vs Faturamento (entradas)
+     e a evolução do Lucro Líquido mês a mês.
+
+
+--------------------------------------------------------------------------------
+ETAPA 2: GESTÃO DE ESTOQUE DE MATÉRIAS-PRIMAS
+--------------------------------------------------------------------------------
+Localização: Menu 2. Controle de Estoque
+
+O que faz:
+- Divide os materiais da confecção em duas categorias técnicas fundamentais:
+  A) ROLOS DE TECIDO (Medidos em QUILOGRAMAS - kg):
+     Meia Malha 30.1 Penteada, Meia Malha Cardada, Menegotti 26.1, Ribana de Gola.
+  B) AVIAMENTOS (Medidos em UNIDADES):
+     Carretéis/Cones de Linha 120 (4.000m), Etiquetas de Cetim P/M/G, Tags de Marca.
+- Cards Superiores de Valor Patrimonial em Estoque:
+  Exibe o valor total imobilizado em matérias-primas somando cada item cadastrado:
+  Total = Soma de (Saldo Atual × Preço de Custo Médio) de todas as malhas e aviamentos.
+  Exemplo: 150 kg de Algodão Menegotti 26.1 a R$ 48,00/kg = R$ 7.200,00 somados
+  aos demais tecidos e aviamentos, dando a visão contábil exata do estoque físico.
+- Tabela Otimizada e Limpa (Sem redundância de colunas):
+  • A coluna isolada "Unidade" foi removida, pois os campos "Saldo Atual" e
+    "Estoque Mínimo" já exibem a unidade correspondente diretamente ao lado do
+    número (ex: 150 kg, 40 kg, 85 Uni), tornando a leitura mais limpa e direta.
+  • Cabeçalho Inteligente de Custo:
+    -> "Custo Médio / kg" na aba de Rolos de Tecido (Malhas).
+    -> "Custo Médio / Uni" na aba de Aviamentos.
+- Modal de Cadastrar Novo Insumo (Padronizado e Alinhado):
+  • Palavra "Automático" excluída do formulário.
+  • Removidos os quadrados/prefixos cinzas (kg, Uni, R$) de dentro dos inputs,
+    mantendo os campos alinhados, espaçosos e com rótulos descritivos bem claros.
+- Lançamento Rápido de Notas Fiscais e Compras:
+  O operador informa a quantidade, o fornecedor, a NF e o valor total (R$).
+  O saldo do estoque é incrementado na hora e essa compra fica registrada para o
+  módulo financeiro da fábrica.
+- Indicador visual em tempo real de nível de estoque (Normal, Atenção ou Crítico).
+
+
+--------------------------------------------------------------------------------
+ETAPA 3: PEDIDOS DOS CLIENTES E FATURAMENTO
+--------------------------------------------------------------------------------
+Localização: Menu 3. Pedidos dos Clientes
+
+O que faz:
+- Entrada dos pedidos comerciais emitidos para lojistas, marcas e clientes finais.
+- Distribuição inteligente da grade de tamanhos:
+  O usuário preenche as quantidades de P, M, G e GG. O sistema faz a soma
+  automática da quantidade total de peças.
+- Definição do valor financeiro total do pedido (R$) e prazo de entrega.
+- Ciclo de vida do pedido:
+  Aguardando Produção -> Em Produção -> Pronto no Estoque -> Entregue.
+- Ao clicar em "Entregar Pedido ao Cliente", o sistema dá baixa imediata no estoque
+  de camisetas prontas da fábrica.
+- Todos os pedidos faturados alimentam automaticamente as entradas de receita no
+  fechamento financeiro mensal.
+
+
+--------------------------------------------------------------------------------
+ETAPA 4: ENGENHARIA DO PRODUTO & FICHA TÉCNICA DIGITAL
+--------------------------------------------------------------------------------
+Localização: Menu 4. Ficha Técnica Digital
+
+O que faz:
+- É a "receita de bolo" da camiseta. Cada modelo cadastrado (ex: Camiseta Básica
+  Gola Redonda, Camiseta Raglan, Polo Piquet) possui sua ficha técnica exclusiva.
+- Cards superiores de especificações:
+  • Grade de tamanhos disponíveis (P, M, G, GG).
+  • Consumo de Tecido da Modelagem (ex: 0,180 kg por camiseta / 180 gramas).
+  • Rendimento Esperado da Malha (ex: 5,56 camisetas para cada 1 kg de malha).
+  • Custo Total Estimado de Insumos por peça (soma de tecido + aviamentos).
+
+RESPOSTAS E ESCLARECIMENTOS TÉCNICOS IMPORTANTES:
+
+1. Por que "Malha Tubular / Meia Malha (Padrão do Modelo)" aparecia antes e
+   qual a sua necessidade?
+   - O QUE OCORRIA: No código anterior, havia sido colocada uma linha fixa
+     estática e travada na tabela que repetia o texto genérico "Malha Tubular /
+     Meia Malha". Isso gerava confusão porque, se o modelo usasse outro tecido
+     (ex: Algodão Menegotti, Ribana ou Moletinho), o operador não conseguia alterar
+     nem apagar aquele texto. Além disso, se o usuário adicionasse o tecido real do
+     estoque na ficha, ficavam dois tecidos duplicados na tabela!
+   - COMO FOI RESOLVIDO: Removemos a linha fixa estática hardcoded. Agora a tabela
+     exibe exclusivamente os materiais e aviamentos reais cadastrados pelo usuário.
+     O consumo base de malha do modelo (0,180 kg) permanece bem visível no card
+     superior, garantindo flexibilidade total e eliminando qualquer duplicidade.
+
+2. Como funciona o gasto de linha por modelo (Carretel Linha 120 - fração)?
+   - O CONCEITO NA CONFECÇÃO:
+     A confecção compra a linha em cones industriais (Carretel de Linha 120 com
+     4.000 metros de linha de poliéster). No estoque, a unidade é "carretel"
+     (ex: R$ 7,80 por carretel).
+     Para costurar 1 camiseta (somando o overloque fechando laterais e ombros,
+     a galoneira na barra e mangas e a reta pespontando a gola), consomem-se
+     aproximadamente 70 a 80 metros lineares de fio.
+     Como 1 cone de 4.000 metros rende em média 50 camisetas (4.000m ÷ 80m = 50 peças),
+     o consumo unitário por camiseta é uma FRAÇÃO do carretel:
+     -> 1 carretel ÷ 50 camisetas = 0,020 carretel por camiseta.
+     -> Custo de linha por camiseta: R$ 7,80 × 0,02 = R$ 0,16 por camiseta.
+     Ao produzir uma Ordem de Produção de 100 camisetas, o sistema calcula
+     automaticamente a baixa de 2 carretéis inteiros do estoque (100 × 0,02 = 2 carretéis).
+   - MELHORIA DE COMPREENSÃO VISUAL PARA O USUÁRIO:
+     Em vez de exibir um número frio e abstrato ("0.02 Uni"), a tabela agora exibe
+     de forma explicativa e humanizada:
+     "0,020 carretel (~80m de costura | 1 cone rende ~50 peças)".
+     E no modal de cadastro, ao selecionar linha, um alerta explicativo orienta
+     o operador sobre a regra de 1 cone para cada 50 camisetas.
+
+3. Exclusão do termo "Teórico":
+   - Todos os termos técnicos rebuscados como "Consumo Teórico", "Rendimento
+     Teórico" e "Custo Teórico" foram substituídos por termos diretos: "Consumo de
+     Tecido", "Rendimento Esperado" e "Custo Total de Insumos".
+
+
+--------------------------------------------------------------------------------
+ETAPA 5: ENFESTO, MESA DE CORTE & RENDIMENTO REAL
+--------------------------------------------------------------------------------
+Localização: Menu 5. Enfesto e Mesa de Corte
+
+O que faz:
+- É onde a malha vira partes de camisetas.
+- O operador lança o peso real do rolo de malha colocado na mesa (ex: 45,000 kg).
+- O sistema calcula quantas camisetas deveriam sair daquele peso (peças planejadas).
+- Após o corte das camadas (enfesto), o cortador digita quantas peças reais saíram.
+- O sistema calcula o RENDIMENTO REAL DA MALHA (peças cortadas ÷ kg de malha).
+  Exemplo: 252 peças cortadas com 45 kg = 5,60 peças/kg.
+- Se o rendimento real for maior que o padrão da modelagem (5,56 peças/kg), significa
+  que o corte foi eficiente e economizou tecido. Se for menor, houve sobra/desperdício.
+- O corte finalizado gera automaticamente a Ordem de Produção (OP) para a costura.
+
+
+--------------------------------------------------------------------------------
+ETAPA 6: TERCEIRIZAÇÃO & FACÇÕES DE COSTURA
+--------------------------------------------------------------------------------
+Localização: Menu Costura / Facções
+
+O que faz:
+- Controla o envio dos pacotes de peças cortadas para oficinas parceiras (facções).
+- Aplica automaticamente a margem de segurança de aviamentos (3% padrão).
+- Registra o retorno das peças costuradas, audita eventuais perdas na costura e
+  adiciona as camisetas prontas e conferidas ao Estoque de Produtos Acabados.
+
+
+--------------------------------------------------------------------------------
+ETAPA 7: FECHAMENTO & REGISTRO FINANCEIRO AUTOMÁTICO
+--------------------------------------------------------------------------------
+Localização: Menu 6. Registro Financeiro
+
+O que faz:
+- Centraliza o DRE e a lucratividade da empresa mês a mês.
+- INTEGRAÇÃO AUTOMÁTICA IMPLEMENTADA:
+  1. Compras no Estoque -> O sistema busca todas as entradas de insumos (rolos de
+     malha e aviamentos) registradas naquele mês e soma o valor gasto total.
+  2. Vendas aos Clientes -> O sistema busca todos os pedidos de clientes cadastrados
+     naquele mês e soma o faturamento bruto.
+  3. Outros Custos Operacionais -> Custos de facção, energia ou despesas fixas.
+  4. Lucro Líquido Real Apurado:
+     LUCRO = Faturamento com Vendas - Compras de Matéria-Prima - Outros Custos.
+  5. Botão "Sincronizar com Estoque e Vendas":
+     Um clique no botão sincroniza todos os meses do sistema, consolidando as
+     notas fiscais e pedidos reais cadastrados no banco de dados.
+  6. Identificação Visual na Tabela:
+     Meses com movimentação real exibem o selo verde "[✓ Real (Sistema)]", enquanto
+     meses históricos de demonstração mantêm o selo "[Projeção]".
+  7. Atualização do Dashboard:
+     Ao registrar ou sincronizar o financeiro, o gráfico de barras dos últimos 12 meses
+     do Dashboard é atualizado em tempo real.
+
+
+--------------------------------------------------------------------------------
+3. COMO EXPLICAR E APRESENTAR O SISTEMA AO CLIENTE (ROTEIRO SUGERIDO)
+--------------------------------------------------------------------------------
+
+Quando você for apresentar o sistema ao cliente, siga este roteiro de 5 passos:
+
+PASSO 1: ABERTURA NO DASHBOARD (Impacto Visual)
+- Mostre o Dashboard e diga:
+  "Aqui você tem o raio-X da sua confecção em uma única tela. Você enxerga quantas
+  camisetas já produziu, o que tem pronto para entregar no estoque e o gráfico
+  anual mostrando mês a mês se o seu faturamento superou o custo com tecidos e
+  qual foi o lucro líquido da fábrica."
+
+PASSO 2: CADASTRO DO MODELO E DA FICHA TÉCNICA (Engenharia do Produto)
+- Vá para a tela 4. Ficha Técnica Digital:
+  "Antes de cortar qualquer tecido, definimos a receita da peça. Para uma camiseta
+  básica, cadastramos que ela consome 180 gramas de malha (rendendo 5,5 peças por kg)
+  e adicionamos a etiqueta de cetim, a tag e o carretel de linha 120.
+  Como um cone de linha custa R$ 7,80 e rende 50 camisetas, o sistema calcula
+  automaticamente que cada camiseta consome uma fração de 0,02 carretel (apenas R$ 0,16),
+  dando o custo exato de insumos por peça antes da fabricação."
+
+PASSO 3: O PEDIDO DO CLIENTE (Comercial)
+- Vá para a tela 3. Pedidos dos Clientes:
+  "Quando a Loja ou Cliente faz um pedido, você só precisa informar os tamanhos:
+  25 P, 50 M, 50 G e 25 GG. O sistema já calcula o total de 150 camisetas, registra
+  o valor total da venda e reserva as peças no fluxo de produção."
+
+PASSO 4: CORTE E RENDIMENTO NA PRÁTICA (Chão de Fábrica)
+- Vá para a tela 5. Enfesto e Mesa de Corte:
+  "Na mesa de corte, o cortador coloca os rolos na balança e lança o peso. O sistema
+  mostra quantas peças devem ser cortadas. Ao finalizar, se o rendimento real for
+  superior ao esperado, você sabe na hora que sua equipe aproveitou a malha com máxima
+  eficiência e não houve desperdício."
+
+PASSO 5: FECHAMENTO FINANCEIRO E LUCRO REAL (Diretoria)
+- Vá para a tela 6. Registro Financeiro:
+  "No final do mês, você não precisa ficar juntando notas de papel. O sistema pega
+  automaticamente todas as compras de malha que entraram no estoque e todas as vendas
+  aos clientes, calculando na hora o Faturamento Bruto, o Total Gasto e o Lucro Líquido
+  da Confecção, alimentando os gráficos para tomada de decisão."
+
+
+--------------------------------------------------------------------------------
+4. IDENTIDADE VISUAL & EXPERIÊNCIA DO USUÁRIO: "ATELIÊ ARTESANAL"
+--------------------------------------------------------------------------------
+O sistema foi desenhado com um conceito estético sob medida para marcas de moda,
+malharias e confecções, fugindo de layouts frios e padronizados de IA:
+
+1. Tipografia Editorial Nobre (Lora / Playfair Display):
+   - Aplicada em todos os títulos principais, nomes de abas e cabeçalhos.
+   - Transmite elegância, calor humano e requinte de ateliê de alta costura.
+
+2. Tipografia de Dados & Chão de Fábrica (Plus Jakarta Sans / DM Sans):
+   - Aplicada em tabelas, inputs, formulários e grade de tamanhos (P, M, G, GG).
+   - Números alinhados perfeitamente (tabular-nums) para leitura rápida e segura
+     na mesa de corte e nas bancadas de costura.
+
+3. Micro-Elementos Estilo Tags Costuradas:
+   - Indicadores de status ("Em Produção", "Normal", "Concluído", "Estoque Crítico")
+     possuem formato de pequenas etiquetas de tecido com pesponto artesanal.
+
+4. Cores Orgânicas & Conforto Visual:
+   - Eliminado o preto puro (#000000). Textos principais utilizam tom carvão escuro
+     e marrom café profundo (#2C2523), sobre fundos off-white/creme (#FDFBF7).
+   - Botões em azul alfaiataria suave (#3D7098) e verde floresta/sálvia (#387D56),
+     evitando saturação cansativa aos olhos.
+   - Gráfico de barras financeiro com Tooltip claro e nítido ao passar o mouse,
+     permitindo visualização imediata de saídas, entradas e lucro mês a mês.
+
+--------------------------------------------------------------------------------
+5. REFINAMENTOS DE USABILIDADE & AUTOMAÇÃO DE BANCO DE DADOS (VERSÃO RECENTE)
+--------------------------------------------------------------------------------
+Com foco na melhor ergonomia e experiência do usuário no dia a dia da fábrica:
+
+1. Cadastro e Entrega de Pedidos do Cliente:
+   - Botão "Salvar Pedido" totalmente padronizado com a identidade visual do botão
+     "Salvar Registro" da Tela de Registro Financeiro (estilo suave, ícone e destaque).
+   - Tabela de Pedidos Comerciais ampliada e espaçada com rolagem horizontal suave,
+     impedindo que as colunas e a grade fiquem espremidas na tela.
+
+2. Fluxo de Moda Íntima (Otimizações Práticas):
+   - Dashboard: Gráfico "Nível do Estoque de Principais Materiais" dotado de container
+     com scroll vertical suave, permitindo visualizar com clareza mesmo quando houver
+     um grande volume de malhas e aviamentos cadastrados.
+   - Estoque: No modal "Catálogo: Novo Insumo", o campo de Código (Referência) foi
+     removido da digitação manual e passa a ser gerado automaticamente pelo banco.
+   - Ficha Técnica de Produtos:
+     • Modelos agora dispostos em uma barra/esteira horizontal superior com scroll suave,
+       evitando que a coluna lateral comprima ou prejudique a visibilidade da sidebar.
+     • No modal "Adicionar Insumo à Ficha Técnica", o campo "Gasto/Consumo por Unidade
+       Produzida" identifica e exibe em tempo real a unidade de medida (kg, m, un)
+       do insumo selecionado no dropdown.
+   - Comercial:
+     • No modal "Novo Pedido", o campo "Código do Pedido" foi excluído da digitação manual
+       e passa a vir automaticamente do banco de dados (sequencial PED-XXXX).
+     • O campo "Data Desejada" foi renomeado para "Data de Entrega" com trava no calendário
+       e validação inteligente impedindo que o usuário selecione datas anteriores a hoje.
+   - Corte/Rendimento:
+     • No modal "Enviar para Corte", o Código da OP não exige mais digitação manual e
+       é gerado automaticamente pelo banco de dados (sequencial OP-XXXX).
+
+3. Padronização Global do Sidebar:
+   - Excluídas as palavras "Produção Moda Íntima".
+   - Removido o prefixo "Kg" à frente de "Corte/Rendimento".
+   - Excluído o item "Equipe" da barra lateral.
+   - Definido "Perfil do Usuário" com ícone dedicado e rota direta ao perfil.
+
+--------------------------------------------------------------------------------
+6. ATUALIZAÇÕES DE EXCELÊNCIA OPERACIONAL (VERSÃO ATUAL)
+--------------------------------------------------------------------------------
+
+1. Segmento Camisetas:
+   - Dashboard Geral Executivo:
+     • Mapeamento rigoroso dos 12 meses cronológicos (Janeiro a Dezembro), corrigindo
+       a ordenação de datas (eliminação da duplicação de Dezembro e presença de Abril).
+   - Tela de Registro Financeiro (Custos e Lucratividade):
+     • Botão "Exportar em PDF" adicionado no cabeçalho do Histórico Mensal.
+     • Gera relatório timbrado em formato A4 paisagem com cabeçalho institucional,
+       indicadores totais de fechamento, grade de 12 meses e impressão/salvamento em PDF.
+   - Cadastro e Entrega de Pedidos do Cliente:
+     • Tabela "Pedidos Comerciais" com largura ampliada (min-width: 1450px), células
+       com espaçamento generoso (padding: 1.25rem 1.6rem) e scroll horizontal suave.
+
+2. Segmento Moda Íntima:
+   - Sidebar Unificado em Corte/Rendimento e Costura:
+     • Removidas as barras laterais legadas de Corte e Costura. Ambas as telas agora
+       utilizam o componente <Sidebar /> unificado, exibindo o alternador de segmento,
+       removendo "Equipe" e "Configurações" e apontando para "Perfil do Usuário".
+   - Tela de Insumos (Estoque):
+     • Botão de ação da tabela atualizado para "Adicionar Quantidade".
+     • No modal "Registrar Entrada", a unidade de medida do insumo (kg, m, un) é exibida
+       dinamicamente no rótulo e em badge visual ao lado do input numérico.
+   - Ficha Técnica de Produtos:
+     • O campo "Consumo por Peça" na tabela agora apresenta formato explicativo
+       humanizado e didático:
+       Ex: "0,180 kg (180 g de malha por peça)", "1,000 m (100 cm de elástico por peça)",
+           "1 un (1 unidade por peça)" e frações de carretel de costura com metragem.
+   - Comercial & Integração com Dashboard:
+     • Na tabela comercial, adicionada a coluna de Status e o botão de ação destacado
+       "Confirmar Entrega" com ícone de pacote.
+     • Ao confirmar a entrega do pedido, o sistema dá baixa e desconta a quantidade de
+       peças diretamente do card "Total de Peças em Estoque" no Dashboard de Moda Íntima.
+
+================================================================================
+                    FIM DO DOCUMENTO DE ESPECIFICAÇÃO
+================================================================================
+
+

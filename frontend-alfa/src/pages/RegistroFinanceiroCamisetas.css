@@ -1,0 +1,203 @@
+/* RegistroFinanceiroCamisetas.css - Gestão Financeira e Lucratividade de Camisetas */
+/* Conceito Ateliê Artesanal: Tipografia Editorial, Cores Orgânicas e Tags Costuradas */
+
+.financeiro-camisetas-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--bg-artisan-cream, #FDFBF7);
+  color: var(--color-text-main, #2C2523);
+  font-family: var(--font-sans-humanist, 'Plus Jakarta Sans', sans-serif);
+}
+
+.financeiro-camisetas-main {
+  flex: 1;
+  padding: 2.2rem 2.8rem;
+  overflow-y: auto;
+}
+
+.financeiro-header {
+  margin-bottom: 2rem;
+}
+
+.financeiro-header h1 {
+  font-family: var(--font-serif-editorial, 'Lora', 'Playfair Display', serif);
+  font-size: 1.95rem;
+  font-weight: 600;
+  color: var(--color-text-main, #2C2523);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.35rem;
+  letter-spacing: -0.015em;
+}
+
+.financeiro-header p {
+  color: var(--color-text-muted, #6E635F);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* CARDS RESUMO DO ANO */
+.resumo-financeiro-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.4rem;
+  margin-bottom: 2rem;
+}
+
+.card-financeiro-kpi {
+  background: #ffffff;
+  padding: 1.6rem 1.8rem;
+  border-radius: 10px;
+  border: 1px solid var(--border-artisan, #EAE4DD);
+  box-shadow: 0 4px 15px rgba(44, 37, 35, 0.04);
+}
+
+.card-financeiro-kpi span {
+  font-family: var(--font-sans-humanist, sans-serif);
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--color-text-muted, #6E635F);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.card-financeiro-kpi h3 {
+  font-family: var(--font-sans-humanist, sans-serif);
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-top: 0.4rem;
+  color: var(--color-text-main, #2C2523);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.card-financeiro-kpi.saidas h3 {
+  color: #B94A3E;
+}
+
+.card-financeiro-kpi.faturamento h3 {
+  color: #204B72;
+}
+
+.card-financeiro-kpi.lucro h3 {
+  color: #236342;
+}
+
+/* FORMULÁRIO DE LANÇAMENTO */
+.form-financeiro-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.8rem 2.2rem;
+  box-shadow: 0 4px 18px rgba(44, 37, 35, 0.04);
+  border: 1px solid var(--border-artisan, #EAE4DD);
+  margin-bottom: 2.5rem;
+}
+
+.form-financeiro-card h2 {
+  font-family: var(--font-serif-editorial, 'Lora', 'Playfair Display', serif);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-main, #2C2523);
+  margin-bottom: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  letter-spacing: -0.01em;
+}
+
+/* TABELA DE REGISTROS MENSAIS */
+.tabela-financeiro-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.8rem 2.2rem;
+  box-shadow: 0 4px 18px rgba(44, 37, 35, 0.04);
+  border: 1px solid var(--border-artisan, #EAE4DD);
+}
+
+.tabela-financeiro-card h2 {
+  font-family: var(--font-serif-editorial, 'Lora', 'Playfair Display', serif);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-main, #2C2523);
+  margin-bottom: 1.4rem;
+  letter-spacing: -0.01em;
+}
+
+.tabela-fin {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabela-fin th {
+  background: #F7F4EE;
+  padding: 0.85rem 1rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #5C524D;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border-artisan, #EAE4DD);
+  text-align: left;
+  font-family: var(--font-sans-humanist, sans-serif);
+}
+
+.tabela-fin td {
+  padding: 1rem;
+  border-bottom: 1px solid #F0ECE4;
+  font-size: 0.92rem;
+  color: #3E3633;
+  font-family: var(--font-sans-humanist, sans-serif);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.tabela-fin tr:hover td {
+  background-color: #FAF8F5;
+}
+
+/* MICRO-ELEMENTO: ETIQUETAS COSTURADAS DO FINANCEIRO */
+.margem-lucro-tag {
+  background: #EDF7F1;
+  color: #236342;
+  font-weight: 700;
+  padding: 0.25rem 0.55rem;
+  border-radius: 4px;
+  font-size: 0.74rem;
+  border: 1px dashed #A6D8BB;
+  font-family: var(--font-sans-humanist, sans-serif);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+@keyframes girarAnim {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.anim-girar {
+  animation: girarAnim 1s linear infinite;
+}
+
+.btn-exportar-pdf {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #FAF8F5;
+  color: #2C2523;
+  border: 1.5px solid #D5CCC0;
+  padding: 0.6rem 1.1rem;
+  border-radius: 8px;
+  font-family: var(--font-sans-humanist, sans-serif);
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(44, 37, 35, 0.05);
+}
+
+.btn-exportar-pdf:hover {
+  background-color: #3D7098;
+  color: #ffffff;
+  border-color: #3D7098;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(44, 37, 35, 0.12);
+}

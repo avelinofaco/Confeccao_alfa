@@ -1,0 +1,276 @@
+/* CosturaFaccoesCamisetas.css - Facções Externas e Produtos Acabados de Camisetas */
+/* Conceito Ateliê Artesanal: Tipografia Editorial, Cores Orgânicas e Tags Costuradas */
+
+.costura-camisetas-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--bg-artisan-cream, #FDFBF7);
+  color: var(--color-text-main, #2C2523);
+  font-family: var(--font-sans-humanist, 'Plus Jakarta Sans', sans-serif);
+}
+
+.costura-camisetas-main {
+  flex: 1;
+  padding: 2.2rem 2.8rem;
+  overflow-y: auto;
+}
+
+.costura-header {
+  margin-bottom: 2rem;
+}
+
+.costura-header h1 {
+  font-family: var(--font-serif-editorial, 'Lora', 'Playfair Display', serif);
+  font-size: 1.95rem;
+  font-weight: 600;
+  color: var(--color-text-main, #2C2523);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.35rem;
+  letter-spacing: -0.015em;
+}
+
+.costura-header p {
+  color: var(--color-text-muted, #6E635F);
+  font-size: 0.95rem;
+}
+
+/* Indicadores */
+.metricas-costura-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.2rem;
+  margin-bottom: 2rem;
+}
+
+.metrica-costura-card {
+  background: #ffffff;
+  padding: 1.4rem;
+  border-radius: 10px;
+  border: 1px solid var(--border-artisan, #EAE4DD);
+  box-shadow: 0 4px 15px rgba(44, 37, 35, 0.04);
+}
+
+.metrica-costura-card span {
+  font-family: var(--font-sans-humanist, sans-serif);
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--color-text-muted, #6E635F);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.metrica-costura-card h3 {
+  font-family: var(--font-sans-humanist, sans-serif);
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--color-text-main, #2C2523);
+  margin-top: 0.4rem;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* Form Envio */
+.form-envio-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.8rem 2.2rem;
+  box-shadow: 0 4px 18px rgba(44, 37, 35, 0.04);
+  border: 1px solid var(--border-artisan, #EAE4DD);
+  margin-bottom: 2.5rem;
+}
+
+.form-envio-card h2 {
+  font-family: var(--font-serif-editorial, 'Lora', 'Playfair Display', serif);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-main, #2C2523);
+  margin-bottom: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  letter-spacing: -0.01em;
+}
+
+.margem-info-badge {
+  background: #FEF8EC;
+  border: 1px dashed #F7D89C;
+  border-radius: 6px;
+  padding: 0.85rem 1.2rem;
+  font-size: 0.88rem;
+  color: #9A5809;
+  margin-bottom: 1.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-sans-humanist, sans-serif);
+}
+
+/* Tabela de Remessas */
+.tabela-remessas-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.8rem 2.2rem;
+  box-shadow: 0 4px 18px rgba(44, 37, 35, 0.04);
+  border: 1px solid var(--border-artisan, #EAE4DD);
+}
+
+.tabela-remessas-card h2 {
+  font-family: var(--font-serif-editorial, 'Lora', 'Playfair Display', serif);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-main, #2C2523);
+  margin-bottom: 1.4rem;
+  letter-spacing: -0.01em;
+}
+
+.tabela-remessas {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabela-remessas th {
+  background: #F7F4EE;
+  padding: 0.85rem 1rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #5C524D;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border-artisan, #EAE4DD);
+  text-align: left;
+  font-family: var(--font-sans-humanist, sans-serif);
+}
+
+.tabela-remessas td {
+  padding: 1rem;
+  border-bottom: 1px solid #F0ECE4;
+  font-size: 0.92rem;
+  color: #3E3633;
+  font-family: var(--font-sans-humanist, sans-serif);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* MICRO-ELEMENTO: ETIQUETAS DE COSTURA */
+.tag-perda-avaria {
+  background: #FDF2F0;
+  color: #9B281E;
+  font-weight: 700;
+  padding: 0.25rem 0.55rem;
+  border-radius: 4px;
+  font-size: 0.74rem;
+  border: 1px dashed #F5B9B2;
+  font-family: var(--font-sans-humanist, sans-serif);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tag-aprovado-acabado {
+  background: #EDF7F1;
+  color: #236342;
+  font-weight: 700;
+  padding: 0.25rem 0.55rem;
+  border-radius: 4px;
+  font-size: 0.74rem;
+  border: 1px dashed #A6D8BB;
+  font-family: var(--font-sans-humanist, sans-serif);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* MODAL PADRÃO */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1.5rem;
+}
+
+.modal-content {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 2rem 2.2rem;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.22);
+  border: 1px solid #e2e8f0;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: modalScaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.4rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.modal-header h3 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.modal-close-btn:hover {
+  color: #0f172a;
+  background: #f1f5f9;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.btn-cancelar {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancelar:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+

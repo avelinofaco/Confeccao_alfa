@@ -1,8 +1,20 @@
 import axios from 'axios';
 
+// Detecta inteligentemente: se tiver VITE_API_URL usa ela.
+// Se estiver no localhost/127.0.0.1, conecta no backend local (http://localhost:8000).
+// Em produção na nuvem, conecta na API do Render.
+const getBaseURL = () => {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+    return 'http://localhost:8000';
+  }
+  return 'https://confeccao-alfa.onrender.com';
+};
+
 const api = axios.create({
-  // Pega a URL do Render em produção ou usa localhost em desenvolvimento local
-  baseURL: import.meta.env.VITE_API_URL || 'https://confeccao-alfa.onrender.com',
+  baseURL: getBaseURL(),
 });
 
 // Interceptador para anexa o Token JWT

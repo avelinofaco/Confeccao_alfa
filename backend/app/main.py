@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import estoque, ficha_tecnica, producao, costura, comercial, equipe, auth, usuarios
+from app.routers import estoque, ficha_tecnica, producao, costura, comercial, equipe, auth, usuarios, camisetas
+from app.models import camisetas as camisetas_models
 from app.database import engine, Base
 
 # Comando para criar as tabelas no PostgreSQL (caso ainda não existam)
@@ -13,11 +14,14 @@ origins = [
     "https://confeccao-alfa.vercel.app",  # Seu front-end na Vercel
     "http://localhost:5173",              # Desenvolvimento local (Vite)
     "http://localhost:3000",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:3000",
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,       # Utiliza a lista de origens explicitas
+    allow_origins=origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",  # Permite qualquer URL de deploy ou preview da Vercel
     allow_credentials=True,
     allow_methods=["*"],         # Libera POST, GET, PUT, DELETE, OPTIONS, etc.
     allow_headers=["*"],         # Libera Authorization, Content-Type, etc.
@@ -32,6 +36,7 @@ app.include_router(comercial.router)
 app.include_router(producao.router)
 app.include_router(costura.router)
 app.include_router(equipe.router)
+app.include_router(camisetas.router)
 
 
 @app.get("/")

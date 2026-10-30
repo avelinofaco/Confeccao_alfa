@@ -10,29 +10,60 @@ function Cadastro() {
   const [perfil, setPerfil] = useState('Gestor');
   const [senha, setSenha] = useState('');
   
+  const [carregando, setCarregando] = useState(false);
   const navigate = useNavigate();
 
   const handleCadastro = async (e) => {
     e.preventDefault();
     
+    const loginFormatado = login.trim();
+    const nomeFormatado = nomeUsuario.trim();
+
+    if (!loginFormatado || !nomeFormatado || !senha) {
+      alert('Por favor, preencha todos os campos obrigatórios.');
+      return;
+    }
+
+    if (senha.length < 6) {
+      alert('A senha deve conter no mínimo 6 caracteres.');
+      return;
+    }
+
     try {
-      // Montando o "pacote" exatamente como o FastAPI espera
+      setCarregando(true);
+      // Montando o payload exatamente como o FastAPI espera
       const payload = {
-        login: login,
-        nome_usuario: nomeUsuario,
+        login: loginFormatado,
+        nome_usuario: nomeFormatado,
         perfil: perfil,
-        ativo: true, // Enviando 'true' por padrão, conforme o seu modelo
+        ativo: true,
         senha: senha
       };
 
-      const response = await api.post('/usuarios/', payload);
+      await api.post('/usuarios/', payload);
 
       alert('Cadastro realizado com sucesso!');
       navigate('/'); // Redireciona para o Login
 
     } catch (error) {
       console.error("Erro no cadastro:", error);
-      alert('Erro ao realizar cadastro. Verifique o console.');
+      
+      const detalhe = error.response?.data?.detail;
+      let mensagemErro = 'Erro ao realizar cadastro. Verifique os dados digitados.';
+      
+      if (typeof detalhe === 'string') {
+        mensagemErro = detalhe;
+      } else if (Array.isArray(detalhe)) {
+        // Erro 422 de validação do Pydantic
+        mensagemErro = detalhe.map(err => {
+          const campo = err.loc ? err.loc[err.loc.length - 1] : 'Campo';
+          return `${campo}: ${err.msg}`;
+        }).join('\n');
+      }
+
+      alert(mensagemErro);
+    } finally {
+      setCarregando(false);
     }
   };
 
@@ -84,18 +115,19 @@ function Cadastro() {
           </div>
 
           <div className="input-group">
-            <label>Senha</label>
+            <label>Senha (mínimo 6 caracteres)</label>
             <input
               type="password"
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
-              placeholder="Crie uma senha"
+              placeholder="Crie uma senha (mínimo 6 caracteres)"
+              minLength={6}
               required
             />
           </div>
 
-          <button type="submit" className="login-button">
-            Finalizar Cadastro
+          <button type="submit" className="login-button" disabled={carregando}>
+            {carregando ? 'Cadastrando...' : 'Finalizar Cadastro'}
           </button>
         </form>
 

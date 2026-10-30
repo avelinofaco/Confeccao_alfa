@@ -17,8 +17,8 @@ class UsuarioCreate(UsuarioBase):
 # Schema para RESPOSTA (NÃO contém a senha)
 class UsuarioResponse(UsuarioBase):
     id_usuario: int
-    criado_em: datetime
-    atualizado_em: datetime
+    criado_em: Optional[datetime] = None
+    atualizado_em: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True)
 

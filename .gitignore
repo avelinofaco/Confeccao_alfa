@@ -11,4 +11,9 @@ venv/
 env/
 
 # Arquivos de variáveis de ambiente locais
+.env__pycache__/
+*.py[cod]
+*.db
+.venv/
+venv/
 .env

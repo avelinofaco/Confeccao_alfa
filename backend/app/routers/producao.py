@@ -24,11 +24,18 @@ def listar_ops(db: Session = Depends(get_db)):
 @router.post("/ordens", response_model=schemas.OPResponse, status_code=status.HTTP_201_CREATED)
 def enviar_para_corte(op: schemas.OPCreate, db: Session = Depends(get_db)):
     """Registra o envio de malha para o cortador e cria a OP."""
-    
-    # Verifica se a OP já existe
-    db_op = db.query(models_prod.OrdemProducao).filter(models_prod.OrdemProducao.codigo_op == op.codigo_op).first()
-    if db_op:
-        raise HTTPException(status_code=400, detail="Já existe uma OP cadastrada com este código.")
+    dados_op = op.model_dump()
+
+    # Se o código da OP não for informado, gerar automaticamente pelo banco
+    if not dados_op.get("codigo_op"):
+        ultimo = db.query(models_prod.OrdemProducao).order_by(models_prod.OrdemProducao.id_op.desc()).first()
+        next_id = (ultimo.id_op + 1) if ultimo else 1
+        dados_op["codigo_op"] = f"OP-{next_id:04d}"
+    else:
+        # Verifica se a OP já existe
+        db_op = db.query(models_prod.OrdemProducao).filter(models_prod.OrdemProducao.codigo_op == dados_op["codigo_op"]).first()
+        if db_op:
+            raise HTTPException(status_code=400, detail="Já existe uma OP cadastrada com este código.")
 
     # Verifica se o produto/modelo existe
     produto = db.query(models_ficha.Produto).filter(models_ficha.Produto.id_produto == op.id_produto).first()
@@ -36,7 +43,7 @@ def enviar_para_corte(op: schemas.OPCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Produto não encontrado.")
 
     nova_op = models_prod.OrdemProducao(
-        **op.model_dump(),
+        **dados_op,
         status_op="Enviado para Corte"
     )
     
