@@ -32,6 +32,7 @@ from app.schemas.camisetas import (
     CamisetaRegistroFinanceiroCreate, CamisetaRegistroFinanceiroResponse, CamisetaApuracaoMensalResponse,
     CamisetaDashboardCompletoResponse, CamisetaCardDestaque, CamisetaItemFinanceiroMensal
 )
+from app.services.camisetas.clientes import resolver_cliente
 from app.services.camisetas.modelos import definir_grade
 
 router = APIRouter()
@@ -191,6 +192,7 @@ def seed_camisetas(db: Session = Depends(get_db)):
             ped1 = CamisetaPedido(
                 codigo_pedido="PED-001",
                 nome_cliente="Lojas Alpha Wear",
+                id_cliente=resolver_cliente(db, None, "Lojas Alpha Wear").id_cliente,
                 id_modelo=m1.id_modelo,
                 grade_p=25,
                 grade_m=50,
@@ -205,6 +207,7 @@ def seed_camisetas(db: Session = Depends(get_db)):
             ped2 = CamisetaPedido(
                 codigo_pedido="PED-002",
                 nome_cliente="Confecções Brasil Moda",
+                id_cliente=resolver_cliente(db, None, "Confecções Brasil Moda").id_cliente,
                 id_modelo=m1.id_modelo,
                 grade_p=40,
                 grade_m=80,
