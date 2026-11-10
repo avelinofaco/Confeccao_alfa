@@ -16,6 +16,7 @@ from app.schemas.camisetas import (
     CamisetaPedidoStatusUpdate,
     CamisetaProdutoAcabadoResponse,
 )
+from app.services.camisetas.clientes import resolver_cliente
 from app.services.camisetas.estoque import (
     baixar_estoque_acabado,
     devolver_estoque_acabado,
@@ -64,9 +65,11 @@ def cadastrar_pedido(pedido_in: CamisetaPedidoCreate, db: Session = Depends(get_
     if qtd_total <= 0:
         raise HTTPException(status_code=400, detail="A soma das grades (P, M, G, GG) deve ser maior que zero")
 
+    cliente = resolver_cliente(db, pedido_in.id_cliente, pedido_in.nome_cliente)
     novo_pedido = CamisetaPedido(
         codigo_pedido=proximo_codigo(db, "PED"),
-        nome_cliente=pedido_in.nome_cliente,
+        nome_cliente=cliente.nome,
+        id_cliente=cliente.id_cliente,
         id_modelo=pedido_in.id_modelo,
         grade_p=pedido_in.grade_p,
         grade_m=pedido_in.grade_m,

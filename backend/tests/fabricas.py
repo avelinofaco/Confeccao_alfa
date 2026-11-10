@@ -13,6 +13,8 @@ from app.models.camisetas import (
     CamisetaProdutoAcabado,
     CamisetaRegistroFinanceiro,
 )
+from app.models.camisetas_cadastros import CamisetaCliente, CamisetaCor
+from app.services.documentos import normalizar_nome
 
 
 def _salvar(db, objeto):
@@ -62,11 +64,12 @@ def criar_entrada(db, insumo, quantidade="10.000", valor="100.00", data=None):
 
 
 def criar_pedido(db, modelo, codigo="PED-T-1", valor="1000.00", status="Aguardando Produção",
-                 grade=(10, 10, 10, 10), criado_em=None, observacoes=None, data_entrega_realizada=None):
+                 grade=(10, 10, 10, 10), criado_em=None, observacoes=None, data_entrega_realizada=None, cliente=None):
     p, m, g, gg = grade
     return _salvar(db, CamisetaPedido(
         codigo_pedido=codigo,
-        nome_cliente="Cliente Teste",
+        nome_cliente=cliente.nome if cliente else "Cliente Teste",
+        id_cliente=cliente.id_cliente if cliente else None,
         id_modelo=modelo.id_modelo,
         grade_p=p, grade_m=m, grade_g=g, grade_gg=gg,
         quantidade_total=p + m + g + gg,
@@ -115,3 +118,17 @@ def criar_registro_financeiro(db, mes_ano, outros="0.00", observacoes=None):
         outros_custos_operacionais=Decimal(outros),
         observacoes=observacoes,
     ))
+
+
+def criar_cliente(db, nome="Loja Beta", documento=None, telefone=None, ativo=True):
+    return _salvar(db, CamisetaCliente(
+        nome=nome,
+        nome_busca=normalizar_nome(nome),
+        documento=documento,
+        telefone_whatsapp=telefone,
+        ativo=ativo,
+    ))
+
+
+def criar_cor(db, nome="Preto", hex="#1F1F1F", ativo=True):
+    return _salvar(db, CamisetaCor(nome=nome, hex=hex, ativo=ativo))

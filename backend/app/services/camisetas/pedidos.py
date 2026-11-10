@@ -12,6 +12,7 @@ def montar_resposta_pedido(pedido) -> CamisetaPedidoResponse:
         id_pedido=pedido.id_pedido,
         codigo_pedido=pedido.codigo_pedido,
         nome_cliente=pedido.nome_cliente,
+        id_cliente=pedido.id_cliente,
         id_modelo=pedido.id_modelo,
         nome_modelo=pedido.modelo.nome_modelo if pedido.modelo else "Modelo",
         grade_p=pedido.grade_p,

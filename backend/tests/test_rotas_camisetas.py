@@ -26,6 +26,11 @@ ROTAS_ESPERADAS = {
     ("GET", "/camisetas/costura/"),
     ("POST", "/camisetas/costura/enviar"),
     ("PUT", "/camisetas/costura/{id_costura}/retornar"),
+    ("GET", "/camisetas/clientes/"),
+    ("POST", "/camisetas/clientes/"),
+    ("GET", "/camisetas/clientes/{id_cliente}"),
+    ("PUT", "/camisetas/clientes/{id_cliente}"),
+    ("DELETE", "/camisetas/clientes/{id_cliente}"),
 }
 
 

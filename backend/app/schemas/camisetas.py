@@ -83,7 +83,8 @@ class CamisetaFichaTecnicaResponse(CamisetaFichaTecnicaBase):
 # ----------------- PEDIDOS COMERCIAIS -----------------
 class CamisetaPedidoCreate(BaseModel):
     codigo_pedido: Optional[str] = None  # ignorado: o servidor gera PED-AAAA-NNNN
-    nome_cliente: str
+    nome_cliente: Optional[str] = None  # usado só se id_cliente não vier (frontend antigo)
+    id_cliente: Optional[int] = None
     id_modelo: int
     grade_p: int = Field(0, ge=0)
     grade_m: int = Field(0, ge=0)
@@ -117,6 +118,7 @@ class CamisetaPedidoResponse(BaseModel):
     id_pedido: int
     codigo_pedido: str
     nome_cliente: str
+    id_cliente: Optional[int] = None
     id_modelo: int
     nome_modelo: Optional[str] = None
     grade_p: int
