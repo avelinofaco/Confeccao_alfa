@@ -4136,3 +4136,23 @@ Expected: build ok, zero erros de lint, `grep` sem resultados.
 Percorrer a seção 6 da spec com o Roteiro de verificação local (banco novo + seed) e confirmar cada item, incluindo: pedido criado escolhendo cliente pela busca; cliente novo pelo cadastro rápido; CNPJ inválido recusado; exclusão de cliente com pedidos oferecendo inativação; grades e cores na Ficha; modelo com grade nova; malha ligada a cor sem mudar saldo/custo.
 
 - [ ] **Step 4: Encerrar servidores locais e apagar `backend/dev.db`.**
+
+---
+
+## Notas de execução (2026-11-10)
+
+Desvios em relação ao plano, encontrados e corrigidos durante a execução:
+
+1. **Migração 005** — `inserted_primary_key` vem vazio com tabelas leves (`sa.table`); os inserts usam
+   `.returning(<coluna id>).scalar_one()` (funciona em PostgreSQL e SQLite). O bloco da Task 1 já foi corrigido.
+2. **Seed de demonstração** — passou a ligar os pedidos de exemplo a clientes (`resolver_cliente`); sem isso o
+   banco local criado sem migração ficava sem clientes.
+3. **`FormCliente`** — abre em portal (`createPortal` no `<body>`) e chama `e.stopPropagation()` no envio:
+   aberto a partir do pedido, o envio subia até o formulário do pedido e o cadastro rápido não salvava.
+   `ModalEditarInsumo` segue o mesmo padrão.
+4. **`SeletorCliente`** — a opção "Cadastrar…" só aparece depois que a busca do termo atual termina (estado
+   "Buscando clientes…"); antes, um Enter rápido abria o cadastro em vez de escolher o cliente existente.
+5. **Ajustes visuais** — documento e WhatsApp sem quebra de linha na tabela de clientes.
+
+Pendência registrada: `FichaTecnicaCamisetas.jsx` ficou com 890 linhas (já passava de 800 antes); extrair o
+modal de modelo para um componente quando a página for mexida de novo.
