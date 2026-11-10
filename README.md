@@ -425,6 +425,26 @@ O Vite exibirá no terminal o endereço local para acessar a aplicação.
 
 ---
 
+## 🧪 Testes do Backend
+
+Os testes usam um banco SQLite em memória — nunca o banco de produção.
+
+```bash
+cd backend
+venv/bin/python -m pip install -r requirements-dev.txt   # Windows: venv\Scripts\python -m pip ...
+venv/bin/python -m pytest                                 # roda todos os testes
+venv/bin/python -m pytest --cov=app/services              # com cobertura das regras de negócio
+```
+
+Para rodar a API localmente sem tocar na produção:
+
+```bash
+DATABASE_URL=sqlite:///./dev.db venv/bin/python -m alembic upgrade head
+DATABASE_URL=sqlite:///./dev.db venv/bin/python -m uvicorn app.main:app --reload
+```
+
+---
+
 ## 🔄 Integrações e Regras de Negócio
 
 Um dos principais diferenciais do Confecção Alfa é a integração entre os módulos.

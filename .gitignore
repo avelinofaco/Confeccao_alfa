@@ -17,3 +17,7 @@ env/
 .venv/
 venv/
 .env
+
+# Relatórios de cobertura de testes
+.coverage
+htmlcov/
