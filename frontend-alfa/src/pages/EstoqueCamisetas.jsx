@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Package, 
-  Layers, 
-  PlusCircle, 
-  AlertTriangle, 
-  CheckCircle, 
-  Search, 
-  X, 
-  ArrowDownLeft, 
+import {
+  Package,
+  Layers,
+  PlusCircle,
+  AlertTriangle,
+  CheckCircle,
+  Search,
+  X,
+  ArrowDownLeft,
   Tag,
-  Sparkles,
   RefreshCw,
   Info
 } from 'lucide-react';
 import api from '../services/api';
+import { useToast } from '../components/feedback/useToast';
 import Sidebar from '../components/Sidebar';
 import './EstoqueCamisetas.css';
 
@@ -61,7 +61,7 @@ function EstoqueCamisetas() {
   const [insumos, setInsumos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [busca, setBusca] = useState('');
-  const [toast, setToast] = useState(null);
+  const toast = useToast();
 
   // Modais e status de salvamento
   const [modalEntradaAberto, setModalEntradaAberto] = useState(false);
@@ -166,12 +166,7 @@ function EstoqueCamisetas() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [modalNovoInsumoAberto, modalEntradaAberto]);
 
-  const mostrarToast = (tipo, texto) => {
-    setToast({ tipo, texto });
-    setTimeout(() => {
-      setToast(null);
-    }, 5000);
-  };
+  const mostrarToast = (tipo, texto) => toast.mostrar(tipo, texto);
 
   // Filtragem: Rolo de tecido vs Aviamentos (Linha, Etiqueta, Tag e outros)
   const rolosTecido = insumos.filter(i => (i.categoria || '').toUpperCase() === 'ROLO_TECIDO');
@@ -313,26 +308,12 @@ function EstoqueCamisetas() {
       <Sidebar />
 
       <main className="estoque-camisetas-main">
-        {/* Toast Notificação de Feedback (IHC - Visibilidade do Status) */}
-        {toast && (
-          <div className={`toast-alerta-flutuante ${toast.tipo}`} role="alert" aria-live="assertive">
-            <span>{toast.texto}</span>
-            <button 
-              type="button" 
-              onClick={() => setToast(null)} 
-              className="toast-btn-fechar"
-              aria-label="Fechar notificação"
-            >
-              <X size={16} />
-            </button>
-          </div>
-        )}
 
         <header className="estoque-header">
           <div className="estoque-header-title">
             <h1>
               <Package size={28} color="#2563eb" aria-hidden="true" />
-              3. Gestão de Estoque de Insumos
+              4. Gestão de Estoque de Insumos
             </h1>
             <p>
               Controle físico de rolos de tecido (malhas em kg) e aviamentos (linhas, etiquetas e tags) 
@@ -458,6 +439,7 @@ function EstoqueCamisetas() {
                     const saldoNum = parseFloat(item.saldo_atual || 0);
                     const minNum = parseFloat(item.estoque_minimo || 0);
                     const isCritico = saldoNum <= minNum;
+                    const isNegativo = saldoNum < 0;
                     const siglaItem = obterSiglaUnidade(item.unidade_medida);
 
                     return (
@@ -474,7 +456,12 @@ function EstoqueCamisetas() {
                           <strong>{formatarMoeda(item.preco_custo_medio)}</strong>
                         </td>
                         <td>
-                          {isCritico ? (
+                          {isNegativo ? (
+                            <span className="status-estoque-badge negativo" title="O saldo registrado ficou abaixo de zero: confira o estoque físico e lance a nota fiscal que faltou">
+                              <AlertTriangle size={12} />
+                              Negativo — conferir inventário
+                            </span>
+                          ) : isCritico ? (
                             <span className="status-estoque-badge critico" title="Saldo abaixo ou igual ao estoque mínimo">
                               <AlertTriangle size={12} />
                               Estoque Crítico

@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  FileText, 
-  PlusCircle, 
-  Shirt, 
-  Layers, 
-  CheckCircle, 
+import {
+  FileText,
+  PlusCircle,
+  Shirt,
+  CheckCircle,
   X,
   Info,
-  Trash2,
-  Sparkles,
-  Tag
+  Trash2
 } from 'lucide-react';
 import api from '../services/api';
+import { useToast } from '../components/feedback/useToast';
+import { useConfirm } from '../components/feedback/useConfirm';
+import { buscarEmParalelo } from '../services/buscarEmParalelo';
 import Sidebar from '../components/Sidebar';
 import './FichaTecnicaCamisetas.css';
 
@@ -21,7 +21,8 @@ function FichaTecnicaCamisetas() {
   const [fichas, setFichas] = useState([]);
   const [insumosEstoque, setInsumosEstoque] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState(null);
+  const toast = useToast();
+  const confirmar = useConfirm();
 
   // Modais
   const [modalNovoModelo, setModalNovoModelo] = useState(false);
@@ -47,24 +48,18 @@ function FichaTecnicaCamisetas() {
     custo_unitario_estimado: ''
   });
 
-  const mostrarToast = (tipo, texto) => {
-    setToast({ tipo, texto });
-    setTimeout(() => {
-      setToast(null);
-    }, 5000);
-  };
+  const mostrarToast = (tipo, texto) => toast.mostrar(tipo, texto);
 
   const carregarDados = async () => {
     try {
       setLoading(true);
-      const [resModelos, resInsumos] = await Promise.all([
-        api.get('/camisetas/modelos/').catch(() => ({ data: [] })),
-        api.get('/camisetas/insumos/').catch(() => ({ data: [] }))
-      ]);
-
-      const listaMods = resModelos.data || [];
+      const { dados, houveFalha } = await buscarEmParalelo(['/camisetas/modelos/', '/camisetas/insumos/']);
+      const [listaMods, listaInsumos] = dados;
       setModelos(listaMods);
-      setInsumosEstoque(resInsumos.data || []);
+      setInsumosEstoque(listaInsumos);
+      if (houveFalha) {
+        mostrarToast('erro', 'Não foi possível carregar todos os modelos e insumos. Verifique a conexão e recarregue a página.');
+      }
 
       if (listaMods.length > 0) {
         if (!modeloAtivo) {
@@ -249,7 +244,12 @@ function FichaTecnicaCamisetas() {
 
   // Remoção de item da ficha técnica (IHC - Controle e Liberdade do Usuário)
   const handleRemoverItemFicha = async (idFicha, nomeItem) => {
-    const confirma = window.confirm(`Deseja remover "${nomeItem}" da ficha técnica deste modelo?`);
+    const confirma = await confirmar({
+      titulo: 'Remover item da ficha técnica?',
+      mensagem: `"${nomeItem}" deixará de ser considerado no custo e na baixa de aviamentos deste modelo.`,
+      textoConfirmar: 'Remover item',
+      perigo: true,
+    });
     if (!confirma) return;
 
     try {
@@ -326,26 +326,12 @@ function FichaTecnicaCamisetas() {
       <Sidebar />
 
       <main className="ficha-camisetas-main">
-        {/* Toast Notificação Flutuante */}
-        {toast && (
-          <div className={`toast-alerta-flutuante ${toast.tipo}`} role="alert" aria-live="assertive">
-            <span>{toast.texto}</span>
-            <button 
-              type="button" 
-              onClick={() => setToast(null)} 
-              className="toast-btn-fechar"
-              aria-label="Fechar notificação"
-            >
-              <X size={16} />
-            </button>
-          </div>
-        )}
 
-        {/* Cabeçalho da Tela: "4. Tela de Ficha Técnica Digital" (Sem "Engenharia do Produto") */}
+        {/* Cabeçalho da Tela: "3. Tela de Ficha Técnica Digital" (Sem "Engenharia do Produto") */}
         <header className="ficha-header">
           <h1>
             <FileText size={28} color="#2563eb" aria-hidden="true" />
-            4. Tela de Ficha Técnica Digital
+            3. Tela de Ficha Técnica Digital
           </h1>
           <p>
             Defina o padrão de consumo para cada modelo de camiseta cadastrado: 

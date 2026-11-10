@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Layers, 
-  Scissors, 
-  PlusCircle, 
-  CheckCircle, 
-  AlertCircle, 
-  Sparkles, 
-  TrendingUp, 
+import {
+  Layers,
+  Scissors,
+  PlusCircle,
+  AlertCircle,
+  Sparkles,
   X,
-  Scale,
-  Shirt
+  Scale
 } from 'lucide-react';
 import api from '../services/api';
+import { useToast } from '../components/feedback/useToast';
+import { mensagemDeErro } from '../components/feedback/mensagemErro';
+import { buscarEmParalelo } from '../services/buscarEmParalelo';
 import Sidebar from '../components/Sidebar';
 import './CorteRendimentoCamisetas.css';
 
@@ -20,15 +20,7 @@ function CorteRendimentoCamisetas() {
   const [tecidos, setTecidos] = useState([]);
   const [ordens, setOrdens] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState(null);
-
-  // Fecha o toast automaticamente após 5 segundos
-  useEffect(() => {
-    if (toast) {
-      const timer = setTimeout(() => setToast(null), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [toast]);
+  const toast = useToast();
 
   // Modal para registrar o corte realizado
   const [modalFinalizarAberto, setModalFinalizarAberto] = useState(false);
@@ -45,17 +37,18 @@ function CorteRendimentoCamisetas() {
   const carregarDados = async () => {
     try {
       setLoading(true);
-      const [resModelos, resInsumos, resOps] = await Promise.all([
-        api.get('/camisetas/modelos/').catch(() => ({ data: [] })),
-        api.get('/camisetas/insumos/?categoria=ROLO_TECIDO').catch(() => ({ data: [] })),
-        api.get('/camisetas/ordens/').catch(() => ({ data: [] }))
+      const { dados, houveFalha } = await buscarEmParalelo([
+        '/camisetas/modelos/',
+        '/camisetas/insumos/?categoria=ROLO_TECIDO',
+        '/camisetas/ordens/',
       ]);
-
-      const listaMods = resModelos.data || [];
-      const listaTecs = resInsumos.data || [];
+      const [listaMods, listaTecs, listaOps] = dados;
       setModelos(listaMods);
       setTecidos(listaTecs);
-      setOrdens(resOps.data || []);
+      setOrdens(listaOps);
+      if (houveFalha) {
+        toast.erro('Não foi possível carregar todos os dados de corte. Verifique a conexão e recarregue a página.');
+      }
 
       if (listaMods.length > 0 && !formOp.id_modelo) {
         setFormOp(prev => ({ ...prev, id_modelo: listaMods[0].id_modelo }));
@@ -87,50 +80,29 @@ function CorteRendimentoCamisetas() {
   const handleCriarOp = async (e) => {
     e.preventDefault();
     if (!formOp.id_modelo || !formOp.peso_malha_enviado_kg) {
-      setToast({
-        tipo: 'aviso',
-        texto: 'Por favor, selecione o modelo e informe o peso de malha enviado para a mesa.'
-      });
+      toast.mostrar('aviso', 'Por favor, selecione o modelo e informe o peso de malha enviado para a mesa.');
       return;
     }
 
     if (pesoSolicitado <= 0) {
-      setToast({
-        tipo: 'aviso',
-        texto: 'O peso de malha enviado deve ser superior a zero.'
-      });
+      toast.mostrar('aviso', 'O peso de malha enviado deve ser superior a zero.');
       return;
     }
 
     // Regra estrita: impedir envio se o peso for maior do que tem em estoque
     if (pesoExcedeEstoque) {
-      setToast({
-        tipo: 'erro',
-        texto: `Operação bloqueada: Estoque de malha insuficiente! O rolo selecionado possui saldo de ${saldoDisponivel.toFixed(3)} kg, mas você tentou enviar ${pesoSolicitado.toFixed(3)} kg para a mesa.`
-      });
+      toast.mostrar('erro', `Operação bloqueada: Estoque de malha insuficiente! O rolo selecionado possui saldo de ${saldoDisponivel.toFixed(3)} kg, mas você tentou enviar ${pesoSolicitado.toFixed(3)} kg para a mesa.`);
       return;
     }
 
     try {
-      const proximoNumero = ordens.length > 0 
-        ? Math.max(...ordens.map(o => {
-            const m = o.codigo_op?.match(/\d+/);
-            return m ? parseInt(m[0], 10) : 100;
-          })) + 1
-        : 101;
-      const codigoGerado = `OP-CAM-${proximoNumero}`;
-
-      await api.post('/camisetas/ordens/', {
-        codigo_op: codigoGerado,
-        id_modelo: parseInt(formOp.id_modelo),
+      const { data: opCriada } = await api.post('/camisetas/ordens/', {
+        id_modelo: parseInt(formOp.id_modelo, 10),
         id_insumo_tecido: formOp.id_insumo_tecido ? parseInt(formOp.id_insumo_tecido) : null,
         peso_malha_enviado_kg: parseFloat(formOp.peso_malha_enviado_kg)
       });
 
-      setToast({
-        tipo: 'sucesso',
-        texto: `Ordem de Produção ${codigoGerado} aberta com sucesso! Baixa de ${pesoSolicitado.toFixed(3)} kg realizada no estoque de malha.`
-      });
+      toast.mostrar('sucesso', `Ordem de Produção ${opCriada.codigo_op} aberta com sucesso! Baixa de ${pesoSolicitado.toFixed(3)} kg realizada no estoque de malha.`);
 
       setFormOp({
         id_modelo: modelos.length > 0 ? modelos[0].id_modelo : '',
@@ -140,10 +112,7 @@ function CorteRendimentoCamisetas() {
       carregarDados();
     } catch (err) {
       console.error("Erro ao abrir OP:", err);
-      setToast({
-        tipo: 'erro',
-        texto: err.response?.data?.detail || "Erro ao abrir OP de corte."
-      });
+      toast.erro(mensagemDeErro(err, 'Erro ao abrir OP de corte.'));
     }
   };
 
@@ -162,19 +131,13 @@ function CorteRendimentoCamisetas() {
         pecas_reais_cortadas: parseInt(pecasReais)
       });
 
-      setToast({
-        tipo: 'sucesso',
-        texto: `Corte da OP ${opSelecionada.codigo_op} registrado com sucesso! Rendimento real calculado instantaneamente.`
-      });
+      toast.mostrar('sucesso', `Corte da OP ${opSelecionada.codigo_op} registrado com sucesso! Rendimento real calculado instantaneamente.`);
       setModalFinalizarAberto(false);
       setOpSelecionada(null);
       carregarDados();
     } catch (err) {
       console.error("Erro ao finalizar corte:", err);
-      setToast({
-        tipo: 'erro',
-        texto: err.response?.data?.detail || "Erro ao registrar corte."
-      });
+      toast.erro(mensagemDeErro(err, 'Erro ao registrar corte.'));
     }
   };
 
@@ -199,20 +162,6 @@ function CorteRendimentoCamisetas() {
       <Sidebar />
 
       <main className="corte-camisetas-main">
-        {/* Toast Notificação Integrada (Sem alertas de navegador) */}
-        {toast && (
-          <div className={`toast-alerta-flutuante ${toast.tipo}`} role="alert" aria-live="assertive">
-            <span>{toast.texto}</span>
-            <button 
-              type="button" 
-              onClick={() => setToast(null)} 
-              className="toast-btn-fechar"
-              aria-label="Fechar notificação"
-            >
-              <X size={16} />
-            </button>
-          </div>
-        )}
 
         <header className="corte-header">
           <h1>
