@@ -17,7 +17,10 @@ export function ToastProvider({ children }) {
   const mostrar = useCallback((tipo, texto) => {
     const id = proximoId.current;
     proximoId.current += 1;
-    setToasts((atuais) => [...atuais, { id, tipo, texto }]);
+    // Mesma mensagem já visível (ex.: carregamento repetido): não empilha cópia
+    setToasts((atuais) => (
+      atuais.some((t) => t.tipo === tipo && t.texto === texto) ? atuais : [...atuais, { id, tipo, texto }]
+    ));
     setTimeout(() => fechar(id), tipo === 'erro' ? DURACAO_ERRO_MS : DURACAO_MS);
   }, [fechar]);
 
