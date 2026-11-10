@@ -338,7 +338,9 @@ def _migrar_grades(conexao):
         chave = ", ".join(rotulos)
         if chave not in ids_por_texto:
             nome = GRADE_PADRAO_NOME if chave == GRADE_PADRAO_TEXTO else f"Grade ({chave})"
-            id_grade = conexao.execute(grades.insert().values(nome=nome, ativo=True)).inserted_primary_key[0]
+            id_grade = conexao.execute(
+                grades.insert().values(nome=nome, ativo=True).returning(grades.c.id_grade)
+            ).scalar_one()
             conexao.execute(tamanhos.insert(), [
                 {"id_grade": id_grade, "rotulo": rotulo, "ordem": ordem} for ordem, rotulo in enumerate(rotulos, start=1)
             ])
@@ -358,9 +360,11 @@ def _migrar_clientes(conexao):
             continue
         if chave not in ids_por_nome:
             agora = datetime.now(timezone.utc)
-            ids_por_nome[chave] = conexao.execute(clientes.insert().values(
-                nome=" ".join(nome.split()), nome_busca=chave, ativo=True, criado_em=agora, atualizado_em=agora,
-            )).inserted_primary_key[0]
+            ids_por_nome[chave] = conexao.execute(
+                clientes.insert().values(
+                    nome=" ".join(nome.split()), nome_busca=chave, ativo=True, criado_em=agora, atualizado_em=agora,
+                ).returning(clientes.c.id_cliente)
+            ).scalar_one()
         conexao.execute(pedidos.update().where(pedidos.c.id_pedido == id_pedido).values(id_cliente=ids_por_nome[chave]))
 
 

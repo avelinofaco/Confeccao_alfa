@@ -20,6 +20,7 @@ class CamisetaModelo(Base):
     grade_disponivel = Column(String(100), default="P, M, G, GG")
     consumo_tecido_kg = Column(Numeric(10, 4), default=0.1800, nullable=False) # Ex: 0.180 kg/peça (180g)
     descricao = Column(String(255), nullable=True)
+    id_grade = Column(Integer, ForeignKey("camisetas_grades.id_grade", ondelete="SET NULL"), nullable=True)
     
     criado_em = Column(DateTime(timezone=True), default=get_utc_now)
     atualizado_em = Column(DateTime(timezone=True), default=get_utc_now, onupdate=get_utc_now)
@@ -28,6 +29,7 @@ class CamisetaModelo(Base):
     fichas_tecnicas = relationship("CamisetaFichaTecnica", back_populates="modelo", cascade="all, delete-orphan")
     pedidos = relationship("CamisetaPedido", back_populates="modelo")
     ordens = relationship("CamisetaOrdemProducao", back_populates="modelo")
+    grade = relationship("CamisetaGrade")
 
 
 class CamisetaInsumo(Base):
@@ -42,12 +44,14 @@ class CamisetaInsumo(Base):
     saldo_atual = Column(Numeric(12, 3), default=0.000)
     estoque_minimo = Column(Numeric(12, 3), default=10.000)
     preco_custo_medio = Column(Numeric(12, 2), default=0.00)
+    id_cor = Column(Integer, ForeignKey("camisetas_cores.id_cor", ondelete="SET NULL"), nullable=True)  # cor de camiseta que a malha produz
 
     criado_em = Column(DateTime(timezone=True), default=get_utc_now)
     atualizado_em = Column(DateTime(timezone=True), default=get_utc_now, onupdate=get_utc_now)
 
     # Entradas de materiais vinculadas
     entradas = relationship("CamisetaEntradaInsumo", back_populates="insumo")
+    cor_camiseta = relationship("CamisetaCor")
 
 
 class CamisetaFichaTecnica(Base):
@@ -87,6 +91,7 @@ class CamisetaPedido(Base):
     id_pedido = Column(Integer, primary_key=True, index=True)
     codigo_pedido = Column(String(30), unique=True, nullable=False, index=True) # Ex: PED-01
     nome_cliente = Column(String(150), nullable=False)
+    id_cliente = Column(Integer, ForeignKey("camisetas_clientes.id_cliente", ondelete="RESTRICT"), nullable=True)
     id_modelo = Column(Integer, ForeignKey("camisetas_modelos.id_modelo", ondelete="RESTRICT"), nullable=False)
     
     grade_p = Column(Integer, default=0)
@@ -105,6 +110,7 @@ class CamisetaPedido(Base):
     atualizado_em = Column(DateTime(timezone=True), default=get_utc_now, onupdate=get_utc_now)
 
     modelo = relationship("CamisetaModelo", back_populates="pedidos")
+    cliente = relationship("CamisetaCliente", back_populates="pedidos")
 
 
 class CamisetaOrdemProducao(Base):
@@ -177,3 +183,7 @@ class CamisetaRegistroFinanceiro(Base):
     lucro_liquido = Column(Numeric(14, 2), default=0.00) # Entradas líquidas (faturamento - gastos)
     observacoes = Column(Text, nullable=True)
     criado_em = Column(DateTime(timezone=True), default=get_utc_now)
+
+
+# Registra as classes usadas nos relacionamentos por nome (cliente, cor, grade).
+from app.models import camisetas_cadastros  # noqa: E402,F401
