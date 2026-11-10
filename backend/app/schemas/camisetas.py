@@ -82,7 +82,7 @@ class CamisetaFichaTecnicaResponse(CamisetaFichaTecnicaBase):
 
 # ----------------- PEDIDOS COMERCIAIS -----------------
 class CamisetaPedidoCreate(BaseModel):
-    codigo_pedido: str
+    codigo_pedido: Optional[str] = None  # ignorado: o servidor gera PED-AAAA-NNNN
     nome_cliente: str
     id_modelo: int
     grade_p: int = 0
@@ -133,7 +133,7 @@ class CamisetaPedidoResponse(BaseModel):
 
 # ----------------- CORTE E RENDIMENTO (PCP) -----------------
 class CamisetaOrdemProducaoCreate(BaseModel):
-    codigo_op: str
+    codigo_op: Optional[str] = None  # ignorado: o servidor gera OP-AAAA-NNNN
     id_modelo: int
     id_insumo_tecido: Optional[int] = None
     peso_malha_enviado_kg: Decimal

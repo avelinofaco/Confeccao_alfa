@@ -32,6 +32,7 @@ from app.schemas.camisetas import (
     CamisetaRegistroFinanceiroCreate, CamisetaRegistroFinanceiroResponse, CamisetaApuracaoMensalResponse,
     CamisetaDashboardCompletoResponse, CamisetaCardDestaque, CamisetaItemFinanceiroMensal
 )
+from app.services.sequencias import proximo_codigo
 
 router = APIRouter()
 
@@ -80,7 +81,7 @@ def cadastrar_pedido(pedido_in: CamisetaPedidoCreate, db: Session = Depends(get_
         raise HTTPException(status_code=400, detail="A soma das grades (P, M, G, GG) deve ser maior que zero")
 
     novo_pedido = CamisetaPedido(
-        codigo_pedido=pedido_in.codigo_pedido,
+        codigo_pedido=proximo_codigo(db, "PED"),
         nome_cliente=pedido_in.nome_cliente,
         id_modelo=pedido_in.id_modelo,
         grade_p=pedido_in.grade_p,

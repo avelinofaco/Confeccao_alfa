@@ -32,6 +32,7 @@ from app.schemas.camisetas import (
     CamisetaRegistroFinanceiroCreate, CamisetaRegistroFinanceiroResponse, CamisetaApuracaoMensalResponse,
     CamisetaDashboardCompletoResponse, CamisetaCardDestaque, CamisetaItemFinanceiroMensal
 )
+from app.services.sequencias import proximo_codigo
 
 router = APIRouter()
 
@@ -100,7 +101,7 @@ def abrir_ordem_corte(op_in: CamisetaOrdemProducaoCreate, db: Session = Depends(
     pecas_plan = int(op_in.peso_malha_enviado_kg / modelo.consumo_tecido_kg) if modelo.consumo_tecido_kg > 0 else 0
 
     nova_op = CamisetaOrdemProducao(
-        codigo_op=op_in.codigo_op,
+        codigo_op=proximo_codigo(db, "OP"),
         id_modelo=op_in.id_modelo,
         id_insumo_tecido=op_in.id_insumo_tecido,
         peso_malha_enviado_kg=op_in.peso_malha_enviado_kg,
