@@ -6,10 +6,13 @@ import {
   CheckCircle,
   X,
   Info,
+  Pencil,
   Trash2
 } from 'lucide-react';
 import api from '../services/api';
 import { useToast } from '../components/feedback/useToast';
+import { PainelCores } from '../components/cadastros/PainelCores';
+import { PainelGrades } from '../components/cadastros/PainelGrades';
 import { useConfirm } from '../components/feedback/useConfirm';
 import { buscarEmParalelo } from '../services/buscarEmParalelo';
 import Sidebar from '../components/Sidebar';
@@ -23,6 +26,9 @@ function FichaTecnicaCamisetas() {
   const [loading, setLoading] = useState(false);
   const toast = useToast();
   const confirmar = useConfirm();
+  const [abaFicha, setAbaFicha] = useState('modelos'); // 'modelos' | 'cores' | 'grades'
+  const [grades, setGrades] = useState([]);
+  const [idModeloEdicao, setIdModeloEdicao] = useState(null);
 
   // Modais
   const [modalNovoModelo, setModalNovoModelo] = useState(false);
@@ -33,7 +39,7 @@ function FichaTecnicaCamisetas() {
   // Form Novo Modelo
   const [formModelo, setFormModelo] = useState({
     nome_modelo: '',
-    grade_disponivel: 'P, M, G, GG',
+    id_grade: '',
     consumo_tecido_kg: '0.180',
     descricao: ''
   });
@@ -53,8 +59,9 @@ function FichaTecnicaCamisetas() {
   const carregarDados = async () => {
     try {
       setLoading(true);
-      const { dados, houveFalha } = await buscarEmParalelo(['/camisetas/modelos/', '/camisetas/insumos/']);
-      const [listaMods, listaInsumos] = dados;
+      const { dados, houveFalha } = await buscarEmParalelo(['/camisetas/modelos/', '/camisetas/insumos/', '/camisetas/grades/']);
+      const [listaMods, listaInsumos, listaGrades] = dados;
+      setGrades(listaGrades);
       setModelos(listaMods);
       setInsumosEstoque(listaInsumos);
       if (houveFalha) {
@@ -163,37 +170,48 @@ function FichaTecnicaCamisetas() {
     });
   };
 
+  const abrirNovoModelo = () => {
+    setIdModeloEdicao(null);
+    setFormModelo({ nome_modelo: '', id_grade: grades[0]?.id_grade ?? '', consumo_tecido_kg: '0.180', descricao: '' });
+    setModalNovoModelo(true);
+  };
+
+  const abrirEdicaoModelo = (modelo) => {
+    setIdModeloEdicao(modelo.id_modelo);
+    setFormModelo({
+      nome_modelo: modelo.nome_modelo,
+      id_grade: modelo.id_grade ?? '',
+      consumo_tecido_kg: String(modelo.consumo_tecido_kg),
+      descricao: modelo.descricao || '',
+    });
+    setModalNovoModelo(true);
+  };
+
   const handleSalvarModelo = async (e) => {
     e.preventDefault();
     if (!formModelo.nome_modelo || !formModelo.consumo_tecido_kg) {
-      mostrarToast('erro', 'Por favor, informe o nome do modelo e o consumo de tecido.');
+      mostrarToast('erro', 'Informe o nome do modelo e o consumo de tecido.');
       return;
     }
-
+    const corpo = {
+      nome_modelo: formModelo.nome_modelo,
+      consumo_tecido_kg: parseFloat(formModelo.consumo_tecido_kg),
+      descricao: formModelo.descricao,
+      id_grade: formModelo.id_grade ? Number(formModelo.id_grade) : null,
+    };
     try {
       setSalvandoModelo(true);
-      const res = await api.post('/camisetas/modelos/', {
-        nome_modelo: formModelo.nome_modelo,
-        grade_disponivel: formModelo.grade_disponivel || 'P, M, G, GG',
-        consumo_tecido_kg: parseFloat(formModelo.consumo_tecido_kg),
-        descricao: formModelo.descricao
-      });
-
-      mostrarToast('sucesso', `Modelo "${formModelo.nome_modelo}" cadastrado com sucesso!`);
+      const res = idModeloEdicao
+        ? await api.put(`/camisetas/modelos/${idModeloEdicao}`, corpo)
+        : await api.post('/camisetas/modelos/', corpo);
+      mostrarToast('sucesso', `Modelo "${res.data.nome_modelo}" ${idModeloEdicao ? 'atualizado' : 'cadastrado'}.`);
       setModalNovoModelo(false);
-      setFormModelo({
-        nome_modelo: '',
-        grade_disponivel: 'P, M, G, GG',
-        consumo_tecido_kg: '0.180',
-        descricao: ''
-      });
+      setIdModeloEdicao(null);
       await carregarDados();
-      if (res.data) {
-        selecionarModelo(res.data);
-      }
+      selecionarModelo(res.data);
     } catch (err) {
-      console.error("Erro ao salvar modelo:", err);
-      mostrarToast('erro', err.response?.data?.detail || "Erro ao salvar modelo.");
+      console.error('Erro ao salvar modelo:', err);
+      mostrarToast('erro', err.response?.data?.detail || 'Erro ao salvar modelo.');
     } finally {
       setSalvandoModelo(false);
     }
@@ -340,196 +358,230 @@ function FichaTecnicaCamisetas() {
           </p>
         </header>
 
-        {/* SEÇÃO HORIZONTAL DE MODELOS DE CAMISETAS (IHC - Visibilidade e Ergonomia de Tela) */}
-        <section className="secao-modelos-horizontal" aria-label="Seleção de modelo de camiseta">
-          <div className="modelos-horizontal-header">
-            <div className="titulo-modelos-box">
-              <Shirt size={20} color="#2563eb" aria-hidden="true" />
-              <h2>Modelos de Camisetas</h2>
-              <span className="badge-total-modelos">{modelos.length} modelo(s)</span>
-            </div>
-
-            <button 
-              className="btn-acao-rapida secundario"
-              onClick={() => setModalNovoModelo(true)}
-              title="Cadastrar um novo modelo de camiseta"
+        <div className="ficha-abas" role="tablist" aria-label="Cadastros de produto">
+          {[['modelos', 'Modelos'], ['cores', 'Cores'], ['grades', 'Grades']].map(([chave, rotulo]) => (
+            <button
+              key={chave}
+              type="button"
+              role="tab"
+              aria-selected={abaFicha === chave}
+              className="ficha-aba"
+              onClick={() => {
+                setAbaFicha(chave);
+                if (chave === 'modelos') carregarDados();
+              }}
             >
-              <PlusCircle size={17} />
-              <span>Cadastrar Novo Modelo</span>
+              {rotulo}
             </button>
-          </div>
+          ))}
+        </div>
 
-          <div className="lista-modelos-horizontal">
-            {modelos.length === 0 ? (
-              <div className="aviso-sem-modelos">
-                <p>Nenhum modelo cadastrado. Clique no botão acima para adicionar o primeiro modelo de camiseta.</p>
-              </div>
-            ) : (
-              modelos.map((mod) => {
-                const isAtivo = modeloAtivo?.id_modelo === mod.id_modelo;
-                return (
-                  <button 
-                    key={mod.id_modelo}
-                    type="button"
-                    className={`modelo-card-horizontal ${isAtivo ? 'ativo' : ''}`}
-                    onClick={() => selecionarModelo(mod)}
-                    aria-pressed={isAtivo}
-                  >
-                    <div className="modelo-card-icone">
-                      <Shirt size={24} color={isAtivo ? '#2563eb' : '#64748b'} />
-                    </div>
-                    <div className="modelo-card-info">
-                      <h4>{mod.nome_modelo}</h4>
-                      <div className="modelo-card-metas">
-                        <span className="pill-consumo">
-                          {formatarNumeroLimpo(mod.consumo_tecido_kg, 'kg/peça')}
-                        </span>
-                        <span className="pill-grade">{mod.grade_disponivel || 'P, M, G, GG'}</span>
-                      </div>
-                    </div>
-                    {isAtivo && (
-                      <div className="badge-modelo-selecionado" title="Modelo ativo na ficha técnica">
-                        <CheckCircle size={16} color="#2563eb" />
-                      </div>
-                    )}
-                  </button>
-                );
-              })
-            )}
-          </div>
-        </section>
+        {abaFicha === 'cores' && <PainelCores />}
+        {abaFicha === 'grades' && <PainelGrades />}
 
-        {/* DETALHE DA FICHA TÉCNICA (LARGURA TOTAL DESIMPEDIDA) */}
-        {modeloAtivo ? (
-          <div className="detalhe-ficha-card">
-            <div className="detalhe-ficha-header">
-              <div>
-                <h2>{modeloAtivo.nome_modelo}</h2>
-                <p className="subtitulo-modelo-ativo">
-                  {modeloAtivo.descricao || 'Camiseta padrão confeccionada em linha de produção'}
-                </p>
+        {abaFicha === 'modelos' && (
+          <>
+          {/* SEÇÃO HORIZONTAL DE MODELOS DE CAMISETAS (IHC - Visibilidade e Ergonomia de Tela) */}
+          <section className="secao-modelos-horizontal" aria-label="Seleção de modelo de camiseta">
+            <div className="modelos-horizontal-header">
+              <div className="titulo-modelos-box">
+                <Shirt size={20} color="#2563eb" aria-hidden="true" />
+                <h2>Modelos de Camisetas</h2>
+                <span className="badge-total-modelos">{modelos.length} modelo(s)</span>
               </div>
+
               <button 
-                className="btn-acao-rapida"
-                onClick={() => {
-                  setFormItemFicha({
-                    id_insumo: '',
-                    tipo_insumo: 'Aviamento',
-                    descricao_insumo: '',
-                    consumo_unitario: '1',
-                    unidade_medida: 'unidades',
-                    custo_unitario_estimado: ''
-                  });
-                  setModalNovoItemFicha(true);
-                }}
-                title="Vincular insumo ou aviamento a este modelo de camiseta"
+                className="btn-acao-rapida secundario"
+                onClick={abrirNovoModelo}
+                title="Cadastrar um novo modelo de camiseta"
               >
-                <PlusCircle size={18} />
-                <span>Adicionar Insumo na Ficha</span>
+                <PlusCircle size={17} />
+                <span>Cadastrar Novo Modelo</span>
               </button>
             </div>
 
-            {/* ESPECIFICAÇÕES PRINCIPAIS EM CARDS HORIZONTAIS */}
-            <div className="especificacoes-box">
-              <div className="espec-item">
-                <span className="espec-rotulo">Grade de Tamanhos</span>
-                <strong className="espec-valor">{modeloAtivo.grade_disponivel || 'P, M, G, GG'}</strong>
-              </div>
-
-              <div className="espec-item">
-                <span className="espec-rotulo">Consumo de Tecido</span>
-                <strong className="espec-valor destaque-azul">
-                  {formatarNumeroLimpo(modeloAtivo.consumo_tecido_kg, 'kg / peça')}
-                  <small className="espec-detalhe">
-                    ({(parseFloat(modeloAtivo.consumo_tecido_kg) * 1000).toFixed(0)}g)
-                  </small>
-                </strong>
-              </div>
-
-              <div className="espec-item">
-                <span className="espec-rotulo">Rendimento Esperado</span>
-                <strong className="espec-valor">
-                  {parseFloat(modeloAtivo.consumo_tecido_kg) > 0 
-                    ? (1 / parseFloat(modeloAtivo.consumo_tecido_kg)).toFixed(2) 
-                    : '0'} peças / kg
-                </strong>
-              </div>
-
-              <div className="espec-item">
-                <span className="espec-rotulo">Custo Total de Insumos</span>
-                <strong className="espec-valor destaque-verde">
-                  {formatarMoeda(custoTotalEstimado)} / peça
-                </strong>
-              </div>
+            <div className="lista-modelos-horizontal">
+              {modelos.length === 0 ? (
+                <div className="aviso-sem-modelos">
+                  <p>Nenhum modelo cadastrado. Clique no botão acima para adicionar o primeiro modelo de camiseta.</p>
+                </div>
+              ) : (
+                modelos.map((mod) => {
+                  const isAtivo = modeloAtivo?.id_modelo === mod.id_modelo;
+                  return (
+                    <button 
+                      key={mod.id_modelo}
+                      type="button"
+                      className={`modelo-card-horizontal ${isAtivo ? 'ativo' : ''}`}
+                      onClick={() => selecionarModelo(mod)}
+                      aria-pressed={isAtivo}
+                    >
+                      <div className="modelo-card-icone">
+                        <Shirt size={24} color={isAtivo ? '#2563eb' : '#64748b'} />
+                      </div>
+                      <div className="modelo-card-info">
+                        <h4>{mod.nome_modelo}</h4>
+                        <div className="modelo-card-metas">
+                          <span className="pill-consumo">
+                            {formatarNumeroLimpo(mod.consumo_tecido_kg, 'kg/peça')}
+                          </span>
+                          <span className="pill-grade">{mod.tamanhos?.join(', ') || mod.grade_disponivel}</span>
+                        </div>
+                      </div>
+                      {isAtivo && (
+                        <div className="badge-modelo-selecionado" title="Modelo ativo na ficha técnica">
+                          <CheckCircle size={16} color="#2563eb" />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })
+              )}
             </div>
+          </section>
 
-            {/* TABELA DE COMPOSIÇÃO DOS INSUMOS */}
-            <div className="tabela-ficha-secao">
-              <div className="tabela-ficha-header-bar">
-                <h3>Composição de Insumos & Aviamentos</h3>
-                <span className="badge-qtd-itens">{fichas.length} material(is) na receita</span>
+          {/* DETALHE DA FICHA TÉCNICA (LARGURA TOTAL DESIMPEDIDA) */}
+          {modeloAtivo ? (
+            <div className="detalhe-ficha-card">
+              <div className="detalhe-ficha-header">
+                <div>
+                  <h2>{modeloAtivo.nome_modelo}</h2>
+                  <p className="subtitulo-modelo-ativo">
+                    {modeloAtivo.descricao || 'Camiseta padrão confeccionada em linha de produção'}
+                  </p>
+                </div>
+                <button 
+                  className="btn-acao-rapida"
+                  onClick={() => {
+                    setFormItemFicha({
+                      id_insumo: '',
+                      tipo_insumo: 'Aviamento',
+                      descricao_insumo: '',
+                      consumo_unitario: '1',
+                      unidade_medida: 'unidades',
+                      custo_unitario_estimado: ''
+                    });
+                    setModalNovoItemFicha(true);
+                  }}
+                  title="Vincular insumo ou aviamento a este modelo de camiseta"
+                >
+                  <PlusCircle size={18} />
+                  <span>Adicionar Insumo na Ficha</span>
+                </button>
+                <button
+                  type="button"
+                  className="btn-acao-rapida secundario"
+                  onClick={() => abrirEdicaoModelo(modeloAtivo)}
+                  title="Alterar nome, consumo de malha ou grade deste modelo"
+                >
+                  <Pencil size={18} />
+                  <span>Editar modelo</span>
+                </button>
               </div>
 
-              <div className="table-responsive">
-                <table className="tabela-itens-ficha">
-                  <thead>
-                    <tr>
-                      <th scope="col">Tipo</th>
-                      <th scope="col">Descrição do Material</th>
-                      <th scope="col">Consumo Unitário por Camiseta</th>
-                      <th scope="col">Custo Estimado</th>
-                      <th scope="col" style={{ textAlign: 'center', width: '90px' }}>Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {/* Itens da receita cadastrados no modelo */}
-                    {fichas.length === 0 ? (
+              {/* ESPECIFICAÇÕES PRINCIPAIS EM CARDS HORIZONTAIS */}
+              <div className="especificacoes-box">
+                <div className="espec-item">
+                  <span className="espec-rotulo">Grade de Tamanhos</span>
+                  <strong className="espec-valor">{modeloAtivo.nome_grade || modeloAtivo.grade_disponivel}</strong>
+                </div>
+
+                <div className="espec-item">
+                  <span className="espec-rotulo">Consumo de Tecido</span>
+                  <strong className="espec-valor destaque-azul">
+                    {formatarNumeroLimpo(modeloAtivo.consumo_tecido_kg, 'kg / peça')}
+                    <small className="espec-detalhe">
+                      ({(parseFloat(modeloAtivo.consumo_tecido_kg) * 1000).toFixed(0)}g)
+                    </small>
+                  </strong>
+                </div>
+
+                <div className="espec-item">
+                  <span className="espec-rotulo">Rendimento Esperado</span>
+                  <strong className="espec-valor">
+                    {parseFloat(modeloAtivo.consumo_tecido_kg) > 0 
+                      ? (1 / parseFloat(modeloAtivo.consumo_tecido_kg)).toFixed(2) 
+                      : '0'} peças / kg
+                  </strong>
+                </div>
+
+                <div className="espec-item">
+                  <span className="espec-rotulo">Custo Total de Insumos</span>
+                  <strong className="espec-valor destaque-verde">
+                    {formatarMoeda(custoTotalEstimado)} / peça
+                  </strong>
+                </div>
+              </div>
+
+              {/* TABELA DE COMPOSIÇÃO DOS INSUMOS */}
+              <div className="tabela-ficha-secao">
+                <div className="tabela-ficha-header-bar">
+                  <h3>Composição de Insumos & Aviamentos</h3>
+                  <span className="badge-qtd-itens">{fichas.length} material(is) na receita</span>
+                </div>
+
+                <div className="table-responsive">
+                  <table className="tabela-itens-ficha">
+                    <thead>
                       <tr>
-                        <td colSpan="5" style={{ textAlign: 'center', padding: '2.5rem 1rem', color: '#64748b' }}>
-                          Nenhum material (tecido, etiqueta, linha, tag) adicionado à receita ainda. 
-                          Clique em <strong>"Adicionar Insumo na Ficha"</strong> acima para montar a composição.
-                        </td>
+                        <th scope="col">Tipo</th>
+                        <th scope="col">Descrição do Material</th>
+                        <th scope="col">Consumo Unitário por Camiseta</th>
+                        <th scope="col">Custo Estimado</th>
+                        <th scope="col" style={{ textAlign: 'center', width: '90px' }}>Ações</th>
                       </tr>
-                    ) : (
-                      fichas.map((f) => (
-                        <tr key={f.id_ficha}>
-                          <td>
-                            <span className={`badge-tipo-insumo ${(f.tipo_insumo || '').toLowerCase().includes('tecido') ? 'tecido' : 'aviamento'}`}>
-                              {f.tipo_insumo}
-                            </span>
-                          </td>
-                          <td>
-                            <strong>{f.descricao_insumo}</strong>
-                          </td>
-                          <td>
-                            {formatarConsumoUnitarioAmigavel(f)}
-                          </td>
-                          <td>
-                            <strong style={{ color: '#047857' }}>{formatarMoeda(f.custo_unitario_estimado)}</strong>
-                          </td>
-                          <td style={{ textAlign: 'center' }}>
-                            <button 
-                              type="button"
-                              className="btn-remover-item-ficha"
-                              onClick={() => handleRemoverItemFicha(f.id_ficha, f.descricao_insumo)}
-                              title="Remover material da ficha deste modelo"
-                              aria-label={`Remover ${f.descricao_insumo}`}
-                            >
-                              <Trash2 size={16} />
-                            </button>
+                    </thead>
+                    <tbody>
+                      {/* Itens da receita cadastrados no modelo */}
+                      {fichas.length === 0 ? (
+                        <tr>
+                          <td colSpan="5" style={{ textAlign: 'center', padding: '2.5rem 1rem', color: '#64748b' }}>
+                            Nenhum material (tecido, etiqueta, linha, tag) adicionado à receita ainda. 
+                            Clique em <strong>"Adicionar Insumo na Ficha"</strong> acima para montar a composição.
                           </td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                      ) : (
+                        fichas.map((f) => (
+                          <tr key={f.id_ficha}>
+                            <td>
+                              <span className={`badge-tipo-insumo ${(f.tipo_insumo || '').toLowerCase().includes('tecido') ? 'tecido' : 'aviamento'}`}>
+                                {f.tipo_insumo}
+                              </span>
+                            </td>
+                            <td>
+                              <strong>{f.descricao_insumo}</strong>
+                            </td>
+                            <td>
+                              {formatarConsumoUnitarioAmigavel(f)}
+                            </td>
+                            <td>
+                              <strong style={{ color: '#047857' }}>{formatarMoeda(f.custo_unitario_estimado)}</strong>
+                            </td>
+                            <td style={{ textAlign: 'center' }}>
+                              <button 
+                                type="button"
+                                className="btn-remover-item-ficha"
+                                onClick={() => handleRemoverItemFicha(f.id_ficha, f.descricao_insumo)}
+                                title="Remover material da ficha deste modelo"
+                                aria-label={`Remover ${f.descricao_insumo}`}
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
-          </div>
-        ) : (
-          <div className="detalhe-ficha-card vazio">
-            <p>Selecione ou cadastre um modelo de camiseta para visualizar sua ficha técnica digital.</p>
-          </div>
+          ) : (
+            <div className="detalhe-ficha-card vazio">
+              <p>Selecione ou cadastre um modelo de camiseta para visualizar sua ficha técnica digital.</p>
+            </div>
+          )}
+          </>
         )}
 
         {/* MODAL CADASTRAR NOVO MODELO (MAIS ESTREITO E COMPACTO) */}
@@ -544,7 +596,7 @@ function FichaTecnicaCamisetas() {
             <div className="modal-content modal-modelo-content">
               <div className="modal-header">
                 <div>
-                  <h3 id="titulo-modal-modelo">Cadastrar Novo Modelo</h3>
+                  <h3 id="titulo-modal-modelo">{idModeloEdicao ? 'Editar Modelo' : 'Cadastrar Novo Modelo'}</h3>
                   <p className="modal-subtitulo">Defina o nome e o consumo de malha por camiseta.</p>
                 </div>
                 <button 
@@ -571,15 +623,21 @@ function FichaTecnicaCamisetas() {
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="modelo-grade">Grade Disponível</label>
-                  <input 
+                  <label htmlFor="modelo-grade">Grade de tamanhos</label>
+                  <select
                     id="modelo-grade"
-                    type="text" 
-                    placeholder="P, M, G, GG"
-                    value={formModelo.grade_disponivel}
-                    onChange={(e) => setFormModelo({ ...formModelo, grade_disponivel: e.target.value })}
-                  />
-                  <span className="form-help-hint">Tamanhos padrão produzidos</span>
+                    value={formModelo.id_grade}
+                    onChange={(e) => setFormModelo({ ...formModelo, id_grade: e.target.value })}
+                  >
+                    {grades.length === 0 && <option value="">Grade padrão (P, M, G, GG)</option>}
+                    {grades.filter((g) => g.ativo).map((g) => (
+                      <option key={g.id_grade} value={g.id_grade}>{g.nome}</option>
+                    ))}
+                  </select>
+                  <span className="form-help-hint">
+                    {grades.find((g) => String(g.id_grade) === String(formModelo.id_grade))?.tamanhos.join(' · ')
+                      || 'Crie outras grades na aba Grades'}
+                  </span>
                 </div>
 
                 <div className="form-group">
