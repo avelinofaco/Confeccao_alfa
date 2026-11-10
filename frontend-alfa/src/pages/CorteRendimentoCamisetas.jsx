@@ -166,7 +166,7 @@ function CorteRendimentoCamisetas() {
         <header className="corte-header">
           <h1>
             <Layers size={28} color="#2563eb" />
-            5. Tela de Corte e Rendimento (Planejamento e Controle - PCP)
+            6. Tela de Corte e Rendimento (Planejamento e Controle - PCP)
           </h1>
           <p>
             Gerencie as Ordens de Produção (OPs) e meça a eficiência do aproveitamento da malha na mesa de corte:

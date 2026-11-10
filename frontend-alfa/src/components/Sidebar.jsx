@@ -105,39 +105,46 @@ function Sidebar({ menuMobileAberto, setMenuMobileAberto }) {
               <span>2. Pedidos do Cliente</span>
             </button>
             <button
+              className={`nav-item ${isActive('/camisetas/clientes') ? 'active' : ''}`}
+              onClick={() => irPara('/camisetas/clientes')}
+            >
+              <Users size={19} />
+              <span>3. Clientes</span>
+            </button>
+            <button
               className={`nav-item ${isActive('/ficha-tecnica') || isActive('/camisetas/ficha-tecnica') ? 'active' : ''}`}
               onClick={() => irPara('/camisetas/ficha-tecnica')}
             >
               <FileText size={19} />
-              <span>3. Ficha Técnica Digital</span>
+              <span>4. Ficha Técnica Digital</span>
             </button>
             <button
               className={`nav-item ${isActive('/estoque') || isActive('/camisetas/estoque') ? 'active' : ''}`}
               onClick={() => irPara('/camisetas/estoque')}
             >
               <Package size={19} />
-              <span>4. Estoque de Insumos</span>
+              <span>5. Estoque de Insumos</span>
             </button>
             <button
               className={`nav-item ${isActive('/corte-rendimento') || isActive('/camisetas/corte-rendimento') ? 'active' : ''}`}
               onClick={() => irPara('/camisetas/corte-rendimento')}
             >
               <Layers size={19} />
-              <span>5. Corte & Rendimento</span>
+              <span>6. Corte & Rendimento</span>
             </button>
             <button
               className={`nav-item ${isActive('/costura') || isActive('/camisetas/costura-faccoes') ? 'active' : ''}`}
               onClick={() => irPara('/camisetas/costura-faccoes')}
             >
               <Scissors size={19} />
-              <span>6. Costura & Facções</span>
+              <span>7. Costura & Facções</span>
             </button>
             <button
               className={`nav-item ${isActive('/financeiro') || isActive('/camisetas/financeiro') ? 'active' : ''}`}
               onClick={() => irPara('/camisetas/financeiro')}
             >
               <DollarSign size={19} />
-              <span>7. Registro Financeiro</span>
+              <span>8. Registro Financeiro</span>
             </button>
           </>
         ) : (

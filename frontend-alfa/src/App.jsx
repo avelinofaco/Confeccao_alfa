@@ -21,6 +21,7 @@ import ComercialModaIntima from './pages/Comercial';
 // 7 Novas Telas Especialistas em Camisetas (Nomes em Português)
 import DashboardCamisetas from './pages/DashboardCamisetas';
 import PedidoCamisetas from './pages/PedidoCamisetas';
+import ClientesCamisetas from './pages/ClientesCamisetas';
 import EstoqueCamisetas from './pages/EstoqueCamisetas';
 import FichaTecnicaCamisetas from './pages/FichaTecnicaCamisetas';
 import CorteRendimentoCamisetas from './pages/CorteRendimentoCamisetas';
@@ -85,6 +86,7 @@ function AppRoutes() {
       {/* Rotas Explícitas Diretas de Camisetas */}
       <Route path="/camisetas/dashboard" element={<DashboardCamisetas />} />
       <Route path="/camisetas/pedidos" element={<PedidoCamisetas />} />
+      <Route path="/camisetas/clientes" element={<ClientesCamisetas />} />
       <Route path="/camisetas/estoque" element={<EstoqueCamisetas />} />
       <Route path="/camisetas/ficha-tecnica" element={<FichaTecnicaCamisetas />} />
       <Route path="/camisetas/corte-rendimento" element={<CorteRendimentoCamisetas />} />

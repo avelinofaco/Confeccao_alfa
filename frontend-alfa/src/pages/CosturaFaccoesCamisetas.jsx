@@ -204,7 +204,7 @@ function CosturaFaccoesCamisetas() {
         <header className="costura-header">
           <h1>
             <Scissors size={28} color="#2563eb" />
-            6. Tela de Costura e Terceirização (Facções)
+            7. Tela de Costura e Terceirização (Facções)
           </h1>
           <p>
             Controle o fluxo de envio dos painéis cortados para oficinas externas (facções) e o retorno das camisetas prontas:

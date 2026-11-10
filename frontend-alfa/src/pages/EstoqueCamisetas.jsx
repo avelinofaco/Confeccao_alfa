@@ -313,7 +313,7 @@ function EstoqueCamisetas() {
           <div className="estoque-header-title">
             <h1>
               <Package size={28} color="#2563eb" aria-hidden="true" />
-              4. Gestão de Estoque de Insumos
+              5. Gestão de Estoque de Insumos
             </h1>
             <p>
               Controle físico de rolos de tecido (malhas em kg) e aviamentos (linhas, etiquetas e tags) 

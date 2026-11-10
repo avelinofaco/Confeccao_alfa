@@ -327,11 +327,11 @@ function FichaTecnicaCamisetas() {
 
       <main className="ficha-camisetas-main">
 
-        {/* Cabeçalho da Tela: "3. Tela de Ficha Técnica Digital" (Sem "Engenharia do Produto") */}
+        {/* Cabeçalho da Tela: "4. Tela de Ficha Técnica Digital" (Sem "Engenharia do Produto") */}
         <header className="ficha-header">
           <h1>
             <FileText size={28} color="#2563eb" aria-hidden="true" />
-            3. Tela de Ficha Técnica Digital
+            4. Tela de Ficha Técnica Digital
           </h1>
           <p>
             Defina o padrão de consumo para cada modelo de camiseta cadastrado: 

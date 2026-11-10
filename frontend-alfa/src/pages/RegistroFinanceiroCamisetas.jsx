@@ -173,7 +173,7 @@ function RegistroFinanceiroCamisetas() {
         <header className="financeiro-header">
           <h1>
             <DollarSign size={28} color="#204B72" aria-hidden="true" />
-            7. Tela de Registro Financeiro (Custos e Lucratividade)
+            8. Tela de Registro Financeiro (Custos e Lucratividade)
           </h1>
           <p>
             O faturamento (pedidos entregues) e as compras de matéria-prima (notas fiscais) são calculados
