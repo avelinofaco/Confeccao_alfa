@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import api from '../services/api';
 import { useToast } from '../components/feedback/useToast';
+import { ModalEditarInsumo } from '../components/cadastros/ModalEditarInsumo';
+import '../components/cadastros/cadastros.css';
 import Sidebar from '../components/Sidebar';
 import './EstoqueCamisetas.css';
 
@@ -62,6 +64,8 @@ function EstoqueCamisetas() {
   const [loading, setLoading] = useState(false);
   const [busca, setBusca] = useState('');
   const toast = useToast();
+  const [cores, setCores] = useState([]);
+  const [insumoEmEdicao, setInsumoEmEdicao] = useState(null);
 
   // Modais e status de salvamento
   const [modalEntradaAberto, setModalEntradaAberto] = useState(false);
@@ -85,6 +89,7 @@ function EstoqueCamisetas() {
     categoria: 'ROLO_TECIDO',
     tipo_malha_ou_aviamento: '',
     cor: '',
+    id_cor: '',
     unidade_medida: 'kg',
     saldo_atual: '',
     estoque_minimo: '',
@@ -150,8 +155,19 @@ function EstoqueCamisetas() {
     }
   };
 
+  const carregarCores = async () => {
+    try {
+      const res = await api.get('/camisetas/cores/');
+      setCores(res.data || []);
+    } catch (err) {
+      console.error('Erro ao carregar cores:', err);
+      mostrarToast('erro', 'Não foi possível carregar as cores das camisetas.');
+    }
+  };
+
   useEffect(() => {
     carregarInsumos();
+    carregarCores();
   }, []);
 
   // Fechar modais ao teclar Escape (IHC - Acessibilidade e Controle do Usuário)
@@ -187,6 +203,7 @@ function EstoqueCamisetas() {
       categoria: catInicial,
       tipo_malha_ou_aviamento: '',
       cor: '',
+      id_cor: '',
       unidade_medida: config.unidadePadrao,
       saldo_atual: '',
       estoque_minimo: '',
@@ -279,7 +296,8 @@ function EstoqueCamisetas() {
         unidade_medida: formNovoInsumo.unidade_medida,
         saldo_atual: parseFloat(formNovoInsumo.saldo_atual || 0),
         estoque_minimo: parseFloat(formNovoInsumo.estoque_minimo || 0),
-        preco_custo_medio: parseFloat(formNovoInsumo.preco_custo_medio || 0)
+        preco_custo_medio: parseFloat(formNovoInsumo.preco_custo_medio || 0),
+        id_cor: formNovoInsumo.categoria === 'ROLO_TECIDO' && formNovoInsumo.id_cor ? Number(formNovoInsumo.id_cor) : null,
       });
 
       mostrarToast('sucesso', `Insumo ${formNovoInsumo.codigo} cadastrado com sucesso!`);
@@ -446,7 +464,10 @@ function EstoqueCamisetas() {
                       <tr key={item.id_insumo}>
                         <td><strong className="codigo-insumo-destaque">{item.codigo}</strong></td>
                         <td>{item.tipo_malha_ou_aviamento}</td>
-                        <td>{item.cor || '—'}</td>
+                        <td>
+                          {item.hex_cor && <span className="cadastro-amostra" style={{ background: item.hex_cor }} title={item.nome_cor} />}{' '}
+                          {item.cor || item.nome_cor || '—'}
+                        </td>
                         {/* Exibição limpa: a sigla da unidade (kg ou Uni) já acompanha diretamente o valor */}
                         <td style={{ fontSize: '0.95rem', fontWeight: 800 }}>
                           {formatarQuantidade(item.saldo_atual, siglaItem)}
@@ -474,6 +495,14 @@ function EstoqueCamisetas() {
                           )}
                         </td>
                         <td>
+                          <button
+                            className="btn-acao-rapida secundario"
+                            style={{ padding: '0.35rem 0.75rem', fontSize: '0.78rem', marginRight: '0.4rem' }}
+                            onClick={() => setInsumoEmEdicao(item)}
+                            title={`Editar cadastro de ${item.tipo_malha_ou_aviamento}`}
+                          >
+                            Editar
+                          </button>
                           <button 
                             className="btn-acao-rapida secundario"
                             style={{ padding: '0.35rem 0.75rem', fontSize: '0.78rem' }}
@@ -724,6 +753,21 @@ function EstoqueCamisetas() {
                     <span className="form-help-hint">Cor padrão ou sem tingimento</span>
                   </div>
 
+                  {formNovoInsumo.categoria === 'ROLO_TECIDO' && (
+                    <div className="form-group">
+                      <label htmlFor="novo-insumo-id-cor">Cor da camiseta que esta malha produz</label>
+                      <select
+                        id="novo-insumo-id-cor"
+                        value={formNovoInsumo.id_cor}
+                        onChange={(e) => setFormNovoInsumo({ ...formNovoInsumo, id_cor: e.target.value })}
+                      >
+                        <option value="">Não definida</option>
+                        {cores.map((c) => <option key={c.id_cor} value={c.id_cor}>{c.nome}</option>)}
+                      </select>
+                      <span className="form-help-hint">Usada para preencher a cor automaticamente na OP</span>
+                    </div>
+                  )}
+
                   <div className="form-group">
                     <label htmlFor="novo-insumo-unidade">Unidade de Medida *</label>
                     <select 
@@ -820,6 +864,17 @@ function EstoqueCamisetas() {
               </form>
             </div>
           </div>
+        )}
+        {insumoEmEdicao && (
+          <ModalEditarInsumo
+            insumo={insumoEmEdicao}
+            cores={cores}
+            onSalvo={() => {
+              setInsumoEmEdicao(null);
+              carregarInsumos();
+            }}
+            onFechar={() => setInsumoEmEdicao(null)}
+          />
         )}
       </main>
     </div>
