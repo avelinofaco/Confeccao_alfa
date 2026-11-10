@@ -32,6 +32,7 @@ from app.schemas.camisetas import (
     CamisetaRegistroFinanceiroCreate, CamisetaRegistroFinanceiroResponse, CamisetaApuracaoMensalResponse,
     CamisetaDashboardCompletoResponse, CamisetaCardDestaque, CamisetaItemFinanceiroMensal
 )
+from app.services.camisetas.estoque import calcular_custo_medio
 
 router = APIRouter()
 
@@ -104,6 +105,8 @@ def registrar_entrada_estoque(entrada_in: CamisetaEntradaInsumoCreate, db: Sessi
 
     if entrada_in.quantidade <= 0:
         raise HTTPException(status_code=400, detail="Quantidade deve ser maior que zero")
+    if (entrada_in.valor_total or Decimal("0")) < 0:
+        raise HTTPException(status_code=400, detail="O valor da nota fiscal não pode ser negativo")
 
     nova_entrada = CamisetaEntradaInsumo(
         id_insumo=entrada_in.id_insumo,
@@ -115,8 +118,15 @@ def registrar_entrada_estoque(entrada_in: CamisetaEntradaInsumoCreate, db: Sessi
     )
     db.add(nova_entrada)
 
-    # Injeção automática no saldo atual do insumo
-    insumo.saldo_atual = (insumo.saldo_atual or Decimal("0")) + entrada_in.quantidade
+    # Custo médio ponderado é calculado com o saldo ANTES da entrada
+    saldo_anterior = insumo.saldo_atual or Decimal("0")
+    insumo.preco_custo_medio = calcular_custo_medio(
+        saldo_anterior,
+        insumo.preco_custo_medio or Decimal("0"),
+        entrada_in.quantidade,
+        entrada_in.valor_total or Decimal("0"),
+    )
+    insumo.saldo_atual = saldo_anterior + entrada_in.quantidade
     insumo.atualizado_em = get_utc_now()
 
     db.commit()
