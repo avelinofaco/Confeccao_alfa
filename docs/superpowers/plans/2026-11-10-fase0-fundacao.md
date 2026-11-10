@@ -335,8 +335,6 @@ git commit -m "test: infraestrutura de testes do backend com SQLite em memória"
 `backend/tests/test_rotas_camisetas.py`:
 
 ```python
-from fastapi.routing import APIRoute
-
 from app.main import app
 
 ROTAS_ESPERADAS = {
@@ -370,11 +368,14 @@ ROTAS_ESPERADAS = {
 
 
 def rotas_camisetas():
+    # FastAPI 0.143 guarda routers incluídos como _IncludedRouter; o esquema OpenAPI
+    # é a forma pública e estável de listar todas as rotas efetivas.
+    caminhos = app.openapi()["paths"]
     return {
-        (metodo, rota.path)
-        for rota in app.routes
-        if isinstance(rota, APIRoute) and rota.path.startswith("/camisetas")
-        for metodo in rota.methods
+        (metodo.upper(), caminho)
+        for caminho, operacoes in caminhos.items()
+        if caminho.startswith("/camisetas")
+        for metodo in operacoes
     }
 
 
