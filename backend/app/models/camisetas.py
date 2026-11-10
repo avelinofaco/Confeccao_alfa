@@ -99,6 +99,7 @@ class CamisetaPedido(Base):
     valor_total = Column(Numeric(12, 2), nullable=False)
     status_pedido = Column(String(50), default="Aguardando Produção")
     observacoes = Column(Text, nullable=True)
+    data_entrega_realizada = Column(Date, nullable=True)  # preenchida ao registrar a entrega
 
     criado_em = Column(DateTime(timezone=True), default=get_utc_now)
     atualizado_em = Column(DateTime(timezone=True), default=get_utc_now, onupdate=get_utc_now)

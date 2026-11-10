@@ -4,7 +4,7 @@ Schemas Pydantic para validação e serialização de dados do Segmento de Camis
 Todos os schemas com nomes em português e campos tipados.
 """
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional, List
 from datetime import datetime, date
 from decimal import Decimal
@@ -85,10 +85,10 @@ class CamisetaPedidoCreate(BaseModel):
     codigo_pedido: Optional[str] = None  # ignorado: o servidor gera PED-AAAA-NNNN
     nome_cliente: str
     id_modelo: int
-    grade_p: int = 0
-    grade_m: int = 0
-    grade_g: int = 0
-    grade_gg: int = 0
+    grade_p: int = Field(0, ge=0)
+    grade_m: int = Field(0, ge=0)
+    grade_g: int = Field(0, ge=0)
+    grade_gg: int = Field(0, ge=0)
     prazo_entrega: date
     valor_total: Decimal
     observacoes: Optional[str] = None
@@ -128,6 +128,7 @@ class CamisetaPedidoResponse(BaseModel):
     valor_total: Decimal
     status_pedido: str
     observacoes: Optional[str] = None
+    data_entrega_realizada: Optional[date] = None
     criado_em: Optional[datetime] = None
     model_config = ConfigDict(from_attributes=True)
 

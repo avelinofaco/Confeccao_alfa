@@ -62,7 +62,7 @@ def criar_entrada(db, insumo, quantidade="10.000", valor="100.00", data=None):
 
 
 def criar_pedido(db, modelo, codigo="PED-T-1", valor="1000.00", status="Aguardando Produção",
-                 grade=(10, 10, 10, 10), criado_em=None, observacoes=None):
+                 grade=(10, 10, 10, 10), criado_em=None, observacoes=None, data_entrega_realizada=None):
     p, m, g, gg = grade
     return _salvar(db, CamisetaPedido(
         codigo_pedido=codigo,
@@ -75,6 +75,7 @@ def criar_pedido(db, modelo, codigo="PED-T-1", valor="1000.00", status="Aguardan
         status_pedido=status,
         observacoes=observacoes,
         criado_em=criado_em or datetime.now(timezone.utc),
+        data_entrega_realizada=data_entrega_realizada,
     ))
 
 
