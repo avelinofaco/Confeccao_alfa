@@ -54,8 +54,9 @@ que ficam desatualizados.
 | Outros custos | `outros_custos_operacionais` lançado manualmente para o mês |
 | Lucro | Faturamento − Gasto com materiais − Outros custos |
 
-- Os limites do mês usam o fuso **America/Sao_Paulo** (constante `FUSO_HORARIO` em `app/core/config.py`),
-  pois as datas são gravadas em UTC e uma NF lançada às 22h do dia 31 não pode cair no mês seguinte.
+- Os limites do mês usam o fuso **America/Fortaleza** (o mesmo do `alembic.ini`; constante `FUSO_HORARIO`
+  em `app/core/config.py`), pois as datas são gravadas em UTC e uma NF lançada às 22h do dia 31 não pode
+  cair no mês seguinte. "Hoje" (prazo do pedido, data de entrega) também usa esse fuso.
 - `mes_ano` é validado no formato `YYYY-MM` (resposta 422 se inválido).
 - **Serviço único** `services/camisetas/financeiro.py`:
   - `apurar_mes(db, mes_ano) -> ApuracaoMensal`
@@ -131,7 +132,7 @@ Em `POST /costura/enviar`:
   [Cancelar] [Enviar mesmo assim]". Ao confirmar, reenvia com a flag e o saldo pode ficar negativo.
 - **Removido** o "plano B" que baixava todos os aviamentos cadastrados com taxas fixas (0,02 / 1,0)
   quando o modelo não tinha aviamentos na ficha. No lugar, a resposta traz
-  `avisos: ["Modelo sem aviamentos na ficha técnica; nenhum aviamento foi baixado."]`.
+  `avisos: ["A ficha técnica deste modelo não tem aviamentos ligados ao estoque; nenhum aviamento foi baixado."]`.
 - Tela de Estoque: saldo negativo aparece em vermelho com o selo "Negativo — conferir inventário".
 
 ### 4.6 Códigos sequenciais
@@ -170,10 +171,10 @@ app/routers/camisetas/
 app/services/
   sequencias.py
   camisetas/
-    estoque.py     # custo médio, necessidade/baixa de aviamentos
+    estoque.py     # custo médio, baixa/devolução no estoque acabado, necessidade/baixa de aviamentos
     financeiro.py  # apuração mensal/anual
-    costura.py     # regras de retorno e status da OP
-    pedidos.py     # montagem da resposta do pedido (hoje repetida 4×), entrega/reversão
+    costura.py     # regras de retorno, status da OP e montagem da resposta da remessa
+    pedidos.py     # status válidos e montagem da resposta do pedido (hoje repetida 4×)
 app/core/config.py # FUSO_HORARIO e constantes
 ```
 
@@ -193,7 +194,10 @@ app/core/config.py # FUSO_HORARIO e constantes
   - `ConfirmDialog` + `useConfirm()` → diálogo acessível (foco preso, Esc fecha), retorna `Promise<boolean>`.
 - Substituir `alert()`/`window.confirm()` nas telas de Camisetas:
   `PedidoCamisetas` (8), `CosturaFaccoesCamisetas` (6), `RegistroFinanceiroCamisetas` (6),
-  `FichaTecnicaCamisetas` (1). O toast local de `PedidoCamisetas` migra para o compartilhado.
+  `FichaTecnicaCamisetas` (1). As 4 cópias locais de toast (`PedidoCamisetas`, `CorteRendimentoCamisetas`,
+  `EstoqueCamisetas`, `FichaTecnicaCamisetas`) migram para o compartilhado e seus estilos duplicados saem.
+- Pequenas validações que entram junto: grade do pedido não aceita número negativo (422); data de entrega
+  não pode ser futura (400); valor de NF não pode ser negativo (400); margem de aviamentos entre 0 e 100%.
 - Menu de Camisetas na ordem do processo:
   1. Dashboard · 2. Pedidos do Cliente · 3. Ficha Técnica · 4. Estoque de Insumos ·
   5. Corte & Rendimento · 6. Costura & Facções · 7. Financeiro · Perfil
