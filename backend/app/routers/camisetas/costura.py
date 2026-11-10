@@ -33,12 +33,20 @@ from app.schemas.camisetas import (
     CamisetaDashboardCompletoResponse, CamisetaCardDestaque, CamisetaItemFinanceiroMensal
 )
 from app.services.camisetas.costura import (
+    STATUS_OP_EM_COSTURA,
     STATUS_REMESSA_EM_COSTURA,
     STATUS_REMESSA_RETORNADA,
     montar_resposta_remessa,
     status_op_apos_retorno,
 )
-from app.services.camisetas.estoque import obter_ou_criar_estoque_acabado
+from app.services.camisetas.estoque import (
+    AVISO_SEM_AVIAMENTOS,
+    TIPO_TECIDO_PRINCIPAL,
+    aplicar_baixa,
+    calcular_necessidades,
+    listar_faltas,
+    obter_ou_criar_estoque_acabado,
+)
 
 router = APIRouter()
 
@@ -51,25 +59,39 @@ def listar_remessas_costura(db: Session = Depends(get_db)):
 
 @router.post("/costura/enviar", response_model=CamisetaCosturaFaccaoResponse, status_code=status.HTTP_201_CREATED)
 def enviar_para_faccao(envio_in: CamisetaCosturaFaccaoEnviar, db: Session = Depends(get_db)):
-    """
-    Envio: Seleciona a OP cortada, define a facção parceira de destino e aplica margens de segurança de aviamentos.
-    """
+    """Envia painéis cortados para a facção e baixa os aviamentos da ficha técnica (com margem)."""
     op = db.query(CamisetaOrdemProducao).filter_by(id_op=envio_in.id_op).first()
     if not op:
         raise HTTPException(status_code=404, detail="Ordem de corte não encontrada")
-
     if envio_in.quantidade_enviada <= 0:
         raise HTTPException(status_code=400, detail="Quantidade enviada deve ser maior que zero")
 
-    # Calcula saldo de corte disponível
     total_ja_enviado = sum(r.quantidade_enviada or 0 for r in (op.movimentacoes_costura or []))
-    pecas_cortadas = op.pecas_reais_cortadas or 0
-    saldo_disponivel = max(0, pecas_cortadas - total_ja_enviado)
-
+    saldo_disponivel = max(0, (op.pecas_reais_cortadas or 0) - total_ja_enviado)
     if envio_in.quantidade_enviada > saldo_disponivel:
         raise HTTPException(
             status_code=400,
-            detail=f"Quantidade a enviar ({envio_in.quantidade_enviada}) ultrapassa o saldo de painéis cortados disponíveis nesta OP ({saldo_disponivel})."
+            detail=(
+                f"Quantidade a enviar ({envio_in.quantidade_enviada}) ultrapassa o saldo de painéis "
+                f"cortados disponíveis nesta OP ({saldo_disponivel})."
+            ),
+        )
+
+    itens_ficha = db.query(CamisetaFichaTecnica).filter(
+        CamisetaFichaTecnica.id_modelo == op.id_modelo,
+        CamisetaFichaTecnica.tipo_insumo != TIPO_TECIDO_PRINCIPAL,
+    ).all()
+    necessidades = calcular_necessidades(
+        itens_ficha, envio_in.quantidade_enviada, envio_in.margem_seguranca_aviamentos_percentual
+    )
+    faltas = listar_faltas(necessidades)
+    if faltas and not envio_in.confirmar_saldo_insuficiente:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "mensagem": "Aviamentos insuficientes no estoque para este envio.",
+                "faltas": [f.para_dict() for f in faltas],
+            },
         )
 
     remessa = CamisetaCosturaFaccao(
@@ -77,62 +99,18 @@ def enviar_para_faccao(envio_in: CamisetaCosturaFaccaoEnviar, db: Session = Depe
         nome_faccao=envio_in.nome_faccao,
         quantidade_enviada=envio_in.quantidade_enviada,
         margem_seguranca_aviamentos_percentual=envio_in.margem_seguranca_aviamentos_percentual,
-        status="Em Costura Externa",
+        status=STATUS_REMESSA_EM_COSTURA,
         data_envio=get_utc_now(),
-        observacoes=envio_in.observacoes
+        observacoes=envio_in.observacoes,
     )
-
-    # O status geral da OP passa a ser 'Em Costura', mantendo a rastreabilidade detalhada na remessa
-    op.status_op = "Em Costura"
-
-    # Desconto dos aviamentos com os 3% (ou margem informada) de todos os aviamentos
-    margem_perc = Decimal(str(envio_in.margem_seguranca_aviamentos_percentual if envio_in.margem_seguranca_aviamentos_percentual is not None else 3.00))
-    multiplicador_margem = Decimal("1") + (margem_perc / Decimal("100"))
-    qtd_enviada_dec = Decimal(str(envio_in.quantidade_enviada))
-
-    itens_ficha = db.query(CamisetaFichaTecnica).filter_by(id_modelo=op.id_modelo).all()
-    itens_aviamentos = [it for it in itens_ficha if (it.tipo_insumo != 'Tecido Principal')]
-
-    if itens_aviamentos:
-        for it in itens_aviamentos:
-            qtd_consumo = Decimal(str(it.consumo_unitario)) * qtd_enviada_dec * multiplicador_margem
-            if it.id_insumo:
-                insumo = db.query(CamisetaInsumo).filter_by(id_insumo=it.id_insumo).first()
-                if insumo:
-                    insumo.saldo_atual = (insumo.saldo_atual or Decimal("0")) - qtd_consumo
-                    insumo.atualizado_em = get_utc_now()
-    else:
-        aviamentos_cadastrados = db.query(CamisetaInsumo).filter_by(categoria='AVIAMENTO').all()
-        for av in aviamentos_cadastrados:
-            nome_ou_cod = (av.tipo_malha_ou_aviamento + " " + av.codigo).lower()
-            if "linha" in nome_ou_cod or "fio" in nome_ou_cod or "carretel" in nome_ou_cod or "tubo" in nome_ou_cod:
-                taxa_base = Decimal("0.02")
-            else:
-                taxa_base = Decimal("1.0")
-            qtd_consumo = taxa_base * qtd_enviada_dec * multiplicador_margem
-            av.saldo_atual = (av.saldo_atual or Decimal("0")) - qtd_consumo
-            av.atualizado_em = get_utc_now()
-
     db.add(remessa)
+    op.status_op = STATUS_OP_EM_COSTURA
+    aplicar_baixa(necessidades)
+    avisos = [] if necessidades else [AVISO_SEM_AVIAMENTOS]
+
     db.commit()
     db.refresh(remessa)
-
-    return CamisetaCosturaFaccaoResponse(
-        id_costura=remessa.id_costura,
-        id_op=remessa.id_op,
-        codigo_op=op.codigo_op,
-        nome_modelo=op.modelo.nome_modelo if op.modelo else "Modelo",
-        nome_faccao=remessa.nome_faccao,
-        quantidade_enviada=remessa.quantidade_enviada,
-        margem_seguranca_aviamentos_percentual=remessa.margem_seguranca_aviamentos_percentual,
-        quantidade_retornada=None,
-        perdas_pecas=None,
-        saldo_aprovado=None,
-        status=remessa.status,
-        data_envio=remessa.data_envio,
-        data_retorno=None,
-        observacoes=remessa.observacoes
-    )
+    return montar_resposta_remessa(remessa, avisos)
 
 
 @router.put("/costura/{id_costura}/retornar", response_model=CamisetaCosturaFaccaoResponse)

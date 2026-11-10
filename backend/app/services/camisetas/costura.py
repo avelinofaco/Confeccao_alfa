@@ -17,7 +17,7 @@ def status_op_apos_retorno(pecas_cortadas: int, remessas) -> str:
     return STATUS_OP_EM_COSTURA
 
 
-def montar_resposta_remessa(remessa) -> CamisetaCosturaFaccaoResponse:
+def montar_resposta_remessa(remessa, avisos=None) -> CamisetaCosturaFaccaoResponse:
     op = remessa.op
     return CamisetaCosturaFaccaoResponse(
         id_costura=remessa.id_costura,
@@ -34,4 +34,5 @@ def montar_resposta_remessa(remessa) -> CamisetaCosturaFaccaoResponse:
         data_envio=remessa.data_envio,
         data_retorno=remessa.data_retorno,
         observacoes=remessa.observacoes,
+        avisos=list(avisos or []),
     )

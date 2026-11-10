@@ -166,8 +166,10 @@ class CamisetaCosturaFaccaoEnviar(BaseModel):
     id_op: int
     nome_faccao: str
     quantidade_enviada: int
-    margem_seguranca_aviamentos_percentual: Decimal = Decimal("3.00")
+    margem_seguranca_aviamentos_percentual: Decimal = Field(Decimal("3.00"), ge=0, le=100)
     observacoes: Optional[str] = None
+    # Enviar mesmo com aviamento insuficiente no estoque registrado (saldo fica negativo)
+    confirmar_saldo_insuficiente: bool = False
 
 class CamisetaCosturaFaccaoRetornar(BaseModel):
     quantidade_retornada: int
@@ -188,6 +190,7 @@ class CamisetaCosturaFaccaoResponse(BaseModel):
     data_envio: Optional[datetime] = None
     data_retorno: Optional[datetime] = None
     observacoes: Optional[str] = None
+    avisos: List[str] = Field(default_factory=list)
     model_config = ConfigDict(from_attributes=True)
 
 # ----------------- REGISTRO FINANCEIRO -----------------
