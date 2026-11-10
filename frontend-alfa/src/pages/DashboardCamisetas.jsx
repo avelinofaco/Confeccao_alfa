@@ -14,18 +14,20 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
 import api from '../services/api';
+import { useToast } from '../components/feedback/useToast';
 import Sidebar from '../components/Sidebar';
 import './DashboardCamisetas.css';
 
 function DashboardCamisetas() {
   const navigate = useNavigate();
+  const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [metricas, setMetricas] = useState({
     cards: {
       producao_total_acumulada: 0,
       estoque_critico_quantidade: 0,
-      tecido_maior_rendimento: 'Meia Malha 30.1',
-      rendimento_medio_tecido: 5.60
+      tecido_maior_rendimento: null,
+      rendimento_medio_tecido: null
     },
     grafico_financeiro_12_meses: []
   });
@@ -38,30 +40,8 @@ function DashboardCamisetas() {
         setMetricas(res.data);
       }
     } catch (err) {
-      console.warn("Erro ao buscar métricas de camisetas do backend, gerando dados de demonstração:", err);
-      // Fallback rico e visualmente perfeito caso backend esteja iniciando
-      setMetricas({
-        cards: {
-          producao_total_acumulada: 1420,
-          estoque_critico_quantidade: 2,
-          tecido_maior_rendimento: 'Meia Malha 30.1 Penteada',
-          rendimento_medio_tecido: 5.65
-        },
-        grafico_financeiro_12_meses: [
-          { mes_ano: '2026-01', mes_nome: 'Janeiro', materiais_gastos: 15000, faturamento: 40000, lucro_liquido: 25000 },
-          { mes_ano: '2026-02', mes_nome: 'Fevereiro', materiais_gastos: 16500, faturamento: 42000, lucro_liquido: 25500 },
-          { mes_ano: '2026-03', mes_nome: 'Março', materiais_gastos: 19200, faturamento: 45000, lucro_liquido: 25800 },
-          { mes_ano: '2026-04', mes_nome: 'Abril', materiais_gastos: 21000, faturamento: 49000, lucro_liquido: 28000 },
-          { mes_ano: '2026-05', mes_nome: 'Maio', materiais_gastos: 22500, faturamento: 52000, lucro_liquido: 29500 },
-          { mes_ano: '2026-06', mes_nome: 'Junho', materiais_gastos: 19800, faturamento: 47000, lucro_liquido: 27200 },
-          { mes_ano: '2026-07', mes_nome: 'Julho', materiais_gastos: 20400, faturamento: 48000, lucro_liquido: 27600 },
-          { mes_ano: '2026-08', mes_nome: 'Agosto', materiais_gastos: 23100, faturamento: 54000, lucro_liquido: 30900 },
-          { mes_ano: '2026-09', mes_nome: 'Setembro', materiais_gastos: 22000, faturamento: 51000, lucro_liquido: 29000 },
-          { mes_ano: '2026-10', mes_nome: 'Outubro', materiais_gastos: 25400, faturamento: 58000, lucro_liquido: 32600 },
-          { mes_ano: '2026-11', mes_nome: 'Novembro', materiais_gastos: 24000, faturamento: 56000, lucro_liquido: 32000 },
-          { mes_ano: '2026-12', mes_nome: 'Dezembro', materiais_gastos: 28000, faturamento: 65000, lucro_liquido: 37000 },
-        ]
-      });
+      console.error('Erro ao buscar métricas do dashboard:', err);
+      toast.erro('Não foi possível carregar o dashboard. Verifique a conexão e clique em atualizar.');
     } finally {
       setLoading(false);
     }
@@ -138,6 +118,10 @@ function DashboardCamisetas() {
       };
     })
     .sort((a, b) => a.mes_idx - b.mes_idx);
+
+  const graficoSemMovimento = dadosGraficoFormatados.every(
+    (m) => m.faturamento === 0 && m.materiais_gastos === 0
+  );
 
   // Componente de Tooltip do Conceito Ateliê Artesanal (Nítido, Fundo Claro e Altamente Legível)
   const TooltipFinanceiroAtelie = ({ active, payload, label }) => {
@@ -278,10 +262,14 @@ function DashboardCamisetas() {
               <span className="card-destaque-title">Tecido de Maior Rendimento / Lucro</span>
             </div>
             <div className="card-destaque-valor" style={{ fontSize: '1.45rem', fontWeight: 800 }}>
-              {metricas.cards.tecido_maior_rendimento || 'Meia Malha 30.1'}
+              {metricas.cards.tecido_maior_rendimento || '—'}
             </div>
             <div className="card-destaque-subtexto">
-              Rendimento Real Apurado: <strong>{Number(metricas.cards.rendimento_medio_tecido || 5.6).toFixed(2)} peças / kg</strong>
+              {metricas.cards.rendimento_medio_tecido != null ? (
+                <>Rendimento Real Apurado: <strong>{Number(metricas.cards.rendimento_medio_tecido).toFixed(2)} peças / kg</strong></>
+              ) : (
+                'Nenhum corte registrado ainda'
+              )}
             </div>
           </div>
         </section>
@@ -290,7 +278,7 @@ function DashboardCamisetas() {
         <section className="secao-grafico-financeiro" aria-label="Gráfico Financeiro dos Últimos 12 Meses">
           <div className="grafico-financeiro-header">
             <div className="grafico-financeiro-title">
-              <h2>Gráfico de Barras Financeiro (Últimos 12 Meses)</h2>
+              <h2>Gráfico de Barras Financeiro (Ano Atual)</h2>
               <p>Comparação mensal entre gastos na compra de matéria-prima (saídas) e o faturamento total ganho com as vendas de camisetas (entradas). O lucro líquido é apurado mentalmente pelo gestor.</p>
             </div>
 
@@ -305,6 +293,12 @@ function DashboardCamisetas() {
               </div>
             </div>
           </div>
+
+          {graficoSemMovimento && (
+            <p className="grafico-vazio-aviso">
+              Ainda não há entregas nem notas fiscais registradas neste ano. O gráfico se preenche sozinho conforme você usa o sistema.
+            </p>
+          )}
 
           <div className="grafico-wrapper">
             <ResponsiveContainer width="100%" height="100%">

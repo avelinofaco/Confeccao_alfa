@@ -90,60 +90,54 @@ function Sidebar({ menuMobileAberto, setMenuMobileAberto }) {
         {/* MENUS ESPECÍFICOS CONFORME O SEGMENTO ESCOLHIDO */}
         {isCamisetas ? (
           <>
-            <button 
+            <button
               className={`nav-item ${isActive('/dashboard') || isActive('/camisetas/dashboard') ? 'active' : ''}`}
               onClick={() => irPara('/camisetas/dashboard')}
             >
               <LayoutDashboard size={19} />
               <span>1. Dashboard Geral</span>
             </button>
-
-            <button 
+            <button
               className={`nav-item ${isActive('/comercial') || isActive('/camisetas/pedidos') ? 'active' : ''}`}
               onClick={() => irPara('/camisetas/pedidos')}
             >
               <ShoppingCart size={19} />
               <span>2. Pedidos do Cliente</span>
             </button>
-
-            <button 
-              className={`nav-item ${isActive('/estoque') || isActive('/camisetas/estoque') ? 'active' : ''}`}
-              onClick={() => irPara('/camisetas/estoque')}
-            >
-              <Package size={19} />
-              <span>3. Estoque de Insumos</span>
-            </button>
-
-            <button 
+            <button
               className={`nav-item ${isActive('/ficha-tecnica') || isActive('/camisetas/ficha-tecnica') ? 'active' : ''}`}
               onClick={() => irPara('/camisetas/ficha-tecnica')}
             >
               <FileText size={19} />
-              <span>4. Ficha Técnica Digital</span>
+              <span>3. Ficha Técnica Digital</span>
             </button>
-
-            <button 
+            <button
+              className={`nav-item ${isActive('/estoque') || isActive('/camisetas/estoque') ? 'active' : ''}`}
+              onClick={() => irPara('/camisetas/estoque')}
+            >
+              <Package size={19} />
+              <span>4. Estoque de Insumos</span>
+            </button>
+            <button
               className={`nav-item ${isActive('/corte-rendimento') || isActive('/camisetas/corte-rendimento') ? 'active' : ''}`}
               onClick={() => irPara('/camisetas/corte-rendimento')}
             >
               <Layers size={19} />
               <span>5. Corte & Rendimento</span>
             </button>
-
-            <button 
-              className={`nav-item ${isActive('/financeiro') || isActive('/camisetas/financeiro') ? 'active' : ''}`}
-              onClick={() => irPara('/camisetas/financeiro')}
-            >
-              <DollarSign size={19} />
-              <span>6. Registro Financeiro</span>
-            </button>
-
-            <button 
+            <button
               className={`nav-item ${isActive('/costura') || isActive('/camisetas/costura-faccoes') ? 'active' : ''}`}
               onClick={() => irPara('/camisetas/costura-faccoes')}
             >
               <Scissors size={19} />
-              <span>7. Costura & Facções</span>
+              <span>6. Costura & Facções</span>
+            </button>
+            <button
+              className={`nav-item ${isActive('/financeiro') || isActive('/camisetas/financeiro') ? 'active' : ''}`}
+              onClick={() => irPara('/camisetas/financeiro')}
+            >
+              <DollarSign size={19} />
+              <span>7. Registro Financeiro</span>
             </button>
           </>
         ) : (
