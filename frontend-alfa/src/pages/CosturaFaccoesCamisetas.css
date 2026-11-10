@@ -274,3 +274,8 @@
   color: #1e293b;
 }
 
+
+/* Códigos OP-AAAA-NNNN não devem quebrar linha */
+.tabela-remessas td:first-child {
+  white-space: nowrap;
+}

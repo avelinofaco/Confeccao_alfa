@@ -1,22 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Scissors, 
-  Send, 
-  CheckCircle, 
-  AlertTriangle, 
-  PackageCheck, 
-  X, 
-  PlusCircle, 
-  ArrowRight,
+import {
+  Scissors,
+  Send,
+  PackageCheck,
+  X,
   ShieldCheck,
-  Building2,
-  Layers
+  Building2
 } from 'lucide-react';
 import api from '../services/api';
+import { useToast } from '../components/feedback/useToast';
+import { useConfirm } from '../components/feedback/useConfirm';
+import { mensagemDeErro } from '../components/feedback/mensagemErro';
+import { buscarEmParalelo } from '../services/buscarEmParalelo';
 import Sidebar from '../components/Sidebar';
 import './CosturaFaccoesCamisetas.css';
 
+const FORM_ENVIO_VAZIO = {
+  id_op: '',
+  nome_faccao: '',
+  quantidade_enviada: '',
+  margem_seguranca_aviamentos_percentual: '3.00',
+  observacoes: '',
+};
+
+const formatarNumero = (valor) => Number(valor).toLocaleString('pt-BR', { maximumFractionDigits: 3 });
+
+const descreverFalta = (falta) =>
+  `${falta.descricao} (${falta.codigo}): precisa ${formatarNumero(falta.necessario)} ${falta.unidade}, tem ${formatarNumero(falta.disponivel)} ${falta.unidade}`;
+
 function CosturaFaccoesCamisetas() {
+  const toast = useToast();
+  const confirmar = useConfirm();
   const [opsCortadas, setOpsCortadas] = useState([]);
   const [remessas, setRemessas] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -28,27 +42,20 @@ function CosturaFaccoesCamisetas() {
   const [obsRetorno, setObsRetorno] = useState('');
 
   // Form Envio para Facção
-  const [formEnvio, setFormEnvio] = useState({
-    id_op: '',
-    nome_faccao: '',
-    quantidade_enviada: '',
-    margem_seguranca_aviamentos_percentual: '3.00',
-    observacoes: ''
-  });
+  const [formEnvio, setFormEnvio] = useState(FORM_ENVIO_VAZIO);
 
   const carregarDados = async () => {
     try {
       setLoading(true);
-      const [resOps, resRemessas] = await Promise.all([
-        api.get('/camisetas/ordens/').catch(() => ({ data: [] })),
-        api.get('/camisetas/costura/').catch(() => ({ data: [] }))
-      ]);
-
-      const listaRemessas = resRemessas.data || [];
+      const { dados, houveFalha } = await buscarEmParalelo(['/camisetas/ordens/', '/camisetas/costura/']);
+      const [listaOps, listaRemessas] = dados;
       setRemessas(listaRemessas);
+      if (houveFalha) {
+        toast.erro('Não foi possível carregar todas as OPs e remessas. Verifique a conexão e recarregue a página.');
+      }
 
       // Calcula o saldo cortado restante disponível para envio de cada OP
-      const opsComSaldo = (resOps.data || []).map(op => {
+      const opsComSaldo = listaOps.map(op => {
         const totalEnviado = listaRemessas
           .filter(r => r.id_op === op.id_op)
           .reduce((acc, r) => acc + (r.quantidade_enviada || 0), 0);
@@ -103,41 +110,58 @@ function CosturaFaccoesCamisetas() {
     });
   };
 
+  const enviarRemessa = (confirmarSaldoInsuficiente) => api.post('/camisetas/costura/enviar', {
+    id_op: parseInt(formEnvio.id_op, 10),
+    nome_faccao: formEnvio.nome_faccao,
+    quantidade_enviada: parseInt(formEnvio.quantidade_enviada, 10),
+    margem_seguranca_aviamentos_percentual: parseFloat(formEnvio.margem_seguranca_aviamentos_percentual || 3),
+    observacoes: formEnvio.observacoes,
+    confirmar_saldo_insuficiente: confirmarSaldoInsuficiente,
+  });
+
   const handleEnviarFaccao = async (e) => {
     e.preventDefault();
     if (!formEnvio.id_op || !formEnvio.nome_faccao || !formEnvio.quantidade_enviada) {
-      alert("Preencha a OP, facção parceira e quantidade enviada.");
+      toast.aviso('Preencha a OP, a facção parceira e a quantidade enviada.');
       return;
     }
-
-    const opAtual = opsCortadas.find(o => String(o.id_op) === String(formEnvio.id_op));
+    const opAtual = opsCortadas.find((o) => String(o.id_op) === String(formEnvio.id_op));
     const qtdNum = parseInt(formEnvio.quantidade_enviada, 10);
     if (opAtual && qtdNum > opAtual.saldo_disponivel) {
-      alert(`Quantidade enviada (${qtdNum}) não pode ultrapassar os painéis disponíveis nesta OP (${opAtual.saldo_disponivel}).`);
+      toast.aviso(`Quantidade enviada (${qtdNum}) não pode ultrapassar os painéis disponíveis nesta OP (${opAtual.saldo_disponivel}).`);
       return;
     }
 
     try {
-      await api.post('/camisetas/costura/enviar', {
-        id_op: parseInt(formEnvio.id_op),
-        nome_faccao: formEnvio.nome_faccao,
-        quantidade_enviada: qtdNum,
-        margem_seguranca_aviamentos_percentual: parseFloat(formEnvio.margem_seguranca_aviamentos_percentual || 3),
-        observacoes: formEnvio.observacoes
-      });
+      let resposta;
+      try {
+        resposta = await enviarRemessa(false);
+      } catch (err) {
+        const faltas = err.response?.status === 409 ? err.response.data?.detail?.faltas : null;
+        if (!faltas) throw err;
+        const confirmou = await confirmar({
+          titulo: 'Aviamentos insuficientes no estoque',
+          mensagem: 'O estoque registrado não cobre este envio. Se o material existe na fábrica, envie mesmo assim: o saldo ficará negativo para você conferir o inventário depois.',
+          detalhes: faltas.map(descreverFalta),
+          textoConfirmar: 'Enviar mesmo assim',
+          textoCancelar: 'Cancelar envio',
+          perigo: true, // foco inicial em "Cancelar envio": Enter acidental não deixa estoque negativo
+        });
+        if (!confirmou) return;
+        resposta = await enviarRemessa(true);
+      }
 
-      alert("Lote enviado com sucesso para a facção! A margem de 3% foi descontada no estoque de todos os aviamentos.");
-      setFormEnvio({
-        id_op: '',
-        nome_faccao: '',
-        quantidade_enviada: '',
-        margem_seguranca_aviamentos_percentual: '3.00',
-        observacoes: ''
-      });
+      const avisos = resposta.data?.avisos || [];
+      const margem = formatarNumero(formEnvio.margem_seguranca_aviamentos_percentual || 3);
+      toast.sucesso(avisos.length > 0
+        ? `Lote enviado para ${formEnvio.nome_faccao}.`
+        : `Lote enviado para ${formEnvio.nome_faccao}. Aviamentos baixados com margem de ${margem}%.`);
+      avisos.forEach((aviso) => toast.aviso(aviso));
+      setFormEnvio(FORM_ENVIO_VAZIO);
       carregarDados();
     } catch (err) {
-      console.error("Erro ao enviar para facção:", err);
-      alert(err.response?.data?.detail || "Erro ao registrar remessa de costura.");
+      console.error('Erro ao enviar para facção:', err);
+      toast.erro(mensagemDeErro(err, 'Erro ao registrar a remessa de costura.'));
     }
   };
 
@@ -150,21 +174,20 @@ function CosturaFaccoesCamisetas() {
 
   const handleRegistrarRetorno = async (e) => {
     e.preventDefault();
-    if (!remessaSelecionada || !qtdRetornada) return;
+    if (!remessaSelecionada || qtdRetornada === '') return;
 
     try {
       await api.put(`/camisetas/costura/${remessaSelecionada.id_costura}/retornar`, {
-        quantidade_retornada: parseInt(qtdRetornada),
-        observacoes: obsRetorno
+        quantidade_retornada: parseInt(qtdRetornada, 10),
+        observacoes: obsRetorno,
       });
-
-      alert("Retorno conferido! Perdas apuradas e saldo aprovado injetado automaticamente no Estoque de Produtos Acabados para expedição.");
+      toast.sucesso('Retorno conferido! Perdas apuradas e peças aprovadas lançadas no Estoque de Produtos Acabados.');
       setModalRetornoAberto(false);
       setRemessaSelecionada(null);
       carregarDados();
     } catch (err) {
-      console.error("Erro ao registrar retorno:", err);
-      alert(err.response?.data?.detail || "Erro ao registrar retorno de costura.");
+      console.error('Erro ao registrar retorno:', err);
+      toast.erro(mensagemDeErro(err, 'Erro ao registrar o retorno da facção.'));
     }
   };
 
@@ -181,7 +204,7 @@ function CosturaFaccoesCamisetas() {
         <header className="costura-header">
           <h1>
             <Scissors size={28} color="#2563eb" />
-            7. Tela de Costura e Terceirização (Facções)
+            6. Tela de Costura e Terceirização (Facções)
           </h1>
           <p>
             Controle o fluxo de envio dos painéis cortados para oficinas externas (facções) e o retorno das camisetas prontas:
