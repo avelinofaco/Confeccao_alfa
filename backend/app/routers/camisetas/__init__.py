@@ -4,6 +4,7 @@ from fastapi import APIRouter
 
 from app.routers.camisetas import (
     clientes,
+    cores,
     costura,
     dashboard,
     financeiro,
@@ -16,5 +17,5 @@ from app.routers.camisetas import (
 
 router = APIRouter(prefix="/camisetas", tags=["Segmento Camisetas"])
 
-for _modulo in (seed, dashboard, pedidos, clientes, insumos, modelos, ordens, financeiro, costura):
+for _modulo in (seed, dashboard, pedidos, clientes, cores, insumos, modelos, ordens, financeiro, costura):
     router.include_router(_modulo.router)

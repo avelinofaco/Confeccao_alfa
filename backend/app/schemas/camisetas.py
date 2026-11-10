@@ -35,15 +35,26 @@ class CamisetaInsumoBase(BaseModel):
     saldo_atual: Decimal = Decimal("0.000")
     estoque_minimo: Decimal = Decimal("10.000")
     preco_custo_medio: Decimal = Decimal("0.00")
+    id_cor: Optional[int] = None  # cor de camiseta que esta malha produz
 
 class CamisetaInsumoCreate(CamisetaInsumoBase):
     pass
 
 class CamisetaInsumoResponse(CamisetaInsumoBase):
     id_insumo: int
+    nome_cor: Optional[str] = None
+    hex_cor: Optional[str] = None
     criado_em: Optional[datetime] = None
     atualizado_em: Optional[datetime] = None
     model_config = ConfigDict(from_attributes=True)
+
+class CamisetaInsumoUpdate(BaseModel):
+    """Só dados cadastrais: saldo e custo médio mudam por nota fiscal (e ajuste de inventário)."""
+    tipo_malha_ou_aviamento: str = Field(..., min_length=1, max_length=150)
+    cor: Optional[str] = Field(None, max_length=80)
+    id_cor: Optional[int] = None
+    unidade_medida: str = Field(..., min_length=1, max_length=15)
+    estoque_minimo: Decimal = Field(..., ge=0)
 
 # ----------------- ENTRADA DE INSUMOS (COMPRAS/NFs) -----------------
 class CamisetaEntradaInsumoCreate(BaseModel):

@@ -32,7 +32,10 @@ from app.schemas.camisetas import (
     CamisetaRegistroFinanceiroCreate, CamisetaRegistroFinanceiroResponse, CamisetaApuracaoMensalResponse,
     CamisetaDashboardCompletoResponse, CamisetaCardDestaque, CamisetaItemFinanceiroMensal
 )
+from app.schemas.camisetas import CamisetaInsumoUpdate
+from app.services.camisetas.cores import validar_cor_opcional
 from app.services.camisetas.estoque import calcular_custo_medio
+from app.services.camisetas.insumos import atualizar_insumo, montar_resposta_insumo
 
 router = APIRouter()
 
@@ -46,10 +49,11 @@ def listar_insumos(categoria: Optional[str] = None, db: Session = Depends(get_db
             query = query.filter(CamisetaInsumo.categoria.in_(["AVIAMENTO", "LINHA", "ETIQUETA", "TAG", "OUTRO_AVIAMENTO"]))
         else:
             query = query.filter(CamisetaInsumo.categoria == cat_u)
-    return query.order_by(CamisetaInsumo.codigo.asc()).all()
+    return [montar_resposta_insumo(i) for i in query.order_by(CamisetaInsumo.codigo.asc()).all()]
 
 @router.post("/insumos/", response_model=CamisetaInsumoResponse, status_code=status.HTTP_201_CREATED)
 def cadastrar_insumo(insumo_in: CamisetaInsumoCreate, db: Session = Depends(get_db)):
+    validar_cor_opcional(db, insumo_in.id_cor)
     # Geração automática de código caso não enviado
     codigo_final = (insumo_in.codigo or "").strip()
     if not codigo_final:
@@ -89,12 +93,13 @@ def cadastrar_insumo(insumo_in: CamisetaInsumoCreate, db: Session = Depends(get_
         unidade_medida=insumo_in.unidade_medida.lower(),
         saldo_atual=insumo_in.saldo_atual,
         estoque_minimo=insumo_in.estoque_minimo,
-        preco_custo_medio=insumo_in.preco_custo_medio
+        preco_custo_medio=insumo_in.preco_custo_medio,
+        id_cor=insumo_in.id_cor,
     )
     db.add(novo_insumo)
     db.commit()
     db.refresh(novo_insumo)
-    return novo_insumo
+    return montar_resposta_insumo(novo_insumo)
 
 @router.post("/insumos/entrada/", response_model=CamisetaEntradaInsumoResponse, status_code=status.HTTP_201_CREATED)
 def registrar_entrada_estoque(entrada_in: CamisetaEntradaInsumoCreate, db: Session = Depends(get_db)):
@@ -132,3 +137,9 @@ def registrar_entrada_estoque(entrada_in: CamisetaEntradaInsumoCreate, db: Sessi
     db.commit()
     db.refresh(nova_entrada)
     return nova_entrada
+
+
+@router.put("/insumos/{id_insumo}", response_model=CamisetaInsumoResponse)
+def editar_insumo(id_insumo: int, dados: CamisetaInsumoUpdate, db: Session = Depends(get_db)):
+    """Edição cadastral: não altera saldo nem custo médio."""
+    return montar_resposta_insumo(atualizar_insumo(db, id_insumo, dados))

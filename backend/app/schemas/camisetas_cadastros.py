@@ -38,3 +38,20 @@ class ClienteResponse(BaseModel):
     valor_total_pedidos: Decimal = Decimal("0.00")
     criado_em: Optional[datetime] = None
     model_config = ConfigDict(from_attributes=True)
+
+
+PADRAO_HEX = r"^#[0-9A-Fa-f]{6}$"
+
+
+class CorEntrada(BaseModel):
+    nome: str = Field(..., min_length=1, max_length=60)
+    hex: str = Field(..., pattern=PADRAO_HEX)
+    ativo: bool = True
+
+
+class CorResponse(BaseModel):
+    id_cor: int
+    nome: str
+    hex: str
+    ativo: bool
+    model_config = ConfigDict(from_attributes=True)
