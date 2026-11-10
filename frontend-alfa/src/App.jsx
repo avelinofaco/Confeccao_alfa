@@ -1,6 +1,8 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { SegmentoProvider, useSegmento } from './context/SegmentoContext';
+import { ToastProvider } from './components/feedback/ToastProvider';
+import { ConfirmProvider } from './components/feedback/ConfirmProvider';
 
 // Páginas de Autenticação e Seleção
 import Login from './pages/Login';
@@ -104,7 +106,11 @@ function App() {
   return (
     <BrowserRouter>
       <SegmentoProvider>
-        <AppRoutes />
+        <ToastProvider>
+          <ConfirmProvider>
+            <AppRoutes />
+          </ConfirmProvider>
+        </ToastProvider>
       </SegmentoProvider>
     </BrowserRouter>
   );

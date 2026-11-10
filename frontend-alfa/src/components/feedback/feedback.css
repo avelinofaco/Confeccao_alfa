@@ -1,0 +1,181 @@
+/* Avisos (toast) e confirmações — usam os tokens do Ateliê Artesanal (index.css) */
+.feedback-toasts {
+  position: fixed;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-width: min(28rem, calc(100vw - 2rem));
+  pointer-events: none;
+}
+
+.feedback-toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1.1rem;
+  border-radius: 8px;
+  font-family: var(--font-sans-humanist);
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.45;
+  box-shadow: 0 10px 30px rgba(44, 37, 35, 0.12);
+  animation: feedback-entrar 0.25s ease-out;
+}
+
+.feedback-toast.sucesso {
+  background: var(--accent-artisan-sage-bg);
+  border: 1px dashed var(--accent-artisan-sage-border);
+  color: var(--accent-artisan-sage);
+}
+
+.feedback-toast.erro {
+  background: var(--accent-artisan-terracotta-bg);
+  border: 1px dashed var(--accent-artisan-terracotta-border);
+  color: var(--accent-artisan-terracotta);
+}
+
+.feedback-toast.aviso {
+  background: var(--accent-artisan-amber-bg);
+  border: 1px dashed var(--accent-artisan-amber-border);
+  color: var(--accent-artisan-amber);
+}
+
+.feedback-toast.info {
+  background: var(--accent-artisan-indigo-bg);
+  border: 1px dashed var(--accent-artisan-indigo-border);
+  color: var(--accent-artisan-indigo);
+}
+
+.feedback-toast-fechar {
+  background: transparent;
+  border: none;
+  color: inherit;
+  opacity: 0.7;
+  cursor: pointer;
+  padding: 0.15rem;
+  border-radius: 4px;
+  display: flex;
+}
+
+.feedback-toast-fechar:hover,
+.feedback-toast-fechar:focus-visible {
+  opacity: 1;
+  outline: 2px solid currentColor;
+  outline-offset: 1px;
+}
+
+.feedback-confirm-fundo {
+  position: fixed;
+  inset: 0;
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(44, 37, 35, 0.45);
+}
+
+.feedback-confirm {
+  width: min(30rem, 100%);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-artisan);
+  background: var(--bg-artisan-surface);
+  color: var(--color-text-main);
+  box-shadow: 0 24px 60px rgba(44, 37, 35, 0.25);
+  animation: feedback-entrar 0.2s ease-out;
+}
+
+.feedback-confirm h2 {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-serif-editorial);
+  font-size: 1.2rem;
+}
+
+.feedback-confirm p {
+  margin: 0 0 1rem;
+  color: var(--color-text-body);
+  line-height: 1.5;
+}
+
+.feedback-confirm-detalhes {
+  margin: 0 0 1.1rem;
+  padding: 0.75rem 1rem 0.75rem 2rem;
+  border-radius: 8px;
+  border: 1px dashed var(--accent-artisan-amber-border);
+  background: var(--accent-artisan-amber-bg);
+  color: var(--accent-artisan-amber);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.feedback-confirm-acoes {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.feedback-btn {
+  font: inherit;
+  font-weight: 700;
+  padding: 0.65rem 1.15rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.feedback-btn.secundario {
+  background: var(--bg-artisan-subtle);
+  border-color: var(--border-artisan-strong);
+  color: var(--color-text-main);
+}
+
+.feedback-btn.primario {
+  background: var(--accent-artisan-indigo);
+  color: var(--bg-artisan-surface);
+}
+
+.feedback-btn.perigo {
+  background: var(--accent-artisan-terracotta);
+  color: var(--bg-artisan-surface);
+}
+
+.feedback-btn:hover {
+  filter: brightness(0.94);
+}
+
+.feedback-btn:focus-visible {
+  outline: 3px solid var(--accent-artisan-indigo-border);
+  outline-offset: 2px;
+}
+
+@keyframes feedback-entrar {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .feedback-toast,
+  .feedback-confirm {
+    animation: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .feedback-toasts {
+    top: 1rem;
+    left: 1rem;
+    right: 1rem;
+    max-width: none;
+  }
+
+  .feedback-confirm-acoes .feedback-btn {
+    flex: 1 1 100%;
+  }
+}

@@ -16,61 +16,6 @@
   position: relative;
 }
 
-/* Toast Notificação */
-.toast-alerta-flutuante {
-  position: fixed;
-  top: 1.5rem;
-  right: 2rem;
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.9rem 1.4rem;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  box-shadow: 0 10px 30px rgba(44, 37, 35, 0.12);
-  animation: slideInDown 0.3s ease;
-}
-
-.toast-alerta-flutuante.sucesso {
-  background: #EDF7F1;
-  color: #236342;
-  border: 1px dashed #A6D8BB;
-}
-
-.toast-alerta-flutuante.info {
-  background: #EEF4FB;
-  color: #204B72;
-  border: 1px dashed #BCD3EB;
-}
-
-.toast-btn-fechar {
-  background: transparent;
-  border: none;
-  color: inherit;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  opacity: 0.8;
-  transition: opacity 0.2s;
-}
-
-.toast-btn-fechar:hover {
-  opacity: 1;
-}
-
-@keyframes slideInDown {
-  from {
-    transform: translateY(-20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
 .page-header {
   margin-bottom: 1.8rem;
 }
@@ -803,4 +748,9 @@
   .resumo-pedido-box {
     grid-template-columns: 1fr;
   }
+}
+
+/* Códigos PED-AAAA-NNNN não devem quebrar linha */
+.pedidos-table td:first-child {
+  white-space: nowrap;
 }

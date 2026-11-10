@@ -1,28 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  ShoppingCart, 
-  PlusCircle, 
-  Calendar, 
-  DollarSign, 
-  Shirt, 
-  CheckCircle, 
-  Clock, 
+import {
+  ShoppingCart,
+  PlusCircle,
+  CheckCircle,
   Search,
-  Filter,
   Truck,
   RotateCcw,
   X,
   AlertTriangle,
-  Package,
-  Layers,
   Info
 } from 'lucide-react';
 import api from '../services/api';
 import Sidebar from '../components/Sidebar';
+import { useToast } from '../components/feedback/useToast';
+import { useConfirm } from '../components/feedback/useConfirm';
+import { mensagemDeErro } from '../components/feedback/mensagemErro';
+import { buscarEmParalelo } from '../services/buscarEmParalelo';
 import './PedidoCamisetas.css';
 
 function PedidoCamisetas() {
-  const hoje = new Date().toISOString().split('T')[0];
+  const hoje = new Date().toLocaleDateString('sv-SE'); // AAAA-MM-DD no fuso do navegador
 
   const [modelos, setModelos] = useState([]);
   const [pedidos, setPedidos] = useState([]);
@@ -30,7 +27,8 @@ function PedidoCamisetas() {
   const [loading, setLoading] = useState(false);
   const [busca, setBusca] = useState('');
   const [erroData, setErroData] = useState('');
-  const [toast, setToast] = useState(null);
+  const toast = useToast();
+  const confirmar = useConfirm();
 
   // Formulário do novo pedido
   const [formData, setFormData] = useState({
@@ -56,26 +54,23 @@ function PedidoCamisetas() {
   const [salvandoEntrega, setSalvandoEntrega] = useState(false);
 
   const carregarDados = async () => {
-    try {
-      setLoading(true);
-      const [resModelos, resPedidos, resAcabados] = await Promise.all([
-        api.get('/camisetas/modelos/').catch(() => ({ data: [] })),
-        api.get('/camisetas/pedidos/').catch(() => ({ data: [] })),
-        api.get('/camisetas/estoque-acabado/').catch(() => ({ data: [] }))
-      ]);
-      
-      const mods = resModelos.data || [];
-      setModelos(mods);
-      if (mods.length > 0 && !formData.id_modelo) {
-        setFormData(prev => ({ ...prev, id_modelo: mods[0].id_modelo }));
-      }
-      setPedidos(resPedidos.data || []);
-      setEstoqueAcabado(resAcabados.data || []);
-    } catch (err) {
-      console.error("Erro ao carregar dados de pedidos e estoque:", err);
-    } finally {
-      setLoading(false);
+    setLoading(true);
+    const { dados, houveFalha } = await buscarEmParalelo([
+      '/camisetas/modelos/',
+      '/camisetas/pedidos/',
+      '/camisetas/estoque-acabado/',
+    ]);
+    const [mods, listaPedidos, acabados] = dados;
+    setModelos(mods);
+    if (mods.length > 0 && !formData.id_modelo) {
+      setFormData((prev) => ({ ...prev, id_modelo: mods[0].id_modelo }));
     }
+    setPedidos(listaPedidos);
+    setEstoqueAcabado(acabados);
+    if (houveFalha) {
+      toast.erro('Não foi possível carregar todos os dados de pedidos. Verifique a conexão e recarregue a página.');
+    }
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -101,42 +96,32 @@ function PedidoCamisetas() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.nome_cliente || !formData.id_modelo || !formData.prazo_entrega || !formData.valor_total) {
-      alert("Por favor, preencha todos os campos obrigatórios marcados com asterisco (*).");
+      toast.aviso('Preencha todos os campos obrigatórios marcados com asterisco (*).');
       return;
     }
-
     if (formData.prazo_entrega < hoje) {
       setErroData('O prazo de entrega não pode ser anterior à data de hoje.');
-      alert("O prazo de entrega não pode ser anterior à data de hoje.");
       return;
     }
-
     if (totalGrade <= 0) {
-      alert("A soma da grade de tamanhos (P, M, G, GG) deve ser superior a zero.");
+      toast.aviso('A soma da grade de tamanhos (P, M, G, GG) deve ser maior que zero.');
       return;
     }
 
     try {
-      const codigoGerado = `PED-${Math.floor(100 + Math.random() * 900)}`;
-      await api.post('/camisetas/pedidos/', {
-        codigo_pedido: codigoGerado,
+      const { data: pedidoCriado } = await api.post('/camisetas/pedidos/', {
         nome_cliente: formData.nome_cliente,
-        id_modelo: parseInt(formData.id_modelo),
-        grade_p: parseInt(formData.grade_p || 0),
-        grade_m: parseInt(formData.grade_m || 0),
-        grade_g: parseInt(formData.grade_g || 0),
-        grade_gg: parseInt(formData.grade_gg || 0),
+        id_modelo: parseInt(formData.id_modelo, 10),
+        grade_p: parseInt(formData.grade_p || 0, 10),
+        grade_m: parseInt(formData.grade_m || 0, 10),
+        grade_g: parseInt(formData.grade_g || 0, 10),
+        grade_gg: parseInt(formData.grade_gg || 0, 10),
         prazo_entrega: formData.prazo_entrega,
         valor_total: parseFloat(formData.valor_total),
-        observacoes: formData.observacoes
+        observacoes: formData.observacoes,
       });
 
-      setToast({
-        tipo: 'sucesso',
-        texto: `Pedido ${codigoGerado} registrado com sucesso! Status inicial: 'Aguardando Produção'.`
-      });
-      
-      // Limpa formulário
+      toast.sucesso(`Pedido ${pedidoCriado.codigo_pedido} registrado! Status inicial: 'Aguardando Produção'.`);
       setFormData({
         nome_cliente: '',
         id_modelo: modelos.length > 0 ? modelos[0].id_modelo : '',
@@ -146,14 +131,13 @@ function PedidoCamisetas() {
         grade_gg: 0,
         prazo_entrega: hoje,
         valor_total: '',
-        observacoes: ''
+        observacoes: '',
       });
       setErroData('');
-
       await carregarDados();
     } catch (err) {
-      console.error("Erro ao cadastrar pedido:", err);
-      alert(err.response?.data?.detail || "Erro ao salvar pedido de camiseta");
+      console.error('Erro ao cadastrar pedido:', err);
+      toast.erro(mensagemDeErro(err, 'Erro ao salvar o pedido.'));
     }
   };
 
@@ -174,7 +158,7 @@ function PedidoCamisetas() {
     if (!pedidoParaEntrega) return;
 
     if (!temEstoqueSuficiente) {
-      alert(`Operação bloqueada: Estoque pronto insuficiente para entrega! Disponível: ${saldoProntoModelo} peças. Necessário: ${pedidoParaEntrega.quantidade_total} peças.`);
+      toast.aviso(`Estoque pronto insuficiente para entrega. Disponível: ${saldoProntoModelo} peças. Necessário: ${pedidoParaEntrega.quantidade_total} peças.`);
       return;
     }
 
@@ -183,19 +167,14 @@ function PedidoCamisetas() {
       await api.post(`/camisetas/pedidos/${pedidoParaEntrega.id_pedido}/entregar`, {
         data_entrega: dadosEntrega.data_entrega || hoje,
         recebedor: dadosEntrega.recebedor,
-        observacoes: dadosEntrega.observacoes
+        observacoes: dadosEntrega.observacoes,
       });
-
       setModalEntregaAberto(false);
-      setToast({
-        tipo: 'sucesso',
-        texto: `✅ Entrega do pedido ${pedidoParaEntrega.codigo_pedido} (${pedidoParaEntrega.nome_cliente}) concluída! ${pedidoParaEntrega.quantidade_total} peças foram baixadas do Estoque Pronto e deduzidas da Produção Total no Dashboard.`
-      });
-
+      toast.sucesso(`Entrega do pedido ${pedidoParaEntrega.codigo_pedido} (${pedidoParaEntrega.nome_cliente}) concluída. ${pedidoParaEntrega.quantidade_total} peças baixadas do Estoque Pronto.`);
       await carregarDados();
     } catch (err) {
-      console.error("Erro ao registrar entrega:", err);
-      alert(err.response?.data?.detail || "Erro ao registrar entrega do pedido.");
+      console.error('Erro ao registrar entrega:', err);
+      toast.erro(mensagemDeErro(err, 'Erro ao registrar a entrega do pedido.'));
     } finally {
       setSalvandoEntrega(false);
     }
@@ -203,26 +182,22 @@ function PedidoCamisetas() {
 
   // Reverter Entrega (Controle do Usuário - IHC)
   const handleReverterEntrega = async (pedido) => {
-    const confirma = window.confirm(
-      `Deseja reverter a entrega do pedido ${pedido.codigo_pedido}?\n\nO status retornará para 'Aguardando Produção' e as ${pedido.quantidade_total} peças serão devolvidas ao Estoque Pronto e à Produção Total.`
-    );
-    if (!confirma) return;
+    const confirmou = await confirmar({
+      titulo: `Reverter a entrega do pedido ${pedido.codigo_pedido}?`,
+      mensagem: `O status volta para 'Aguardando Produção' e as ${pedido.quantidade_total} peças retornam ao Estoque Pronto.`,
+      textoConfirmar: 'Reverter entrega',
+      perigo: true,
+    });
+    if (!confirmou) return;
 
     try {
       setLoading(true);
-      await api.put(`/camisetas/pedidos/${pedido.id_pedido}/status`, {
-        status_pedido: 'Aguardando Produção'
-      });
-
-      setToast({
-        tipo: 'info',
-        texto: `Status do pedido ${pedido.codigo_pedido} revertido para 'Aguardando Produção'. As peças foram reincorporadas ao Estoque Pronto.`
-      });
-
+      await api.put(`/camisetas/pedidos/${pedido.id_pedido}/status`, { status_pedido: 'Aguardando Produção' });
+      toast.info(`Entrega do pedido ${pedido.codigo_pedido} revertida. As peças voltaram ao Estoque Pronto.`);
       await carregarDados();
     } catch (err) {
-      console.error("Erro ao reverter status do pedido:", err);
-      alert(err.response?.data?.detail || "Erro ao reverter status.");
+      console.error('Erro ao reverter status do pedido:', err);
+      toast.erro(mensagemDeErro(err, 'Erro ao reverter a entrega.'));
     } finally {
       setLoading(false);
     }
@@ -255,20 +230,6 @@ function PedidoCamisetas() {
       <Sidebar />
 
       <main className="pedido-camisetas-main">
-        {/* Toast Notificação */}
-        {toast && (
-          <div className={`toast-alerta-flutuante ${toast.tipo}`} role="alert" aria-live="assertive">
-            <span>{toast.texto}</span>
-            <button 
-              type="button" 
-              onClick={() => setToast(null)} 
-              className="toast-btn-fechar"
-              aria-label="Fechar notificação"
-            >
-              <X size={16} />
-            </button>
-          </div>
-        )}
 
         {/* Cabeçalho */}
         <header className="page-header">
