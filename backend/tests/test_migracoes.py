@@ -18,7 +18,11 @@ def rodar_alembic(*args, url):
 
 
 def tabelas(url):
-    return set(sa.inspect(sa.create_engine(url)).get_table_names())
+    engine = sa.create_engine(url)
+    try:
+        return set(sa.inspect(engine).get_table_names())
+    finally:
+        engine.dispose()
 
 
 def test_migracao_de_sequencias_sobe_e_desce(tmp_path):
@@ -50,6 +54,7 @@ def test_migracao_preenche_data_de_entrega(tmp_path):
         datas = dict(conexao.execute(sa.text(
             "SELECT id_pedido, data_entrega_realizada FROM camisetas_pedidos"
         )).all())
+    engine.dispose()
     assert str(datas[1]) == "2026-10-05"
     assert str(datas[2]) == "2026-10-09"
     assert datas[3] is None
