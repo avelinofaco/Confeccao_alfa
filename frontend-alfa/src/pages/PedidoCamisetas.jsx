@@ -16,6 +16,7 @@ import { useToast } from '../components/feedback/useToast';
 import { useConfirm } from '../components/feedback/useConfirm';
 import { mensagemDeErro } from '../components/feedback/mensagemErro';
 import { buscarEmParalelo } from '../services/buscarEmParalelo';
+import { SeletorCliente } from '../components/cadastros/SeletorCliente';
 import './PedidoCamisetas.css';
 
 function PedidoCamisetas() {
@@ -32,7 +33,7 @@ function PedidoCamisetas() {
 
   // Formulário do novo pedido
   const [formData, setFormData] = useState({
-    nome_cliente: '',
+    cliente: null,
     id_modelo: '',
     grade_p: 0,
     grade_m: 0,
@@ -95,7 +96,11 @@ function PedidoCamisetas() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.nome_cliente || !formData.id_modelo || !formData.prazo_entrega || !formData.valor_total) {
+    if (!formData.cliente) {
+      toast.aviso('Escolha o cliente do pedido (ou cadastre um novo pela própria busca).');
+      return;
+    }
+    if (!formData.id_modelo || !formData.prazo_entrega || !formData.valor_total) {
       toast.aviso('Preencha todos os campos obrigatórios marcados com asterisco (*).');
       return;
     }
@@ -110,7 +115,7 @@ function PedidoCamisetas() {
 
     try {
       const { data: pedidoCriado } = await api.post('/camisetas/pedidos/', {
-        nome_cliente: formData.nome_cliente,
+        id_cliente: formData.cliente.id_cliente,
         id_modelo: parseInt(formData.id_modelo, 10),
         grade_p: parseInt(formData.grade_p || 0, 10),
         grade_m: parseInt(formData.grade_m || 0, 10),
@@ -123,7 +128,7 @@ function PedidoCamisetas() {
 
       toast.sucesso(`Pedido ${pedidoCriado.codigo_pedido} registrado! Status inicial: 'Aguardando Produção'.`);
       setFormData({
-        nome_cliente: '',
+        cliente: null,
         id_modelo: modelos.length > 0 ? modelos[0].id_modelo : '',
         grade_p: 0,
         grade_m: 0,
@@ -274,14 +279,11 @@ function PedidoCamisetas() {
           <form onSubmit={handleSubmit} noValidate>
             <div className="form-grid">
               <div className="form-group">
-                <label htmlFor="campo-nome-cliente">Nome do Cliente / Lojista *</label>
-                <input 
-                  id="campo-nome-cliente"
-                  type="text" 
-                  placeholder="Ex: Boutique Centro ou Loja Alfa Wear"
-                  value={formData.nome_cliente}
-                  onChange={(e) => setFormData({ ...formData, nome_cliente: e.target.value })}
-                  required
+                <label htmlFor="campo-cliente">Cliente *</label>
+                <SeletorCliente
+                  id="campo-cliente"
+                  cliente={formData.cliente}
+                  onChange={(cliente) => setFormData((atual) => ({ ...atual, cliente }))}
                 />
               </div>
 

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import api from '../../services/api';
 import { useToast } from '../feedback/useToast';
@@ -51,6 +52,8 @@ export function FormCliente({ cliente = null, nomeInicial = '', modoRapido = fal
 
   const salvar = async (e) => {
     e.preventDefault();
+    // Usado dentro do formulário do pedido: o envio não pode subir até ele.
+    e.stopPropagation();
     if (dados.nome.trim().length < 2) {
       setErro('Informe o nome do cliente (pelo menos 2 letras).');
       return;
@@ -71,7 +74,8 @@ export function FormCliente({ cliente = null, nomeInicial = '', modoRapido = fal
     }
   };
 
-  return (
+  // Portal no <body>: evita <form> dentro de <form> quando aberto a partir do pedido.
+  return createPortal(
     <div className="cadastro-modal-fundo" onMouseDown={(e) => { if (e.target === e.currentTarget) onFechar(); }}>
       <form
         className={`cadastro-modal ${modoRapido ? 'compacto' : ''}`}
@@ -170,6 +174,7 @@ export function FormCliente({ cliente = null, nomeInicial = '', modoRapido = fal
           </button>
         </footer>
       </form>
-    </div>
+    </div>,
+    document.body,
   );
 }
