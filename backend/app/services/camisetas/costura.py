@@ -1,0 +1,37 @@
+# app/services/camisetas/costura.py
+"""Regras das remessas para facções (costura terceirizada)."""
+from app.schemas.camisetas import CamisetaCosturaFaccaoResponse
+
+STATUS_REMESSA_EM_COSTURA = "Em Costura Externa"
+STATUS_REMESSA_RETORNADA = "Retornado e Conferido"
+STATUS_OP_EM_COSTURA = "Em Costura"
+STATUS_OP_FINALIZADA = "Costura Finalizada"
+
+
+def status_op_apos_retorno(pecas_cortadas: int, remessas) -> str:
+    """A OP só finaliza quando todas as peças cortadas foram enviadas e nenhuma remessa está pendente."""
+    total_enviado = sum(r.quantidade_enviada or 0 for r in remessas)
+    ha_pendentes = any(r.status == STATUS_REMESSA_EM_COSTURA for r in remessas)
+    if total_enviado >= pecas_cortadas and not ha_pendentes:
+        return STATUS_OP_FINALIZADA
+    return STATUS_OP_EM_COSTURA
+
+
+def montar_resposta_remessa(remessa) -> CamisetaCosturaFaccaoResponse:
+    op = remessa.op
+    return CamisetaCosturaFaccaoResponse(
+        id_costura=remessa.id_costura,
+        id_op=remessa.id_op,
+        codigo_op=op.codigo_op if op else "OP",
+        nome_modelo=op.modelo.nome_modelo if op and op.modelo else "Modelo",
+        nome_faccao=remessa.nome_faccao,
+        quantidade_enviada=remessa.quantidade_enviada,
+        margem_seguranca_aviamentos_percentual=remessa.margem_seguranca_aviamentos_percentual,
+        quantidade_retornada=remessa.quantidade_retornada,
+        perdas_pecas=remessa.perdas_pecas,
+        saldo_aprovado=remessa.saldo_aprovado,
+        status=remessa.status,
+        data_envio=remessa.data_envio,
+        data_retorno=remessa.data_retorno,
+        observacoes=remessa.observacoes,
+    )

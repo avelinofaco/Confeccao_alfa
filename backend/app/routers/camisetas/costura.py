@@ -32,6 +32,13 @@ from app.schemas.camisetas import (
     CamisetaRegistroFinanceiroCreate, CamisetaRegistroFinanceiroResponse, CamisetaApuracaoMensalResponse,
     CamisetaDashboardCompletoResponse, CamisetaCardDestaque, CamisetaItemFinanceiroMensal
 )
+from app.services.camisetas.costura import (
+    STATUS_REMESSA_EM_COSTURA,
+    STATUS_REMESSA_RETORNADA,
+    montar_resposta_remessa,
+    status_op_apos_retorno,
+)
+from app.services.camisetas.estoque import obter_ou_criar_estoque_acabado
 
 router = APIRouter()
 
@@ -39,25 +46,8 @@ router = APIRouter()
 @router.get("/costura/", response_model=List[CamisetaCosturaFaccaoResponse])
 def listar_remessas_costura(db: Session = Depends(get_db)):
     remessas = db.query(CamisetaCosturaFaccao).order_by(CamisetaCosturaFaccao.id_costura.desc()).all()
-    resultado = []
-    for r in remessas:
-        resultado.append(CamisetaCosturaFaccaoResponse(
-            id_costura=r.id_costura,
-            id_op=r.id_op,
-            codigo_op=r.op.codigo_op if r.op else "OP",
-            nome_modelo=r.op.modelo.nome_modelo if r.op and r.op.modelo else "Modelo",
-            nome_faccao=r.nome_faccao,
-            quantidade_enviada=r.quantidade_enviada,
-            margem_seguranca_aviamentos_percentual=r.margem_seguranca_aviamentos_percentual,
-            quantidade_retornada=r.quantidade_retornada,
-            perdas_pecas=r.perdas_pecas,
-            saldo_aprovado=r.saldo_aprovado,
-            status=r.status,
-            data_envio=r.data_envio,
-            data_retorno=r.data_retorno,
-            observacoes=r.observacoes
-        ))
-    return resultado
+    return [montar_resposta_remessa(r) for r in remessas]
+
 
 @router.post("/costura/enviar", response_model=CamisetaCosturaFaccaoResponse, status_code=status.HTTP_201_CREATED)
 def enviar_para_faccao(envio_in: CamisetaCosturaFaccaoEnviar, db: Session = Depends(get_db)):
@@ -144,66 +134,42 @@ def enviar_para_faccao(envio_in: CamisetaCosturaFaccaoEnviar, db: Session = Depe
         observacoes=remessa.observacoes
     )
 
+
 @router.put("/costura/{id_costura}/retornar", response_model=CamisetaCosturaFaccaoResponse)
 def registrar_retorno_faccao(id_costura: int, retorno_in: CamisetaCosturaFaccaoRetornar, db: Session = Depends(get_db)):
-    """
-    Retorno:
-    1. Registra a quantidade física de camisetas costuradas que retornaram à fábrica.
-    2. Apura eventuais perdas de lote (peças avariadas ou extraviadas = enviada - retornada).
-    3. Injeta o saldo aprovado de camisetas prontas no Estoque de Produtos Acabados para expedição.
-    """
+    """Registra o retorno da facção, apura perdas e lança as peças aprovadas no estoque pronto."""
     remessa = db.query(CamisetaCosturaFaccao).filter_by(id_costura=id_costura).first()
     if not remessa:
         raise HTTPException(status_code=404, detail="Remessa de costura não encontrada")
-
+    if remessa.status != STATUS_REMESSA_EM_COSTURA:
+        raise HTTPException(status_code=409, detail="Esta remessa já teve o retorno registrado.")
     if retorno_in.quantidade_retornada < 0:
         raise HTTPException(status_code=400, detail="Quantidade retornada não pode ser negativa")
+    if retorno_in.quantidade_retornada > remessa.quantidade_enviada:
+        raise HTTPException(
+            status_code=400,
+            detail=f"O retorno ({retorno_in.quantidade_retornada}) não pode ser maior que o enviado ({remessa.quantidade_enviada}).",
+        )
 
     remessa.quantidade_retornada = retorno_in.quantidade_retornada
     remessa.data_retorno = get_utc_now()
-    remessa.status = "Retornado e Conferido"
-
-    # Apura perdas
-    perdas = remessa.quantidade_enviada - retorno_in.quantidade_retornada
-    remessa.perdas_pecas = max(perdas, 0)
+    remessa.status = STATUS_REMESSA_RETORNADA
+    remessa.perdas_pecas = remessa.quantidade_enviada - retorno_in.quantidade_retornada
     remessa.saldo_aprovado = retorno_in.quantidade_retornada
     if retorno_in.observacoes:
         remessa.observacoes = (remessa.observacoes or "") + " | Retorno: " + retorno_in.observacoes
 
-    # Injeta saldo aprovado no Estoque de Produtos Acabados
     if remessa.op and remessa.op.id_modelo:
-        id_mod = remessa.op.id_modelo
-        estoque_acabado = db.query(CamisetaProdutoAcabado).filter_by(id_modelo=id_mod).first()
-        if not estoque_acabado:
-            estoque_acabado = CamisetaProdutoAcabado(
-                id_modelo=id_mod,
-                quantidade_total=remessa.saldo_aprovado,
-                atualizado_em=get_utc_now()
-            )
-            db.add(estoque_acabado)
-        else:
-            estoque_acabado.quantidade_total = (estoque_acabado.quantidade_total or 0) + remessa.saldo_aprovado
-            estoque_acabado.atualizado_em = get_utc_now()
+        estoque = obter_ou_criar_estoque_acabado(db, remessa.op.id_modelo)
+        estoque.quantidade_total = (estoque.quantidade_total or 0) + remessa.saldo_aprovado
+        estoque.atualizado_em = get_utc_now()
 
+    db.flush()
     if remessa.op:
-        remessa.op.status_op = "Costura Finalizada"
+        remessa.op.status_op = status_op_apos_retorno(
+            remessa.op.pecas_reais_cortadas or 0, remessa.op.movimentacoes_costura
+        )
 
     db.commit()
     db.refresh(remessa)
-
-    return CamisetaCosturaFaccaoResponse(
-        id_costura=remessa.id_costura,
-        id_op=remessa.id_op,
-        codigo_op=remessa.op.codigo_op if remessa.op else "OP",
-        nome_modelo=remessa.op.modelo.nome_modelo if remessa.op and remessa.op.modelo else "Modelo",
-        nome_faccao=remessa.nome_faccao,
-        quantidade_enviada=remessa.quantidade_enviada,
-        margem_seguranca_aviamentos_percentual=remessa.margem_seguranca_aviamentos_percentual,
-        quantidade_retornada=remessa.quantidade_retornada,
-        perdas_pecas=remessa.perdas_pecas,
-        saldo_aprovado=remessa.saldo_aprovado,
-        status=remessa.status,
-        data_envio=remessa.data_envio,
-        data_retorno=remessa.data_retorno,
-        observacoes=remessa.observacoes
-    )
+    return montar_resposta_remessa(remessa)
