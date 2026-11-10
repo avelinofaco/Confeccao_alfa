@@ -21,7 +21,6 @@ ROTAS_ESPERADAS = {
     ("POST", "/camisetas/ordens/"),
     ("PUT", "/camisetas/ordens/{id_op}/finalizar-corte"),
     ("GET", "/camisetas/financeiro/apuracao-mensal/"),
-    ("POST", "/camisetas/financeiro/sincronizar-automatico/"),
     ("GET", "/camisetas/financeiro/"),
     ("POST", "/camisetas/financeiro/"),
     ("GET", "/camisetas/costura/"),

@@ -192,15 +192,20 @@ class CamisetaCosturaFaccaoResponse(BaseModel):
 
 # ----------------- REGISTRO FINANCEIRO -----------------
 class CamisetaRegistroFinanceiroCreate(BaseModel):
+    """Lançamento manual do mês: só outros custos e observações são gravados.
+
+    Faturamento, gasto e lucro são calculados pelo sistema; se vierem no corpo,
+    são ignorados (mantidos aqui só por compatibilidade com o frontend antigo).
+    """
     mes_ano: str
-    valor_gasto_materiais: Decimal = Decimal("0.00")
-    faturamento_receita: Decimal = Decimal("0.00")
     outros_custos_operacionais: Decimal = Decimal("0.00")
-    lucro_liquido: Decimal = Decimal("0.00")
     observacoes: Optional[str] = None
+    valor_gasto_materiais: Optional[Decimal] = None
+    faturamento_receita: Optional[Decimal] = None
+    lucro_liquido: Optional[Decimal] = None
 
 class CamisetaRegistroFinanceiroResponse(BaseModel):
-    id_registro: int
+    id_registro: Optional[int] = None  # nulo quando o mês não tem lançamento manual
     mes_ano: str
     valor_gasto_materiais: Decimal
     faturamento_receita: Decimal
@@ -208,6 +213,8 @@ class CamisetaRegistroFinanceiroResponse(BaseModel):
     lucro_liquido: Decimal
     observacoes: Optional[str] = None
     criado_em: Optional[datetime] = None
+    qtd_pedidos_entregues: int = 0
+    qtd_entradas: int = 0
     model_config = ConfigDict(from_attributes=True)
 
 class CamisetaApuracaoMensalResponse(BaseModel):
