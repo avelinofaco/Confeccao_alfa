@@ -55,3 +55,17 @@ class CorResponse(BaseModel):
     hex: str
     ativo: bool
     model_config = ConfigDict(from_attributes=True)
+
+
+class GradeEntrada(BaseModel):
+    nome: str = Field(..., min_length=1, max_length=80)
+    tamanhos: List[str] = Field(..., min_length=1)
+    ativo: bool = True
+
+
+class GradeResponse(BaseModel):
+    id_grade: int
+    nome: str
+    ativo: bool
+    tamanhos: List[str]
+    qtd_modelos: int = 0

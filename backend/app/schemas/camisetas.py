@@ -17,10 +17,20 @@ class CamisetaModeloBase(BaseModel):
     descricao: Optional[str] = None
 
 class CamisetaModeloCreate(CamisetaModeloBase):
-    pass
+    id_grade: Optional[int] = None  # ausente → grade padrão "Adulto (P, M, G, GG)"
+
+
+class CamisetaModeloUpdate(BaseModel):
+    nome_modelo: str = Field(..., min_length=1, max_length=150)
+    consumo_tecido_kg: Decimal = Field(..., gt=0)
+    descricao: Optional[str] = None
+    id_grade: Optional[int] = None  # ausente → mantém a grade atual
 
 class CamisetaModeloResponse(CamisetaModeloBase):
     id_modelo: int
+    id_grade: Optional[int] = None
+    nome_grade: Optional[str] = None
+    tamanhos: List[str] = Field(default_factory=list)
     criado_em: Optional[datetime] = None
     atualizado_em: Optional[datetime] = None
     model_config = ConfigDict(from_attributes=True)

@@ -32,30 +32,27 @@ from app.schemas.camisetas import (
     CamisetaRegistroFinanceiroCreate, CamisetaRegistroFinanceiroResponse, CamisetaApuracaoMensalResponse,
     CamisetaDashboardCompletoResponse, CamisetaCardDestaque, CamisetaItemFinanceiroMensal
 )
+from app.schemas.camisetas import CamisetaModeloUpdate
+from app.services.camisetas.modelos import atualizar_modelo, criar_modelo, montar_resposta_modelo
 
 router = APIRouter()
 
 # ----------------- 4. MODELOS & FICHA TÉCNICA DIGITAL (RF04) -----------------
 @router.get("/modelos/", response_model=List[CamisetaModeloResponse])
 def listar_modelos(db: Session = Depends(get_db)):
-    return db.query(CamisetaModelo).order_by(CamisetaModelo.nome_modelo.asc()).all()
+    modelos = db.query(CamisetaModelo).order_by(CamisetaModelo.nome_modelo.asc()).all()
+    return [montar_resposta_modelo(m) for m in modelos]
+
 
 @router.post("/modelos/", response_model=CamisetaModeloResponse, status_code=status.HTTP_201_CREATED)
 def cadastrar_modelo(modelo_in: CamisetaModeloCreate, db: Session = Depends(get_db)):
-    existente = db.query(CamisetaModelo).filter_by(nome_modelo=modelo_in.nome_modelo).first()
-    if existente:
-        raise HTTPException(status_code=400, detail="Modelo com esse nome já cadastrado")
+    return montar_resposta_modelo(criar_modelo(db, modelo_in))
 
-    novo_mod = CamisetaModelo(
-        nome_modelo=modelo_in.nome_modelo,
-        grade_disponivel=modelo_in.grade_disponivel,
-        consumo_tecido_kg=modelo_in.consumo_tecido_kg,
-        descricao=modelo_in.descricao
-    )
-    db.add(novo_mod)
-    db.commit()
-    db.refresh(novo_mod)
-    return novo_mod
+
+@router.put("/modelos/{id_modelo}", response_model=CamisetaModeloResponse)
+def editar_modelo(id_modelo: int, dados: CamisetaModeloUpdate, db: Session = Depends(get_db)):
+    return montar_resposta_modelo(atualizar_modelo(db, id_modelo, dados))
+
 
 @router.get("/fichas/", response_model=List[CamisetaFichaTecnicaResponse])
 def listar_fichas(id_modelo: Optional[int] = None, db: Session = Depends(get_db)):

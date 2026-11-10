@@ -36,6 +36,11 @@ ROTAS_ESPERADAS = {
     ("PUT", "/camisetas/cores/{id_cor}"),
     ("DELETE", "/camisetas/cores/{id_cor}"),
     ("PUT", "/camisetas/insumos/{id_insumo}"),
+    ("GET", "/camisetas/grades/"),
+    ("POST", "/camisetas/grades/"),
+    ("PUT", "/camisetas/grades/{id_grade}"),
+    ("DELETE", "/camisetas/grades/{id_grade}"),
+    ("PUT", "/camisetas/modelos/{id_modelo}"),
 }
 
 

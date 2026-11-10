@@ -8,6 +8,7 @@ from app.routers.camisetas import (
     costura,
     dashboard,
     financeiro,
+    grades,
     insumos,
     modelos,
     ordens,
@@ -17,5 +18,5 @@ from app.routers.camisetas import (
 
 router = APIRouter(prefix="/camisetas", tags=["Segmento Camisetas"])
 
-for _modulo in (seed, dashboard, pedidos, clientes, cores, insumos, modelos, ordens, financeiro, costura):
+for _modulo in (seed, dashboard, pedidos, clientes, cores, grades, insumos, modelos, ordens, financeiro, costura):
     router.include_router(_modulo.router)

@@ -32,6 +32,7 @@ from app.schemas.camisetas import (
     CamisetaRegistroFinanceiroCreate, CamisetaRegistroFinanceiroResponse, CamisetaApuracaoMensalResponse,
     CamisetaDashboardCompletoResponse, CamisetaCardDestaque, CamisetaItemFinanceiroMensal
 )
+from app.services.camisetas.modelos import definir_grade
 
 router = APIRouter()
 
@@ -59,6 +60,8 @@ def seed_camisetas(db: Session = Depends(get_db)):
             consumo_tecido_kg=Decimal("0.2400"),
             descricao="Gramatura pesada 220g com corte amplo estilo urbano"
         )
+        for modelo in (modelo1, modelo2, modelo3):
+            definir_grade(db, modelo, None)  # grade padrão "Adulto (P, M, G, GG)"
         db.add_all([modelo1, modelo2, modelo3])
         db.commit()
 
