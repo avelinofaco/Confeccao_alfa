@@ -234,8 +234,8 @@ class CamisetaApuracaoMensalResponse(BaseModel):
 class CamisetaCardDestaque(BaseModel):
     producao_total_acumulada: int
     estoque_critico_quantidade: int
-    tecido_maior_rendimento: str
-    rendimento_medio_tecido: Decimal
+    tecido_maior_rendimento: Optional[str] = None   # nulo enquanto não houver corte registrado
+    rendimento_medio_tecido: Optional[Decimal] = None
     estoque_pronto_total: Optional[int] = 0
     total_entregue_acumulado: Optional[int] = 0
 
