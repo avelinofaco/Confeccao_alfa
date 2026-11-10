@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Trabalhar no branch `fase-0-fundacao` (já criado). Nunca commitar na `main`.
+- Trabalhar no branch `feat/camisetas-fundacao` (já criado; segue o padrão `feat/` do repositório). Nunca commitar na `main`.
 - Toda mensagem de commit segue `<tipo>: <descrição>` (feat, fix, refactor, docs, test, chore) e termina com a linha `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>` (use um segundo `-m`).
 - **Nunca rodar nada contra o banco de produção.** O arquivo `backend/.env` aponta para ele. Testes forçam `DATABASE_URL=sqlite://` no `conftest.py`; execução local usa sempre `DATABASE_URL=sqlite:///./dev.db`.
 - Comandos de backend rodam dentro de `backend/` com o Python do venv: `venv/bin/python -m ...` (no Windows: `venv\Scripts\python -m ...`).
