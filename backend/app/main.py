@@ -1,5 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from app.core.erros import ErroNegocio
 from app.routers import estoque, ficha_tecnica, producao, costura, comercial, equipe, auth, usuarios, camisetas
 from app.models import camisetas as camisetas_models
 from app.database import engine, Base
@@ -8,6 +10,11 @@ from app.database import engine, Base
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="API Confecção Alfa", version="1.0.0")
+
+
+@app.exception_handler(ErroNegocio)
+async def tratar_erro_negocio(_request: Request, erro: ErroNegocio):
+    return JSONResponse(status_code=erro.status_code, content={"detail": erro.mensagem})
 
 # Lista de domínios autorizados a fazer requisições para a API
 origins = [
