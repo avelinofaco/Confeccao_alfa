@@ -1,6 +1,7 @@
 # app/schemas/camisetas_sku.py
 """Schemas de SKU, Produtos Prontos e itens por cor e tamanho (OP, remessa e pedido)."""
 from datetime import datetime
+from decimal import Decimal
 from typing import List, Optional
 
 from pydantic import BaseModel, Field
@@ -78,3 +79,38 @@ class MovimentoResponse(BaseModel):
     motivo: Optional[str] = None
     referencia: Optional[str] = None  # código do pedido ou da OP da remessa
     criado_em: Optional[datetime] = None
+
+
+class OpCorEntrada(BaseModel):
+    id_cor: int
+    id_insumo_tecido: int
+    peso_kg: Decimal = Field(..., gt=0)
+
+
+class CorteEntrada(BaseModel):
+    id_cor: int
+    id_tamanho: int
+    quantidade: int = Field(..., ge=0)
+
+
+class OpCorResponse(BaseModel):
+    id_cor: int
+    nome_cor: str
+    hex_cor: str
+    id_insumo_tecido: Optional[int] = None
+    codigo_tecido: Optional[str] = None
+    nome_tecido: Optional[str] = None
+    peso_kg: Decimal
+    pecas_cortadas: int = 0
+    rendimento: Optional[Decimal] = None
+
+
+class OpCorteResponse(BaseModel):
+    id_variacao: int
+    id_cor: int
+    nome_cor: str
+    id_tamanho: int
+    rotulo: str
+    cortado: int
+    enviado: int
+    disponivel: int

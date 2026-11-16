@@ -17,6 +17,18 @@ def status_op_apos_retorno(pecas_cortadas: int, remessas) -> str:
     return STATUS_OP_EM_COSTURA
 
 
+def total_enviado(op) -> int:
+    return sum(r.quantidade_enviada or 0 for r in op.movimentacoes_costura or [])
+
+
+def quantidades_enviadas_por_sku(op) -> dict[int, int]:
+    enviados: dict[int, int] = {}
+    for remessa in op.movimentacoes_costura or []:
+        for item in remessa.itens:
+            enviados[item.id_variacao] = enviados.get(item.id_variacao, 0) + item.qtd_enviada
+    return enviados
+
+
 def montar_resposta_remessa(remessa, avisos=None) -> CamisetaCosturaFaccaoResponse:
     op = remessa.op
     return CamisetaCosturaFaccaoResponse(

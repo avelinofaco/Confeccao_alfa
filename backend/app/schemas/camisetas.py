@@ -9,6 +9,14 @@ from typing import Optional, List
 from datetime import datetime, date
 from decimal import Decimal
 
+from app.schemas.camisetas_sku import (
+    CorteEntrada,
+    OpCorEntrada,
+    OpCorResponse,
+    OpCorteResponse,
+    TamanhoResponse,
+)
+
 # ----------------- MODELO DE CAMISETA -----------------
 class CamisetaModeloBase(BaseModel):
     nome_modelo: str
@@ -159,12 +167,14 @@ class CamisetaPedidoResponse(BaseModel):
 class CamisetaOrdemProducaoCreate(BaseModel):
     codigo_op: Optional[str] = None  # ignorado: o servidor gera OP-AAAA-NNNN
     id_modelo: int
-    id_insumo_tecido: Optional[int] = None
-    peso_malha_enviado_kg: Decimal
+    cores: Optional[List[OpCorEntrada]] = None  # uma linha por cor do enfesto
+    id_insumo_tecido: Optional[int] = None  # corpo antigo: uma malha só (a cor vem do rolo)
+    peso_malha_enviado_kg: Optional[Decimal] = None
     pecas_planejadas: Optional[int] = None
 
 class CamisetaOrdemProducaoFinalizarCorte(BaseModel):
-    pecas_reais_cortadas: int
+    cortes: Optional[List[CorteEntrada]] = None  # OP com cores
+    pecas_reais_cortadas: Optional[int] = None  # só OP antiga (sem cores)
 
 class CamisetaOrdemProducaoResponse(BaseModel):
     id_op: int
@@ -182,6 +192,10 @@ class CamisetaOrdemProducaoResponse(BaseModel):
     criado_em: Optional[datetime] = None
     quantidade_enviada_costura: Optional[int] = 0
     saldo_disponivel_envio: Optional[int] = 0
+    legada: bool = False
+    cores: List[OpCorResponse] = Field(default_factory=list)
+    cortes: List[OpCorteResponse] = Field(default_factory=list)
+    tamanhos: List[TamanhoResponse] = Field(default_factory=list)
     model_config = ConfigDict(from_attributes=True)
 
 # ----------------- COSTURA E FACÇÕES -----------------
