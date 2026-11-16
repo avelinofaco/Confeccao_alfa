@@ -24,10 +24,17 @@ export function FormNovaOp({ modelos, tecidos, cores, onCriada }) {
   const pecasPrevistas = consumo > 0 ? Math.floor(pesoTotal / consumo) : 0;
   const faltas = faltasDeMalha(linhas, tecidos);
 
+  // A chave sai do ref aqui, nunca dentro de um updater de estado: em StrictMode o React
+  // invoca o updater duas vezes e a numeração das linhas pularia (id da 2ª linha viraria 2).
   const novaLinha = () => {
     const linha = linhaVazia(proximaChave.current);
     proximaChave.current += 1;
     return linha;
+  };
+
+  const acrescentarCor = () => {
+    const linha = novaLinha();
+    setLinhas((atuais) => [...atuais, linha]);
   };
 
   const alterarLinha = (chave, campo, valor) => setLinhas((atuais) => atuais.map((linha) => {
@@ -107,7 +114,7 @@ export function FormNovaOp({ modelos, tecidos, cores, onCriada }) {
           </div>
         ))}
         <div>
-          <button type="button" className="cadastro-btn secundario" onClick={() => setLinhas((atuais) => [...atuais, novaLinha()])}>
+          <button type="button" className="cadastro-btn secundario" onClick={acrescentarCor}>
             <Plus size={16} aria-hidden="true" /> Adicionar cor
           </button>
         </div>
