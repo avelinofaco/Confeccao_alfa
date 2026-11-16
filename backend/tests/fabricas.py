@@ -10,7 +10,6 @@ from app.models.camisetas import (
     CamisetaModelo,
     CamisetaOrdemProducao,
     CamisetaPedido,
-    CamisetaProdutoAcabado,
     CamisetaRegistroFinanceiro,
 )
 from app.models.camisetas_cadastros import CamisetaCliente, CamisetaCor, CamisetaGrade, CamisetaGradeTamanho
@@ -128,15 +127,6 @@ def criar_remessa(db, op, quantidade=50, status="Em Costura Externa"):
         nome_faccao="Facção Teste",
         quantidade_enviada=quantidade,
         status=status,
-    ))
-
-
-def criar_estoque_acabado(db, modelo, grade=(0, 0, 0, 0)):
-    p, m, g, gg = grade
-    return _salvar(db, CamisetaProdutoAcabado(
-        id_modelo=modelo.id_modelo,
-        grade_p=p, grade_m=m, grade_g=g, grade_gg=gg,
-        quantidade_total=p + m + g + gg,
     ))
 
 
