@@ -1,5 +1,7 @@
 # app/models/camisetas_estampas.py
 """Catálogo visual de estampas do segmento Camisetas."""
+import base64
+
 from sqlalchemy import Boolean, Column, DateTime, Integer, LargeBinary, String, Text
 
 from app.database import Base
@@ -21,3 +23,9 @@ class CamisetaEstampa(Base):
     ativo = Column(Boolean, nullable=False, default=True)
     criado_em = Column(DateTime(timezone=True), default=get_utc_now)
     atualizado_em = Column(DateTime(timezone=True), default=get_utc_now, onupdate=get_utc_now)
+
+    @property
+    def imagem_data_url(self) -> str:
+        b64 = base64.b64encode(self.imagem_bytes).decode("ascii")
+        return f"data:{self.imagem_mime};base64,{b64}"
+
