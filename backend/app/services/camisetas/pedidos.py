@@ -18,6 +18,7 @@ from app.services.camisetas.pedido_itens import (
     itens_do_corpo_antigo,
     montar_itens,
     resposta_do_item,
+    soma_subtotais_itens,
     total_do_item,
 )
 from app.services.camisetas.sku import ESTORNO_ENTREGA, SAIDA_ENTREGA, buscar_variacao, movimentar
@@ -83,9 +84,10 @@ def criar_pedido(db: Session, dados: CamisetaPedidoCreate, hoje: date) -> Camise
         itens = montar_itens(db, itens_do_corpo_antigo(db, dados), exigir_cor=False)
         grade = {campo: getattr(dados, campo) for campo in CAMPOS_GRADE_LEGADA}
     cliente = resolver_cliente(db, dados.id_cliente, dados.nome_cliente)
+    valor_final = dados.valor_total if dados.valor_total is not None else soma_subtotais_itens(itens)
     pedido = CamisetaPedido(
         codigo_pedido=proximo_codigo(db, "PED"), nome_cliente=cliente.nome, id_cliente=cliente.id_cliente,
-        prazo_entrega=dados.prazo_entrega, valor_total=dados.valor_total, status_pedido=STATUS_INICIAL,
+        prazo_entrega=dados.prazo_entrega, valor_total=valor_final, status_pedido=STATUS_INICIAL,
         observacoes=dados.observacoes, **grade,
     )
     _aplicar_itens(pedido, itens)

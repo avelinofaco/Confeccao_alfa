@@ -14,7 +14,12 @@ from app.schemas.portal_cliente import (
 from app.services.camisetas.cores import listar_cores
 from app.services.camisetas.estampas import listar_estampas
 from app.services.camisetas.modelos import montar_resposta_modelo
-from app.services.camisetas.pedido_itens import CAMPOS_GRADE_LEGADA, montar_itens, total_do_item
+from app.services.camisetas.pedido_itens import (
+    CAMPOS_GRADE_LEGADA,
+    montar_itens,
+    soma_subtotais_itens,
+    total_do_item,
+)
 from app.services.camisetas.pedidos import (
     MENSAGEM_PRAZO,
     STATUS_ENTREGUE,
@@ -111,7 +116,7 @@ def criar_pedido_pelo_portal(
         id_modelo=itens[0].id_modelo,
         quantidade_total=sum(total_do_item(i) for i in itens),
         prazo_entrega=dados.prazo_entrega,
-        valor_total=Decimal("0.00"),
+        valor_total=soma_subtotais_itens(itens),
         status_pedido=STATUS_INICIAL,
         observacoes=obs,
         status_aprovacao_cliente="Aprovado",

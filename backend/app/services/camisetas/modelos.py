@@ -20,6 +20,8 @@ def montar_resposta_modelo(modelo: CamisetaModelo) -> CamisetaModeloResponse:
         nome_modelo=modelo.nome_modelo,
         grade_disponivel=modelo.grade_disponivel,
         consumo_tecido_kg=modelo.consumo_tecido_kg,
+        preco_venda_lisa=modelo.preco_venda_lisa or 0,
+        acrescimo_estampa=modelo.acrescimo_estampa or 0,
         descricao=modelo.descricao,
         criado_em=modelo.criado_em,
         atualizado_em=modelo.atualizado_em,
@@ -55,6 +57,8 @@ def criar_modelo(db: Session, dados: CamisetaModeloCreate) -> CamisetaModelo:
     modelo = CamisetaModelo(
         nome_modelo=_validar_nome(db, dados.nome_modelo),
         consumo_tecido_kg=dados.consumo_tecido_kg,
+        preco_venda_lisa=dados.preco_venda_lisa,
+        acrescimo_estampa=dados.acrescimo_estampa,
         descricao=dados.descricao,
     )
     definir_grade(db, modelo, dados.id_grade)
@@ -84,6 +88,8 @@ def atualizar_modelo(db: Session, id_modelo: int, dados: CamisetaModeloUpdate) -
         )
     modelo.nome_modelo = _validar_nome(db, dados.nome_modelo, id_modelo)
     modelo.consumo_tecido_kg = dados.consumo_tecido_kg
+    modelo.preco_venda_lisa = dados.preco_venda_lisa
+    modelo.acrescimo_estampa = dados.acrescimo_estampa
     modelo.descricao = dados.descricao
     if dados.id_grade is not None or modelo.grade is None:
         definir_grade(db, modelo, dados.id_grade)

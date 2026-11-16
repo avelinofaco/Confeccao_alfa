@@ -8,6 +8,7 @@ from app.schemas.camisetas_estampas import EstampaCreate
 from app.schemas.camisetas_sku import PedidoItemEntrada, PedidoItemResponse, QtdTamanhoEntrada, QtdTamanhoResponse
 from app.services.camisetas.cores import obter_cor
 from app.services.camisetas.estampas import criar_estampa, obter_estampa
+from app.services.camisetas.precificacao import arredondar_moeda, calcular_preco_unitario
 from app.services.camisetas.sku import obter_modelo, tamanho_do_modelo, tamanhos_do_modelo
 
 ROTULOS_LEGADOS = (("P", "grade_p"), ("M", "grade_m"), ("G", "grade_g"), ("GG", "grade_gg"))
@@ -70,11 +71,22 @@ def montar_itens(db: Session, entradas: list[PedidoItemEntrada], exigir_cor: boo
         if chave_item in vistos:
             raise ErroNegocio(400, f"O item {numero} repete modelo e cor de outro item; junte as quantidades num item só.")
         vistos.add(chave_item)
+        preco_unit = (
+            arredondar_moeda(entrada.preco_unitario)
+            if entrada.preco_unitario is not None
+            else calcular_preco_unitario(
+                modelo.preco_venda_lisa,
+                modelo.acrescimo_estampa,
+                tem_estampa=id_estampa is not None,
+                posicao_estampa=posicao,
+            )
+        )
         itens.append(CamisetaPedidoItem(
             id_modelo=modelo.id_modelo,
             id_cor=entrada.id_cor,
             id_estampa=id_estampa,
             posicao_estampa=posicao,
+            preco_unitario=preco_unit,
             quantidades=_quantidades(db, modelo, entrada, numero),
         ))
     return itens
@@ -104,9 +116,15 @@ def total_do_item(item: CamisetaPedidoItem) -> int:
     return sum(q.quantidade for q in item.quantidades)
 
 
+def soma_subtotais_itens(itens: list[CamisetaPedidoItem]) -> Decimal:
+    return arredondar_moeda(sum(arredondar_moeda(i.preco_unitario) * total_do_item(i) for i in itens))
+
+
 def resposta_do_item(item: CamisetaPedidoItem) -> PedidoItemResponse:
     quantidades = sorted(item.quantidades, key=lambda q: q.tamanho.ordem)
     est = item.estampa
+    total_pecas = total_do_item(item)
+    preco_unit = arredondar_moeda(item.preco_unitario)
     return PedidoItemResponse(
         id_item=item.id_item,
         id_modelo=item.id_modelo,
@@ -119,7 +137,9 @@ def resposta_do_item(item: CamisetaPedidoItem) -> PedidoItemResponse:
         nome_estampa=est.nome if est else None,
         imagem_estampa_url=est.imagem_data_url if est else None,
         posicao_estampa=item.posicao_estampa,
+        preco_unitario=preco_unit,
+        subtotal=arredondar_moeda(preco_unit * total_pecas),
         quantidades=[QtdTamanhoResponse(id_tamanho=q.id_tamanho, rotulo=q.tamanho.rotulo, quantidade=q.quantidade)
                      for q in quantidades],
-        total=total_do_item(item),
+        total=total_pecas,
     )

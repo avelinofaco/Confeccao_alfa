@@ -27,6 +27,8 @@ class CamisetaModeloBase(BaseModel):
     nome_modelo: str
     grade_disponivel: Optional[str] = "P, M, G, GG"
     consumo_tecido_kg: Decimal = Decimal("0.1800")
+    preco_venda_lisa: Decimal = Field(Decimal("0.00"), ge=0)
+    acrescimo_estampa: Decimal = Field(Decimal("0.00"), ge=0)
     descricao: Optional[str] = None
 
 class CamisetaModeloCreate(CamisetaModeloBase):
@@ -36,6 +38,8 @@ class CamisetaModeloCreate(CamisetaModeloBase):
 class CamisetaModeloUpdate(BaseModel):
     nome_modelo: str = Field(..., min_length=1, max_length=150)
     consumo_tecido_kg: Decimal = Field(..., gt=0)
+    preco_venda_lisa: Decimal = Field(Decimal("0.00"), ge=0)
+    acrescimo_estampa: Decimal = Field(Decimal("0.00"), ge=0)
     descricao: Optional[str] = None
     id_grade: Optional[int] = None  # ausente → mantém a grade atual
 
@@ -127,7 +131,7 @@ class CamisetaPedidoCreate(BaseModel):
     grade_g: int = Field(0, ge=0)
     grade_gg: int = Field(0, ge=0)
     prazo_entrega: date
-    valor_total: Decimal
+    valor_total: Optional[Decimal] = Field(None, ge=0)
     observacoes: Optional[str] = None
 
 class CamisetaPedidoStatusUpdate(BaseModel):

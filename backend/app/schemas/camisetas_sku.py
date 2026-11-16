@@ -150,6 +150,7 @@ class PedidoItemEntrada(BaseModel):
     imagem_data_url: Optional[str] = None
     nome_estampa_nova: Optional[str] = Field(None, max_length=120)
     posicao_estampa: Optional[str] = Field(None, max_length=40)
+    preco_unitario: Optional[Decimal] = Field(None, ge=0)
     quantidades: List[QtdTamanhoEntrada] = Field(..., min_length=1)
 
 
@@ -175,5 +176,7 @@ class PedidoItemResponse(BaseModel):
     nome_estampa: Optional[str] = None
     imagem_estampa_url: Optional[str] = None
     posicao_estampa: Optional[str] = None
+    preco_unitario: Decimal = Decimal("0.00")
+    subtotal: Decimal = Decimal("0.00")
     quantidades: List[QtdTamanhoResponse]
     total: int
