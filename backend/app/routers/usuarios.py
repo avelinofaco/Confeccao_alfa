@@ -5,10 +5,28 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import usuarios as models_usuarios
+from app.models.usuarios import Usuario
 from app.schemas import usuarios as schemas
 from app.core import security # Importando nosso motor de criptografia
+from app.core.auth import usuario_atual
 
 router = APIRouter(prefix="/usuarios", tags=["Usuários e Acesso"])
+
+
+@router.get("/eu", response_model=schemas.UsuarioResponse)
+def obter_usuario_logado(eu: Usuario = Depends(usuario_atual)):
+    """Quem está com este token na mão. É assim que o frontend descobre o usuário da sessão.
+
+    Precisa vir declarada ANTES de /{id_usuario}: o FastAPI casa as rotas na ordem de registro, e
+    "eu" seria lido como um id.
+    """
+    return eu
+
+
+def _exigir_que_seja_voce(id_usuario: int, eu: Usuario) -> None:
+    """Acesso é igual para os dados do negócio, mas conta é pessoal: ninguém mexe na do outro."""
+    if id_usuario != eu.id_usuario:
+        raise HTTPException(status_code=403, detail="Você só pode ver e alterar a sua própria conta.")
 
 @router.post("/", response_model=schemas.UsuarioResponse, status_code=status.HTTP_201_CREATED)
 @router.post("", response_model=schemas.UsuarioResponse, status_code=status.HTTP_201_CREATED, include_in_schema=False)
@@ -39,8 +57,10 @@ def criar_usuario(usuario: schemas.UsuarioCreate, db: Session = Depends(get_db))
     return novo_usuario
 
 @router.put("/{id_usuario}", response_model=schemas.UsuarioResponse)
-def atualizar_perfil(id_usuario: int, dados: schemas.UsuarioUpdate, db: Session = Depends(get_db)):
-    """Atualiza os dados do perfil da gestora."""
+def atualizar_perfil(id_usuario: int, dados: schemas.UsuarioUpdate, db: Session = Depends(get_db),
+                     eu: Usuario = Depends(usuario_atual)):
+    """Atualiza os dados do próprio perfil."""
+    _exigir_que_seja_voce(id_usuario, eu)
     usuario = db.query(models_usuarios.Usuario).filter(models_usuarios.Usuario.id_usuario == id_usuario).first()
     
     if not usuario:
@@ -59,9 +79,10 @@ def atualizar_perfil(id_usuario: int, dados: schemas.UsuarioUpdate, db: Session 
     return usuario
 
 @router.get("/{id_usuario}", response_model=schemas.UsuarioResponse)
-def obter_perfil_usuario(id_usuario: int, db: Session = Depends(get_db)):
+def obter_perfil_usuario(id_usuario: int, db: Session = Depends(get_db),
+                         eu: Usuario = Depends(usuario_atual)):
     """Busca os dados atuais do usuário para exibir na tela de configurações."""
-    
+    _exigir_que_seja_voce(id_usuario, eu)
     usuario = db.query(models_usuarios.Usuario).filter(models_usuarios.Usuario.id_usuario == id_usuario).first()
     
     if not usuario:
