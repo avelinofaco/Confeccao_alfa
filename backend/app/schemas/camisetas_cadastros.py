@@ -18,6 +18,7 @@ class ClienteEntrada(BaseModel):
     uf: Optional[str] = Field(None, max_length=2)
     endereco: Optional[str] = Field(None, max_length=255)
     observacoes: Optional[str] = None
+    token_portal: Optional[str] = None
     ativo: bool = True
 
 
@@ -32,6 +33,7 @@ class ClienteResponse(BaseModel):
     uf: Optional[str] = None
     endereco: Optional[str] = None
     observacoes: Optional[str] = None
+    token_portal: Optional[str] = None
     ativo: bool
     qtd_pedidos: int = 0
     ultimo_pedido_em: Optional[datetime] = None

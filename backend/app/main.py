@@ -7,7 +7,7 @@ from app.core import config
 from app.core.auth import usuario_atual
 from app.core.bootstrap import criar_primeiro_usuario
 from app.core.erros import ErroNegocio
-from app.routers import estoque, ficha_tecnica, producao, costura, comercial, equipe, auth, usuarios, camisetas
+from app.routers import estoque, ficha_tecnica, producao, costura, comercial, equipe, auth, usuarios, camisetas, portal_cliente
 from app.models import camisetas as camisetas_models, camisetas_estampas  # noqa: F401
 from app.database import engine, Base, SessionLocal
 
@@ -50,8 +50,9 @@ app.add_middleware(
     allow_headers=["*"],         # Libera Authorization, Content-Type, etc.
 )
 
-# /login fica aberto: é por ele que se entra.
+# /login e /portal (protegido por token criptográfico de capacidade na própria URL) ficam abertos sem JWT interno.
 app.include_router(auth.router)
+app.include_router(portal_cliente.router)
 
 # Todo o resto exige token. Protegendo no include_router, nenhuma rota do módulo escapa —
 # nem as que forem criadas depois.

@@ -51,6 +51,10 @@ def montar_resposta_pedido(pedido) -> CamisetaPedidoResponse:
         status_pedido=pedido.status_pedido,
         observacoes=pedido.observacoes,
         data_entrega_realizada=pedido.data_entrega_realizada,
+        token_aprovacao=pedido.token_aprovacao,
+        status_aprovacao_cliente=pedido.status_aprovacao_cliente or "Pendente",
+        observacao_cliente=pedido.observacao_cliente,
+        aprovado_pelo_cliente_em=pedido.aprovado_pelo_cliente_em,
         criado_em=pedido.criado_em,
         itens=[resposta_do_item(item) for item in pedido.itens],
     )

@@ -167,6 +167,10 @@ class CamisetaPedidoResponse(BaseModel):
     status_pedido: str
     observacoes: Optional[str] = None
     data_entrega_realizada: Optional[date] = None
+    token_aprovacao: Optional[str] = None
+    status_aprovacao_cliente: str = "Pendente"
+    observacao_cliente: Optional[str] = None
+    aprovado_pelo_cliente_em: Optional[datetime] = None
     criado_em: Optional[datetime] = None
     itens: List[PedidoItemResponse] = Field(default_factory=list)
     model_config = ConfigDict(from_attributes=True)

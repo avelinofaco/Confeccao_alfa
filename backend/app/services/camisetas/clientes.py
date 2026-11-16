@@ -52,6 +52,7 @@ def montar_resposta_cliente(cliente: CamisetaCliente, resumo=None) -> ClienteRes
         uf=cliente.uf,
         endereco=cliente.endereco,
         observacoes=cliente.observacoes,
+        token_portal=cliente.token_portal,
         ativo=cliente.ativo,
         qtd_pedidos=int(qtd or 0),
         ultimo_pedido_em=ultimo,
