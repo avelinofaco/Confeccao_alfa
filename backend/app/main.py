@@ -8,7 +8,7 @@ from app.core.auth import usuario_atual
 from app.core.bootstrap import criar_primeiro_usuario
 from app.core.erros import ErroNegocio
 from app.routers import estoque, ficha_tecnica, producao, costura, comercial, equipe, auth, usuarios, camisetas
-from app.models import camisetas as camisetas_models
+from app.models import camisetas as camisetas_models, camisetas_estampas  # noqa: F401
 from app.database import engine, Base, SessionLocal
 
 # Comando para criar as tabelas no PostgreSQL (caso ainda não existam)

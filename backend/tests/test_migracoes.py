@@ -136,6 +136,14 @@ def test_migracao_estoque_sku_converte_pedidos_em_itens(tmp_path):
     assert "camisetas_pedido_itens" not in tabelas(url)
 
 
+def test_migracao_estampas_sobe_e_desce(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    rodar_alembic("upgrade", "20261116_007_estampas", url=url)
+    assert "camisetas_estampas" in tabelas(url)
+    rodar_alembic("downgrade", "20261110_006_estoque_sku", url=url)
+    assert "camisetas_estampas" not in tabelas(url)
+
+
 def test_modelos_e_migracoes_estao_alinhados(tmp_path):
     url = f"sqlite:///{tmp_path / 'migracao.db'}"
     rodar_alembic("upgrade", "head", url=url)

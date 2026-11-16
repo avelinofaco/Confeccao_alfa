@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from app.database import Base, SQLALCHEMY_DATABASE_URL
 
 # Importa todos os models originais da Confecção Alfa (Moda Íntima)
-from app.models import usuarios, estoque, ficha_tecnica, producao, costura, comercial, equipe, camisetas, sequencias, camisetas_cadastros, camisetas_sku
+from app.models import usuarios, estoque, ficha_tecnica, producao, costura, comercial, equipe, camisetas, sequencias, camisetas_cadastros, camisetas_sku, camisetas_estampas
 
 # Objeto de configuração do Alembic
 config = context.config
