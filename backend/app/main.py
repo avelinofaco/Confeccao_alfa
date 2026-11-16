@@ -14,7 +14,7 @@ app = FastAPI(title="API Confecção Alfa", version="1.0.0")
 
 @app.exception_handler(ErroNegocio)
 async def tratar_erro_negocio(_request: Request, erro: ErroNegocio):
-    return JSONResponse(status_code=erro.status_code, content={"detail": erro.mensagem})
+    return JSONResponse(status_code=erro.status_code, content={"detail": erro.detalhe()})
 
 # Lista de domínios autorizados a fazer requisições para a API
 origins = [

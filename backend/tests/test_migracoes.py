@@ -96,3 +96,47 @@ def test_migracao_cadastros_cria_clientes_e_grades(tmp_path):
     assert tamanhos_xg == ["P", "M", "G", "GG", "XG"]
     rodar_alembic("downgrade", "20261110_004_data_entrega", url=url)
     assert "camisetas_clientes" not in tabelas(url)
+
+
+def test_migracao_estoque_sku_converte_pedidos_em_itens(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    rodar_alembic("upgrade", "20261110_005_cadastros", url=url)
+    engine = sa.create_engine(url)
+    with engine.begin() as conexao:
+        conexao.execute(sa.text("INSERT INTO camisetas_grades (id_grade, nome, ativo) VALUES (1, 'Curta', 1)"))
+        conexao.execute(sa.text(
+            "INSERT INTO camisetas_grade_tamanhos (id_tamanho, id_grade, rotulo, ordem) VALUES (1, 1, 'P', 1), (2, 1, 'M', 2)"
+        ))
+        conexao.execute(sa.text(
+            "INSERT INTO camisetas_modelos (id_modelo, nome_modelo, consumo_tecido_kg, grade_disponivel, id_grade) "
+            "VALUES (1, 'Básica', 0.18, 'P, M', 1)"
+        ))
+        conexao.execute(sa.text(
+            "INSERT INTO camisetas_pedidos (id_pedido, codigo_pedido, nome_cliente, id_modelo, grade_p, grade_m, grade_g, "
+            "grade_gg, quantidade_total, prazo_entrega, valor_total) VALUES (1, 'A', 'C', 1, 5, 0, 3, 0, 8, '2026-10-01', 100)"
+        ))
+    rodar_alembic("upgrade", "head", url=url)
+    with engine.connect() as conexao:
+        item = conexao.execute(sa.text(
+            "SELECT id_item, id_modelo, id_cor FROM camisetas_pedido_itens WHERE id_pedido = 1")).one()
+        quantidades = conexao.execute(sa.text(
+            "SELECT t.rotulo, q.quantidade FROM camisetas_pedido_item_qtds q "
+            "JOIN camisetas_grade_tamanhos t ON t.id_tamanho = q.id_tamanho WHERE q.id_item = :i ORDER BY t.ordem"),
+            {"i": item.id_item}).all()
+        rotulos = [r[0] for r in conexao.execute(sa.text(
+            "SELECT rotulo FROM camisetas_grade_tamanhos WHERE id_grade = 1 ORDER BY ordem")).all()]
+        texto = conexao.execute(sa.text("SELECT grade_disponivel FROM camisetas_modelos WHERE id_modelo = 1")).scalar_one()
+    engine.dispose()
+    assert (item.id_modelo, item.id_cor) == (1, None)
+    assert [tuple(q) for q in quantidades] == [("P", 5), ("G", 3)]
+    assert rotulos == ["P", "M", "G"]
+    assert texto == "P, M, G"
+    rodar_alembic("downgrade", "20261110_005_cadastros", url=url)
+    assert "camisetas_variacoes" not in tabelas(url)
+    assert "camisetas_pedido_itens" not in tabelas(url)
+
+
+def test_modelos_e_migracoes_estao_alinhados(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    rodar_alembic("upgrade", "head", url=url)
+    rodar_alembic("check", url=url)

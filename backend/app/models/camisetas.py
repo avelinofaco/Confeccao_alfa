@@ -111,6 +111,7 @@ class CamisetaPedido(Base):
 
     modelo = relationship("CamisetaModelo", back_populates="pedidos")
     cliente = relationship("CamisetaCliente", back_populates="pedidos")
+    itens = relationship("CamisetaPedidoItem", back_populates="pedido", cascade="all, delete-orphan", order_by="CamisetaPedidoItem.id_item")
 
 
 class CamisetaOrdemProducao(Base):
@@ -133,6 +134,8 @@ class CamisetaOrdemProducao(Base):
     modelo = relationship("CamisetaModelo", back_populates="ordens")
     tecido = relationship("CamisetaInsumo")
     movimentacoes_costura = relationship("CamisetaCosturaFaccao", back_populates="op")
+    cores = relationship("CamisetaOpCor", back_populates="op", cascade="all, delete-orphan", order_by="CamisetaOpCor.id_op_cor")
+    cortes = relationship("CamisetaOpCorte", back_populates="op", cascade="all, delete-orphan", order_by="CamisetaOpCorte.id_corte")
 
 
 class CamisetaCosturaFaccao(Base):
@@ -155,6 +158,7 @@ class CamisetaCosturaFaccao(Base):
     observacoes = Column(Text, nullable=True)
 
     op = relationship("CamisetaOrdemProducao", back_populates="movimentacoes_costura")
+    itens = relationship("CamisetaRemessaItem", back_populates="remessa", cascade="all, delete-orphan", order_by="CamisetaRemessaItem.id_item")
 
 
 class CamisetaProdutoAcabado(Base):
@@ -176,7 +180,7 @@ class CamisetaRegistroFinanceiro(Base):
     __tablename__ = "camisetas_registros_financeiros"
 
     id_registro = Column(Integer, primary_key=True, index=True)
-    mes_ano = Column(String(15), nullable=False) # Ex: '2026-10' ou 'Out/2026'
+    mes_ano = Column(String(15), nullable=False, index=True) # Ex: '2026-10' ou 'Out/2026'
     valor_gasto_materiais = Column(Numeric(14, 2), default=0.00) # Saídas têxteis e aviamentos
     faturamento_receita = Column(Numeric(14, 2), default=0.00) # Faturamento bruto com vendas
     outros_custos_operacionais = Column(Numeric(14, 2), default=0.00) # Facções, energia, etc.
@@ -185,5 +189,5 @@ class CamisetaRegistroFinanceiro(Base):
     criado_em = Column(DateTime(timezone=True), default=get_utc_now)
 
 
-# Registra as classes usadas nos relacionamentos por nome (cliente, cor, grade).
-from app.models import camisetas_cadastros  # noqa: E402,F401
+# Registra as classes usadas nos relacionamentos por nome (cliente, cor, grade, SKU).
+from app.models import camisetas_cadastros, camisetas_sku  # noqa: E402,F401
