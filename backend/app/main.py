@@ -1,6 +1,7 @@
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from app.core.auth import usuario_atual
 from app.core.erros import ErroNegocio
 from app.routers import estoque, ficha_tecnica, producao, costura, comercial, equipe, auth, usuarios, camisetas
 from app.models import camisetas as camisetas_models
@@ -34,16 +35,13 @@ app.add_middleware(
     allow_headers=["*"],         # Libera Authorization, Content-Type, etc.
 )
 
-# Incluindo o router de cada módulo na aplicação FastAPI
-app.include_router(usuarios.router)
+# /login fica aberto: é por ele que se entra.
 app.include_router(auth.router)
-app.include_router(estoque.router)
-app.include_router(ficha_tecnica.router)
-app.include_router(comercial.router)
-app.include_router(producao.router)
-app.include_router(costura.router)
-app.include_router(equipe.router)
-app.include_router(camisetas.router)
+
+# Todo o resto exige token. Protegendo no include_router, nenhuma rota do módulo escapa —
+# nem as que forem criadas depois.
+for _modulo in (usuarios, estoque, ficha_tecnica, comercial, producao, costura, equipe, camisetas):
+    app.include_router(_modulo.router, dependencies=[Depends(usuario_atual)])
 
 
 @app.get("/")
