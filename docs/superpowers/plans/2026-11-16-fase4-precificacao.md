@@ -59,6 +59,20 @@
 **Files:**
 - Modify: `docs/superpowers/plans/2026-11-16-fase4-precificacao.md`
 
-- [ ] **Step 1: Conferir cobertura `≥ 80%` e `alembic check`**
-- [ ] **Step 2: Verificar precificação no navegador automatizado**
-- [ ] **Step 3: Registrar notas de execução e commitar**
+- [x] **Step 1: Conferir cobertura `≥ 80%` e `alembic check`**
+- [x] **Step 2: Verificar precificação no navegador automatizado**
+- [x] **Step 3: Registrar notas de execução e commitar**
+
+---
+
+## Notas de execução
+
+Fase 4 executada em 2026-11-16 na branch `feat/camisetas-precificacao` (a partir de `feat/camisetas-portal-cliente`), seguindo as 4 tasks em TDD.
+
+**Resultado:**
+- **261 testes passando** (eram 255 após Fase 3B); cobertura de `app/services/camisetas/precificacao.py` em **100%** e geral de `app/services/` em **96%**.
+- Migração `20261116_010_precificacao` testada em subida, descida (`downgrade`) e `alembic check` sem diferenças.
+- Preço unitário por modelo (`preco_venda_lisa` + `acrescimo_estampa` simples ou dobrado em `"Frente e Costas"`) calculado tanto no backend quanto em tempo real nos cards de itens do pedido.
+- Conferido no navegador real (`browser.mjs`): edição de preço do modelo na Ficha Técnica (`R$ 30,00` lisa + `R$ 5,00` estampa) e preenchimento automático nos cards de Pedidos (`R$ 35,00/un · R$ 350,00` e campo `Valor Financeiro Total` preenchido com `350.00`), **zero erros de console**.
+
+
