@@ -139,3 +139,47 @@ def test_excluir_estampa_remove_do_banco(db):
     with pytest.raises(ErroNegocio) as exc:
         obter_estampa(db, estampa.id_estampa)
     assert exc.value.status_code == 404
+
+
+def test_api_ciclo_completo_de_estampas(client, client_sem_login):
+    assert client_sem_login.get("/camisetas/estampas/").status_code == 401
+
+    resp_criar = client.post(
+        "/camisetas/estampas/",
+        json={"nome": "Logo Leão Dourado", "observacoes": "Silk 2 cores", "imagem_data_url": PNG_DATA_URL},
+    )
+    assert resp_criar.status_code == 201
+    criada = resp_criar.json()
+    assert criada["nome"] == "Logo Leão Dourado"
+    assert criada["codigo"].startswith("EST-")
+    assert criada["imagem_data_url"] == PNG_DATA_URL
+
+    id_est = criada["id_estampa"]
+    resp_detalhe = client.get(f"/camisetas/estampas/{id_est}")
+    assert resp_detalhe.status_code == 200
+    assert resp_detalhe.json()["id_estampa"] == id_est
+
+    resp_img = client.get(f"/camisetas/estampas/{id_est}/imagem")
+    assert resp_img.status_code == 200
+    assert resp_img.headers["content-type"] == "image/png"
+    assert resp_img.content == PNG_1X1_BYTES
+
+    resp_lista = client.get("/camisetas/estampas/", params={"busca": "leao"})
+    assert resp_lista.status_code == 200
+    assert [e["id_estampa"] for e in resp_lista.json()] == [id_est]
+
+    resp_edit = client.put(
+        f"/camisetas/estampas/{id_est}",
+        json={"nome": "Logo Leão Rei", "codigo": "LEAO-REI", "observacoes": "Peito", "ativo": False},
+    )
+    assert resp_edit.status_code == 200
+    assert resp_edit.json()["codigo"] == "LEAO-REI"
+    assert resp_edit.json()["ativo"] is False
+
+    assert client.get("/camisetas/estampas/").json() == []
+    assert len(client.get("/camisetas/estampas/", params={"incluir_inativas": True}).json()) == 1
+
+    resp_del = client.delete(f"/camisetas/estampas/{id_est}")
+    assert resp_del.status_code == 204
+    assert client.get(f"/camisetas/estampas/{id_est}").status_code == 404
+

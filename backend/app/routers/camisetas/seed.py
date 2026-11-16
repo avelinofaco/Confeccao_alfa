@@ -20,6 +20,7 @@ from app.models.camisetas import (
     get_utc_now
 )
 from app.models.camisetas_cadastros import CamisetaCor
+from app.models.camisetas_estampas import CamisetaEstampa
 from app.models.camisetas_sku import CamisetaPedidoItem, CamisetaPedidoItemQtd, CamisetaVariacao
 from app.schemas.camisetas import (
     CamisetaModeloCreate, CamisetaModeloResponse,
@@ -297,6 +298,34 @@ def seed_camisetas(db: Session = Depends(get_db)):
 
     # 5.1 Saldo inicial de peças prontas, por inventário de demonstração
     _semear_estoque_pronto(db, db.query(CamisetaModelo).first(), cores.get("Preto"))
+
+    # 5.2 Estampas de demonstração no catálogo visual
+    if db.query(CamisetaEstampa).count() == 0:
+        from app.schemas.camisetas_estampas import EstampaCreate
+        from app.services.camisetas.estampas import criar_estampa
+
+        png_demo = (
+            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk"
+            "+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+        )
+        criar_estampa(
+            db,
+            EstampaCreate(
+                nome="Logo Alfa Minimalista",
+                codigo="EST-ALFA-01",
+                observacoes="Silk peito esquerdo",
+                imagem_data_url=png_demo,
+            ),
+        )
+        criar_estampa(
+            db,
+            EstampaCreate(
+                nome="Tipografia Streetwear Costas",
+                codigo="EST-STREET-02",
+                observacoes="Estampa costas A3",
+                imagem_data_url=png_demo,
+            ),
+        )
 
     # 6. Registros Financeiros (12 meses em ordem crescente: Janeiro a Dezembro)
     if db.query(CamisetaRegistroFinanceiro).count() == 0:
