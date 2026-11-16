@@ -33,6 +33,7 @@ from app.schemas.camisetas import (
     CamisetaRegistroFinanceiroCreate, CamisetaRegistroFinanceiroResponse, CamisetaApuracaoMensalResponse,
     CamisetaDashboardCompletoResponse, CamisetaCardDestaque, CamisetaItemFinanceiroMensal
 )
+from app.core import config
 from app.schemas.camisetas_sku import ContagemInventario, InventarioEntrada
 from app.services.camisetas.clientes import resolver_cliente
 from app.services.camisetas.modelos import definir_grade
@@ -84,7 +85,12 @@ def _semear_estoque_pronto(db: Session, modelo, cor) -> None:
 # ----------------- SEED INICIAL AUTOMÁTICO SE BANCO ESTIVER VAZIO -----------------
 @router.post("/seed-inicial", summary="Popula dados iniciais de demonstração para o segmento de Camisetas")
 def seed_camisetas(db: Session = Depends(get_db)):
-    """Garante dados ricos para o operador testar imediatamente as 7 telas."""
+    """Garante dados ricos para o operador testar imediatamente as telas."""
+    if config.EM_PRODUCAO:
+        raise HTTPException(
+            status_code=403,
+            detail="Dados de demonstração não entram em produção. Esta rota só funciona em desenvolvimento.",
+        )
     # 1. Modelos
     if db.query(CamisetaModelo).count() == 0:
         modelo1 = CamisetaModelo(
