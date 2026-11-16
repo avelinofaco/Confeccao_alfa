@@ -114,3 +114,25 @@ class OpCorteResponse(BaseModel):
     cortado: int
     enviado: int
     disponivel: int
+
+
+class ItemEnvioEntrada(BaseModel):
+    id_variacao: int
+    quantidade: int = Field(..., gt=0)
+
+
+class ItemRetornoEntrada(BaseModel):
+    id_cor: int
+    id_tamanho: int
+    quantidade: int = Field(..., ge=0)
+
+
+class RemessaItemResponse(BaseModel):
+    id_variacao: int
+    id_cor: int
+    nome_cor: str
+    hex_cor: str
+    id_tamanho: int
+    rotulo: str
+    qtd_enviada: int
+    qtd_retornada: Optional[int] = None

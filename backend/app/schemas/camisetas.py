@@ -11,9 +11,12 @@ from decimal import Decimal
 
 from app.schemas.camisetas_sku import (
     CorteEntrada,
+    ItemEnvioEntrada,
+    ItemRetornoEntrada,
     OpCorEntrada,
     OpCorResponse,
     OpCorteResponse,
+    RemessaItemResponse,
     TamanhoResponse,
 )
 
@@ -201,15 +204,17 @@ class CamisetaOrdemProducaoResponse(BaseModel):
 # ----------------- COSTURA E FACÇÕES -----------------
 class CamisetaCosturaFaccaoEnviar(BaseModel):
     id_op: int
-    nome_faccao: str
-    quantidade_enviada: int
+    nome_faccao: str = Field(..., min_length=1, max_length=150)
+    quantidade_enviada: Optional[int] = None  # só OP antiga (cortada sem cor e tamanho)
+    itens: Optional[List[ItemEnvioEntrada]] = None  # OP cortada por SKU
     margem_seguranca_aviamentos_percentual: Decimal = Field(Decimal("3.00"), ge=0, le=100)
     observacoes: Optional[str] = None
-    # Enviar mesmo com aviamento insuficiente no estoque registrado (saldo fica negativo)
+    # Enviar mesmo com aviamento insuficiente no estoque registrado (saldo fica negativo);
+    # sem isso o servidor responde 409 com as faltas.
     confirmar_saldo_insuficiente: bool = False
 
 class CamisetaCosturaFaccaoRetornar(BaseModel):
-    quantidade_retornada: int
+    itens: List[ItemRetornoEntrada]  # por cor e tamanho; o que não vier conta como não devolvido
     observacoes: Optional[str] = None
 
 class CamisetaCosturaFaccaoResponse(BaseModel):
@@ -228,6 +233,9 @@ class CamisetaCosturaFaccaoResponse(BaseModel):
     data_retorno: Optional[datetime] = None
     observacoes: Optional[str] = None
     avisos: List[str] = Field(default_factory=list)
+    id_modelo: Optional[int] = None
+    legada: bool = False
+    itens: List[RemessaItemResponse] = Field(default_factory=list)
     model_config = ConfigDict(from_attributes=True)
 
 # ----------------- REGISTRO FINANCEIRO -----------------
