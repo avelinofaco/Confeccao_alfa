@@ -144,6 +144,25 @@ def test_migracao_estampas_sobe_e_desce(tmp_path):
     assert "camisetas_estampas" not in tabelas(url)
 
 
+def test_migracao_pedido_item_estampa_sobe_e_desce(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    rodar_alembic("upgrade", "20261116_008_pedido_item_estampa", url=url)
+    engine = sa.create_engine(url)
+    try:
+        colunas = {c["name"] for c in sa.inspect(engine).get_columns("camisetas_pedido_itens")}
+    finally:
+        engine.dispose()
+    assert {"id_estampa", "posicao_estampa"}.issubset(colunas)
+    rodar_alembic("downgrade", "20261116_007_estampas", url=url)
+    engine = sa.create_engine(url)
+    try:
+        colunas_apos = {c["name"] for c in sa.inspect(engine).get_columns("camisetas_pedido_itens")}
+    finally:
+        engine.dispose()
+    assert "id_estampa" not in colunas_apos
+    assert "posicao_estampa" not in colunas_apos
+
+
 def test_modelos_e_migracoes_estao_alinhados(tmp_path):
     url = f"sqlite:///{tmp_path / 'migracao.db'}"
     rodar_alembic("upgrade", "head", url=url)

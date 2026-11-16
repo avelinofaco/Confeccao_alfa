@@ -92,17 +92,20 @@ class CamisetaRemessaItem(Base):
 
 
 class CamisetaPedidoItem(Base):
-    """Um item do pedido: modelo + cor, com quantidades por tamanho."""
+    """Um item do pedido: modelo + cor (+ estampa e posição opcionais), com quantidades por tamanho."""
     __tablename__ = "camisetas_pedido_itens"
 
     id_item = Column(Integer, primary_key=True)
     id_pedido = Column(Integer, ForeignKey("camisetas_pedidos.id_pedido", ondelete="CASCADE"), nullable=False, index=True)
     id_modelo = Column(Integer, ForeignKey("camisetas_modelos.id_modelo", ondelete="RESTRICT"), nullable=False)
     id_cor = Column(Integer, ForeignKey("camisetas_cores.id_cor", ondelete="RESTRICT"), nullable=True)  # nulo = cor não informada
+    id_estampa = Column(Integer, ForeignKey("camisetas_estampas.id_estampa", ondelete="RESTRICT"), nullable=True)
+    posicao_estampa = Column(String(40), nullable=True)
 
     pedido = relationship("CamisetaPedido", back_populates="itens")
     modelo = relationship("CamisetaModelo")
     cor = relationship("CamisetaCor")
+    estampa = relationship("CamisetaEstampa")
     quantidades = relationship("CamisetaPedidoItemQtd", back_populates="item", cascade="all, delete-orphan")
 
 
