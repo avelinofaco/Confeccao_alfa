@@ -3,193 +3,47 @@ import {
   Scissors,
   Send,
   PackageCheck,
-  X,
   ShieldCheck,
   Building2
 } from 'lucide-react';
-import api from '../services/api';
 import { useToast } from '../components/feedback/useToast';
-import { useConfirm } from '../components/feedback/useConfirm';
-import { mensagemDeErro } from '../components/feedback/mensagemErro';
 import { buscarEmParalelo } from '../services/buscarEmParalelo';
 import Sidebar from '../components/Sidebar';
+import { FormEnvioFaccao } from '../components/producao/FormEnvioFaccao';
+import { ModalRetornoFaccao } from '../components/producao/ModalRetornoFaccao';
+import { resumoPorCor } from '../utils/producao';
 import './CosturaFaccoesCamisetas.css';
-
-const FORM_ENVIO_VAZIO = {
-  id_op: '',
-  nome_faccao: '',
-  quantidade_enviada: '',
-  margem_seguranca_aviamentos_percentual: '3.00',
-  observacoes: '',
-};
-
-const formatarNumero = (valor) => Number(valor).toLocaleString('pt-BR', { maximumFractionDigits: 3 });
-
-const descreverFalta = (falta) =>
-  `${falta.descricao} (${falta.codigo}): precisa ${formatarNumero(falta.necessario)} ${falta.unidade}, tem ${formatarNumero(falta.disponivel)} ${falta.unidade}`;
 
 function CosturaFaccoesCamisetas() {
   const toast = useToast();
-  const confirmar = useConfirm();
   const [opsCortadas, setOpsCortadas] = useState([]);
   const [remessas, setRemessas] = useState([]);
+  const [modelos, setModelos] = useState([]);
+  const [cores, setCores] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Modal Retorno de Facção
-  const [modalRetornoAberto, setModalRetornoAberto] = useState(false);
+  // Remessa cujo retorno está sendo conferido (null = nenhum modal aberto)
   const [remessaSelecionada, setRemessaSelecionada] = useState(null);
-  const [qtdRetornada, setQtdRetornada] = useState('');
-  const [obsRetorno, setObsRetorno] = useState('');
-
-  // Form Envio para Facção
-  const [formEnvio, setFormEnvio] = useState(FORM_ENVIO_VAZIO);
 
   const carregarDados = async () => {
-    try {
-      setLoading(true);
-      const { dados, houveFalha } = await buscarEmParalelo(['/camisetas/ordens/', '/camisetas/costura/']);
-      const [listaOps, listaRemessas] = dados;
-      setRemessas(listaRemessas);
-      if (houveFalha) {
-        toast.erro('Não foi possível carregar todas as OPs e remessas. Verifique a conexão e recarregue a página.');
-      }
-
-      // Calcula o saldo cortado restante disponível para envio de cada OP
-      const opsComSaldo = listaOps.map(op => {
-        const totalEnviado = listaRemessas
-          .filter(r => r.id_op === op.id_op)
-          .reduce((acc, r) => acc + (r.quantidade_enviada || 0), 0);
-        const cortadas = op.pecas_reais_cortadas || 0;
-        const saldoDisponivel = Math.max(0, cortadas - totalEnviado);
-        return {
-          ...op,
-          total_enviado_costura: totalEnviado,
-          saldo_disponivel: saldoDisponivel
-        };
-      });
-
-      // Filtra APENAS OPs que ainda possuem painéis cortados pendentes de envio
-      const disponiveis = opsComSaldo.filter(op => op.pecas_reais_cortadas > 0 && op.saldo_disponivel > 0);
-      setOpsCortadas(disponiveis);
-
-      if (disponiveis.length > 0) {
-        setFormEnvio(prev => {
-          const aindaExiste = disponiveis.find(o => String(o.id_op) === String(prev.id_op));
-          const opAlvo = aindaExiste || disponiveis[0];
-          return {
-            ...prev,
-            id_op: opAlvo.id_op,
-            quantidade_enviada: opAlvo.saldo_disponivel
-          };
-        });
-      } else {
-        setFormEnvio(prev => ({
-          ...prev,
-          id_op: '',
-          quantidade_enviada: ''
-        }));
-      }
-    } catch (err) {
-      console.error("Erro ao carregar remessas de costura:", err);
-    } finally {
-      setLoading(false);
+    setLoading(true);
+    const { dados, houveFalha } = await buscarEmParalelo([
+      '/camisetas/ordens/', '/camisetas/costura/', '/camisetas/modelos/', '/camisetas/cores/',
+    ]);
+    const [listaOps, listaRemessas, listaModelos, listaCores] = dados;
+    setOpsCortadas(listaOps.filter((op) => (op.saldo_disponivel_envio || 0) > 0));
+    setRemessas(listaRemessas);
+    setModelos(listaModelos);
+    setCores(listaCores);
+    if (houveFalha) {
+      toast.erro('Não foi possível carregar todas as OPs e remessas. Verifique a conexão e recarregue a página.');
     }
+    setLoading(false);
   };
 
   useEffect(() => {
     carregarDados();
   }, []);
-
-  const handleOpChange = (e) => {
-    const id = e.target.value;
-    const op = opsCortadas.find(o => String(o.id_op) === String(id));
-    setFormEnvio({
-      ...formEnvio,
-      id_op: id,
-      quantidade_enviada: op ? op.saldo_disponivel : ''
-    });
-  };
-
-  const enviarRemessa = (confirmarSaldoInsuficiente) => api.post('/camisetas/costura/enviar', {
-    id_op: parseInt(formEnvio.id_op, 10),
-    nome_faccao: formEnvio.nome_faccao,
-    quantidade_enviada: parseInt(formEnvio.quantidade_enviada, 10),
-    margem_seguranca_aviamentos_percentual: parseFloat(formEnvio.margem_seguranca_aviamentos_percentual || 3),
-    observacoes: formEnvio.observacoes,
-    confirmar_saldo_insuficiente: confirmarSaldoInsuficiente,
-  });
-
-  const handleEnviarFaccao = async (e) => {
-    e.preventDefault();
-    if (!formEnvio.id_op || !formEnvio.nome_faccao || !formEnvio.quantidade_enviada) {
-      toast.aviso('Preencha a OP, a facção parceira e a quantidade enviada.');
-      return;
-    }
-    const opAtual = opsCortadas.find((o) => String(o.id_op) === String(formEnvio.id_op));
-    const qtdNum = parseInt(formEnvio.quantidade_enviada, 10);
-    if (opAtual && qtdNum > opAtual.saldo_disponivel) {
-      toast.aviso(`Quantidade enviada (${qtdNum}) não pode ultrapassar os painéis disponíveis nesta OP (${opAtual.saldo_disponivel}).`);
-      return;
-    }
-
-    try {
-      let resposta;
-      try {
-        resposta = await enviarRemessa(false);
-      } catch (err) {
-        const faltas = err.response?.status === 409 ? err.response.data?.detail?.faltas : null;
-        if (!faltas) throw err;
-        const confirmou = await confirmar({
-          titulo: 'Aviamentos insuficientes no estoque',
-          mensagem: 'O estoque registrado não cobre este envio. Se o material existe na fábrica, envie mesmo assim: o saldo ficará negativo para você conferir o inventário depois.',
-          detalhes: faltas.map(descreverFalta),
-          textoConfirmar: 'Enviar mesmo assim',
-          textoCancelar: 'Cancelar envio',
-          perigo: true, // foco inicial em "Cancelar envio": Enter acidental não deixa estoque negativo
-        });
-        if (!confirmou) return;
-        resposta = await enviarRemessa(true);
-      }
-
-      const avisos = resposta.data?.avisos || [];
-      const margem = formatarNumero(formEnvio.margem_seguranca_aviamentos_percentual || 3);
-      toast.sucesso(avisos.length > 0
-        ? `Lote enviado para ${formEnvio.nome_faccao}.`
-        : `Lote enviado para ${formEnvio.nome_faccao}. Aviamentos baixados com margem de ${margem}%.`);
-      avisos.forEach((aviso) => toast.aviso(aviso));
-      setFormEnvio(FORM_ENVIO_VAZIO);
-      carregarDados();
-    } catch (err) {
-      console.error('Erro ao enviar para facção:', err);
-      toast.erro(mensagemDeErro(err, 'Erro ao registrar a remessa de costura.'));
-    }
-  };
-
-  const abrirModalRetorno = (rem) => {
-    setRemessaSelecionada(rem);
-    setQtdRetornada(rem.quantidade_enviada);
-    setObsRetorno('');
-    setModalRetornoAberto(true);
-  };
-
-  const handleRegistrarRetorno = async (e) => {
-    e.preventDefault();
-    if (!remessaSelecionada || qtdRetornada === '') return;
-
-    try {
-      await api.put(`/camisetas/costura/${remessaSelecionada.id_costura}/retornar`, {
-        quantidade_retornada: parseInt(qtdRetornada, 10),
-        observacoes: obsRetorno,
-      });
-      toast.sucesso('Retorno conferido! Perdas apuradas e peças aprovadas lançadas no Estoque de Produtos Acabados.');
-      setModalRetornoAberto(false);
-      setRemessaSelecionada(null);
-      carregarDados();
-    } catch (err) {
-      console.error('Erro ao registrar retorno:', err);
-      toast.erro(mensagemDeErro(err, 'Erro ao registrar o retorno da facção.'));
-    }
-  };
 
   // Indicadores
   const totalEnviado = remessas.reduce((acc, r) => acc + (r.quantidade_enviada || 0), 0);
@@ -207,8 +61,9 @@ function CosturaFaccoesCamisetas() {
             7. Tela de Costura e Terceirização (Facções)
           </h1>
           <p>
-            Controle o fluxo de envio dos painéis cortados para oficinas externas (facções) e o retorno das camisetas prontas:
-            aplicação de margens de segurança de aviamentos, apuração automática de perdas e injeção do saldo aprovado no Estoque de Produtos Acabados.
+            Controle o fluxo de envio das peças cortadas para oficinas externas (facções) e o retorno das camisetas prontas,
+            sempre por cor e tamanho: margem de segurança de aviamentos, apuração automática de perdas e lançamento do
+            saldo aprovado em Produtos Prontos.
           </p>
         </header>
 
@@ -236,7 +91,7 @@ function CosturaFaccoesCamisetas() {
         <div className="form-envio-card">
           <h2>
             <Send size={20} color="#2563eb" />
-            Passo 1: Envio de Painéis Cortados para Facção Parceira
+            Passo 1: Envio de Peças Cortadas para Facção Parceira
           </h2>
 
           <div className="margem-info-badge">
@@ -246,81 +101,12 @@ function CosturaFaccoesCamisetas() {
             </span>
           </div>
 
-          <form onSubmit={handleEnviarFaccao}>
-            <div className="form-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', marginBottom: '1.2rem' }}>
-              <div className="form-group">
-                <label>Selecionar OP Cortada *</label>
-                <select 
-                  value={formEnvio.id_op}
-                  onChange={handleOpChange}
-                  required
-                >
-                  <option value="">
-                    {opsCortadas.length === 0 ? "Nenhuma OP com painéis disponíveis para envio" : "Selecione uma OP cortada..."}
-                  </option>
-                  {opsCortadas.map(op => (
-                    <option key={op.id_op} value={op.id_op}>
-                      [{op.codigo_op}] {op.nome_modelo} — Disponível para Envio: {op.saldo_disponivel} painéis
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>Oficina Externa / Facção Parceira *</label>
-                <input 
-                  type="text" 
-                  placeholder="Ex: Facção Estrela ou Costuras Dona Maria"
-                  value={formEnvio.nome_faccao}
-                  onChange={(e) => setFormEnvio({ ...formEnvio, nome_faccao: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Quantidade de Painéis Enviados *</label>
-                <input 
-                  type="number" 
-                  min="1"
-                  max={opsCortadas.find(o => String(o.id_op) === String(formEnvio.id_op))?.saldo_disponivel || undefined}
-                  placeholder="Ex: 250"
-                  value={formEnvio.quantidade_enviada}
-                  onChange={(e) => setFormEnvio({ ...formEnvio, quantidade_enviada: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Margem de Segurança Aviamentos (%)</label>
-                <input 
-                  type="number" 
-                  step="0.1"
-                  value={formEnvio.margem_seguranca_aviamentos_percentual}
-                  onChange={(e) => setFormEnvio({ ...formEnvio, margem_seguranca_aviamentos_percentual: e.target.value })}
-                />
-              </div>
-            </div>
-
-            <div className="form-group" style={{ marginBottom: '1.4rem' }}>
-              <label>Observações / Instruções de Costura</label>
-              <textarea 
-                rows="2"
-                placeholder="Ex: Gola com ribana 1x1 rebatida na galoneira, barra 2 agulhas com fio de helanca..."
-                value={formEnvio.observacoes}
-                onChange={(e) => setFormEnvio({ ...formEnvio, observacoes: e.target.value })}
-              ></textarea>
-            </div>
-
-            <button type="submit" className="btn-acao-rapida">
-              <Send size={18} />
-              <span>Registrar Remessa & Liberar Painéis</span>
-            </button>
-          </form>
+          <FormEnvioFaccao ops={opsCortadas} onEnviado={carregarDados} />
         </div>
 
-        {/* PASSO 2: CONTROLE DE RETORNO E PRODUTOS ACABADOS */}
+        {/* PASSO 2: CONTROLE DE RETORNO E PRODUTOS PRONTOS */}
         <div className="tabela-remessas-card">
-          <h2>Passo 2: Remessas Externas & Retorno com Injeção em Produtos Acabados</h2>
+          <h2>Passo 2: Remessas Externas & Retorno com Lançamento em Produtos Prontos</h2>
 
           <div className="table-responsive">
             <table className="tabela-remessas">
@@ -342,14 +128,17 @@ function CosturaFaccoesCamisetas() {
                 {remessas.length === 0 ? (
                   <tr>
                     <td colSpan="10" style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
-                      Nenhuma remessa externa enviada até o momento.
+                      {loading ? 'Carregando…' : 'Nenhuma remessa externa enviada até o momento.'}
                     </td>
                   </tr>
                 ) : (
                   remessas.map((rem) => (
                     <tr key={rem.id_costura}>
                       <td><strong>{rem.codigo_op}</strong></td>
-                      <td>{rem.nome_modelo}</td>
+                      <td>
+                        {rem.nome_modelo}
+                        {rem.itens.length > 0 && <small className="remessa-resumo">{resumoPorCor(rem.itens)}</small>}
+                      </td>
                       <td>
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontWeight: 600 }}>
                           <Building2 size={14} color="#64748b" />
@@ -391,17 +180,17 @@ function CosturaFaccoesCamisetas() {
                       </td>
                       <td>
                         {rem.status.includes('Em Costura') ? (
-                          <button 
-                            className="btn-acao-rapida" 
+                          <button
+                            className="btn-acao-rapida"
                             style={{ padding: '0.35rem 0.75rem', fontSize: '0.78rem' }}
-                            onClick={() => abrirModalRetorno(rem)}
+                            onClick={() => setRemessaSelecionada(rem)}
                           >
                             <PackageCheck size={14} />
                             Conferir Retorno
                           </button>
                         ) : (
                           <span style={{ color: '#059669', fontSize: '0.8rem', fontWeight: 700 }}>
-                            Injetado no Acabado ✓
+                            Lançado em Produtos Prontos ✓
                           </span>
                         )}
                       </td>
@@ -413,70 +202,14 @@ function CosturaFaccoesCamisetas() {
           </div>
         </div>
 
-        {/* MODAL CONFERÊNCIA DE RETORNO */}
-        {modalRetornoAberto && remessaSelecionada && (
-          <div className="modal-overlay">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h3>Conferência de Retorno da Facção</h3>
-                <button className="modal-close-btn" onClick={() => setModalRetornoAberto(false)}>
-                  <X size={20} />
-                </button>
-              </div>
-
-              <form onSubmit={handleRegistrarRetorno}>
-                <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: 8, marginBottom: '1.2rem', fontSize: '0.88rem' }}>
-                  <div>Facção: <strong>{remessaSelecionada.nome_faccao}</strong></div>
-                  <div>OP: <strong>{remessaSelecionada.codigo_op}</strong> — Modelo: <strong>{remessaSelecionada.nome_modelo}</strong></div>
-                  <div>Painéis Enviados: <strong>{remessaSelecionada.quantidade_enviada} unidades</strong></div>
-                </div>
-
-                <div className="form-group" style={{ marginBottom: '1.2rem' }}>
-                  <label>Quantidade Física de Camisetas Costuradas que Retornaram *</label>
-                  <input 
-                    type="number" 
-                    min="0"
-                    placeholder="Ex: 248"
-                    value={qtdRetornada}
-                    onChange={(e) => setQtdRetornada(e.target.value)}
-                    required
-                  />
-                  {qtdRetornada !== '' && (
-                    <div style={{ marginTop: '0.5rem', fontSize: '0.85rem' }}>
-                      {parseInt(qtdRetornada) < remessaSelecionada.quantidade_enviada ? (
-                        <span style={{ color: '#dc2626', fontWeight: 700 }}>
-                          Perda apurada no lote: {remessaSelecionada.quantidade_enviada - parseInt(qtdRetornada)} peça(s) extraviada(s) ou avariada(s).
-                        </span>
-                      ) : (
-                        <span style={{ color: '#059669', fontWeight: 700 }}>
-                          Lote retornado 100% íntegro sem perdas!
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                <div className="form-group" style={{ marginBottom: '1.4rem' }}>
-                  <label>Observações do Controle de Qualidade</label>
-                  <textarea 
-                    rows="2"
-                    placeholder="Ex: Peças conferidas na revisão e aprovadas para expedição..."
-                    value={obsRetorno}
-                    onChange={(e) => setObsRetorno(e.target.value)}
-                  ></textarea>
-                </div>
-
-                <div className="modal-footer">
-                  <button type="button" className="btn-cancelar" onClick={() => setModalRetornoAberto(false)}>
-                    Cancelar
-                  </button>
-                  <button type="submit" className="btn-acao-rapida">
-                    Confirmar Retorno & Injetar em Produtos Acabados
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
+        {remessaSelecionada && (
+          <ModalRetornoFaccao
+            remessa={remessaSelecionada}
+            modelo={modelos.find((m) => m.id_modelo === remessaSelecionada.id_modelo)}
+            cores={cores}
+            onFechar={() => setRemessaSelecionada(null)}
+            onSalvo={() => { setRemessaSelecionada(null); carregarDados(); }}
+          />
         )}
       </main>
     </div>
