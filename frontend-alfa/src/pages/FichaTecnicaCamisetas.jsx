@@ -13,6 +13,7 @@ import api from '../services/api';
 import { useToast } from '../components/feedback/useToast';
 import { PainelCores } from '../components/cadastros/PainelCores';
 import { PainelGrades } from '../components/cadastros/PainelGrades';
+import { PainelEstampas } from '../components/cadastros/PainelEstampas';
 import { useConfirm } from '../components/feedback/useConfirm';
 import { buscarEmParalelo } from '../services/buscarEmParalelo';
 import Sidebar from '../components/Sidebar';
@@ -359,7 +360,7 @@ function FichaTecnicaCamisetas() {
         </header>
 
         <div className="ficha-abas" role="tablist" aria-label="Cadastros de produto">
-          {[['modelos', 'Modelos'], ['cores', 'Cores'], ['grades', 'Grades']].map(([chave, rotulo]) => (
+          {[['modelos', 'Modelos'], ['cores', 'Cores'], ['grades', 'Grades'], ['estampas', 'Estampas']].map(([chave, rotulo]) => (
             <button
               key={chave}
               type="button"
@@ -378,6 +379,7 @@ function FichaTecnicaCamisetas() {
 
         {abaFicha === 'cores' && <PainelCores />}
         {abaFicha === 'grades' && <PainelGrades />}
+        {abaFicha === 'estampas' && <PainelEstampas />}
 
         {abaFicha === 'modelos' && (
           <>
