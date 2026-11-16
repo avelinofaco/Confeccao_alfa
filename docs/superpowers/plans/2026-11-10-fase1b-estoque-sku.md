@@ -5608,3 +5608,52 @@ Com banco novo (roteiro de verificação local + seed), rodar em sequência `qa_
 git add docs README.md
 git commit -m "docs: notas de execução da Fase 1B" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
+
+---
+
+## Notas de execução
+
+Fase 1B executada em 2026-11-16 no branch `feat/camisetas-estoque-sku`, seguindo as 13 tasks em TDD
+(teste vermelho → implementação → verde → commit). O plano foi seguido como escrito; as diferenças
+estão abaixo.
+
+**Resultado**
+
+- Backend: 177 testes passando; cobertura de `app/services` em **96%** (menor arquivo: 93%).
+- `alembic upgrade head` do zero + `alembic check`: "No new upgrade operations detected."
+- Frontend: `npm run build` e `npx oxlint` sem erros. As três telas tocadas encolheram:
+  Corte 436 → 227 linhas, Costura 486 → 219, Pedidos 672 → 419.
+- Fluxo completo conferido pela API local (porta 8011, banco novo + seed): OP com duas cores
+  (18 kg, 100 planejadas) → corte 99 peças com rendimento 5.50 total e por cor → envio de 20 do SKU
+  Preto · P → retorno de 19 com 1 perda → saldo do Preto · P em 79 (60 do seed + 19) → pedido com dois
+  itens (`grade_p` = 0) → entrega recusada com 409 e a lista de faltas → inventário do Branco · M →
+  entrega baixando os três SKUs → estorno devolvendo tudo → dashboard igual à soma dos SKUs (419) →
+  histórico com 12 movimentos nos quatro tipos usados.
+
+**Diferenças em relação ao plano**
+
+1. **Verificação por navegador não foi executada.** O plano previa `browser.mjs` da skill
+   `browser-automation`, que hoje é um symlink quebrado (`~/.claude/skills/browser-automation` →
+   `~/.codegpt/skills/browser-automation`, inexistente). No lugar dela, o fluxo completo foi conferido
+   pela API local (script `fluxo_fase1b.sh`, descrito acima), que cobre os mesmos critérios de aceite
+   do lado do servidor. **Pendente:** a conferência visual das quatro telas (grade alinhada, textos sem
+   corte, foco e teclado) e os PNGs. Para retomar: reinstalar a skill ou usar Playwright
+   (`npx playwright install chromium`) com os scripts `qa_*.mjs` das Tasks 9–12.
+2. **Grep do Step 5 da Task 7** (`estoque_acabado|CAMPOS_GRADE`) não fica vazio: sobram
+   `id_estoque_acabado` (coluna da tabela histórica, que continua existindo) e `CAMPOS_GRADE_LEGADA`
+   (constante nova de `pedido_itens.py`). Os quatro helpers da tabela antiga e a fábrica
+   `criar_estoque_acabado` foram removidos, como o plano pedia.
+3. **README**: ganhou o módulo "7. Produtos Prontos" (com as rotas novas), o Registro Financeiro passou
+   a "8." e o diagrama do fluxo operacional agora diz "Produtos Prontos por Cor e Tamanho".
+4. **Jevflow**: a pedido do usuário, a fase foi acompanhada pelo Jevflow (`.jevflow/flow.json`, seis
+   fases em `mode: warn`). Foi preciso definir `JEVFLOW_PYTHON=/opt/homebrew/bin/python3.14` em
+   `~/.claude/settings.json`, porque o `python3` do sistema é 3.9.6 e o plugin exige ≥ 3.10.
+
+**Pendências de produção** (somam-se às da Fase 0 e 1A)
+
+- O `alembic upgrade head` em produção precisa aplicar a `20261110_006_estoque_sku`, que converte cada
+  pedido existente em um item com "cor não informada", acrescenta à grade o rótulo que faltar e cria os
+  índices de chave primária que a 005 deixou de criar.
+- Depois da migração, **o estoque pronto começa zerado**: a tabela `camisetas_produtos_acabados` fica só
+  como histórico e o saldo real precisa ser lançado pelo inventário de abertura na tela Produtos Prontos.
+- Pedidos migrados aparecem com "Definir cor" e não podem ser entregues antes de receber a cor.

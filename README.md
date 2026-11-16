@@ -84,7 +84,7 @@ flowchart TD
     C --> D[Enfesto e Corte]
     D --> E[Ordem de Produção]
     E --> F[Costura e Facções]
-    F --> G[Estoque de Produtos Acabados]
+    F --> G[Produtos Prontos por Cor e Tamanho]
     G --> H[Entrega ao Cliente]
     H --> I[Registro Financeiro]
     I --> J[Dashboard Gerencial]
@@ -204,9 +204,27 @@ Gerenciamento das etapas de costura internas e terceirizadas.
 - Registro do retorno das peças costuradas.
 - Auditoria de perdas na costura.
 - Controle de produção por facção.
-- Entrada de produtos conferidos no estoque de acabados.
+- Entrada de produtos conferidos no estoque de produtos prontos.
 
-### 7. Registro Financeiro
+### 7. Produtos Prontos (estoque por cor e tamanho)
+
+Estoque de peças acabadas controlado por SKU: modelo + cor + tamanho (segmento Camisetas).
+
+**Funcionalidades:**
+
+- Grade de saldos por modelo × cor × tamanho, com totais por linha e coluna.
+- Inventário de abertura e contagens posteriores: o sistema lança só as diferenças.
+- Ajuste manual de saldo com motivo obrigatório.
+- Estoque mínimo por SKU, com destaque das peças abaixo do mínimo.
+- Histórico de movimentações (inventário, ajuste, entrada da produção, saída por entrega e estorno),
+  com a referência do pedido ou da OP.
+- Toda alteração de saldo passa por um único serviço, que nunca deixa o saldo negativo.
+
+**Rotas:** `GET /camisetas/produtos-prontos/`, `POST /camisetas/produtos-prontos/inventario`,
+`POST /camisetas/produtos-prontos/ajustes`, `PUT /camisetas/produtos-prontos/variacoes/{id}/minimo`,
+`GET /camisetas/produtos-prontos/movimentos/` e `PUT /camisetas/pedidos/{id}/itens`.
+
+### 8. Registro Financeiro
 
 Módulo de acompanhamento dos custos, receitas e resultados financeiros da confecção.
 
