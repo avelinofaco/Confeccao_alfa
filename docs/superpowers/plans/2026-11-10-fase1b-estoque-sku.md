@@ -5632,13 +5632,14 @@ estão abaixo.
 
 **Diferenças em relação ao plano**
 
-1. **Verificação por navegador não foi executada.** O plano previa `browser.mjs` da skill
-   `browser-automation`, que hoje é um symlink quebrado (`~/.claude/skills/browser-automation` →
-   `~/.codegpt/skills/browser-automation`, inexistente). No lugar dela, o fluxo completo foi conferido
-   pela API local (script `fluxo_fase1b.sh`, descrito acima), que cobre os mesmos critérios de aceite
-   do lado do servidor. **Pendente:** a conferência visual das quatro telas (grade alinhada, textos sem
-   corte, foco e teclado) e os PNGs. Para retomar: reinstalar a skill ou usar Playwright
-   (`npx playwright install chromium`) com os scripts `qa_*.mjs` das Tasks 9–12.
+1. **A skill `browser-automation` precisou ser refeita.** O `~/.claude/skills/browser-automation` era um
+   symlink para `~/.codegpt/skills/browser-automation`, e esse diretório desapareceu junto com a
+   instalação do CodeGPT — não havia cópia em disco nem fonte pública com a mesma interface. A skill foi
+   **recriada no mesmo caminho e com o mesmo contrato** (`node browser.mjs <url> --script <arquivo.mjs>`,
+   com o script exportando `default async function run(page)`), agora sobre Playwright + Chromium
+   instalados dentro da própria pasta da skill. Ela devolve um JSON com `resultado`, `errosConsole`,
+   `errosPagina`, `requisicoesFalhas` e `ok`, e sai com código 1 quando há erro — dá para usar direto
+   como `check` de uma fase de flow.
 2. **Grep do Step 5 da Task 7** (`estoque_acabado|CAMPOS_GRADE`) não fica vazio: sobram
    `id_estoque_acabado` (coluna da tabela histórica, que continua existindo) e `CAMPOS_GRADE_LEGADA`
    (constante nova de `pedido_itens.py`). Os quatro helpers da tabela antiga e a fábrica
@@ -5657,3 +5658,39 @@ estão abaixo.
 - Depois da migração, **o estoque pronto começa zerado**: a tabela `camisetas_produtos_acabados` fica só
   como histórico e o saldo real precisa ser lançado pelo inventário de abertura na tela Produtos Prontos.
 - Pedidos migrados aparecem com "Definir cor" e não podem ser entregues antes de receber a cor.
+
+### Conferência visual (feita em 2026-11-16)
+
+As quatro telas foram conferidas no navegador (Chromium headless, 1440×900) contra um banco novo com
+seed, backend na 8011 e Vite na 5173 — 5173 é a única porta de frontend liberada no CORS do
+`main.py`. Os scripts estão no scratchpad (`qa_produtos.mjs`, `qa_corte.mjs`, `qa_costura.mjs`,
+`qa_pedidos.mjs`). **Nenhuma das telas registrou erro de console, erro de JS, requisição falha ou
+diálogo nativo.**
+
+| Tela | O que foi conferido | Resultado |
+|---|---|---|
+| Produtos Prontos | menu, total, ajuste com motivo, inventário com linha nova, histórico | menu com "8. Produtos Prontos" e "9. Registro Financeiro"; 350 peças; ajuste levou Preto·M de 120 a 118; inventário ajustou 2 SKUs (+10 Branco·P / −2 Preto·GG); 7 linhas no histórico |
+| Corte & Rendimento | OP com duas cores, grade cor × tamanho, rendimento por cor | 18 kg → 100 planejadas; corte de 94 peças; Preto 5.00 e Branco 5.50 peças/kg; a linha da OP mostra "Preto · 10.0 kg" e "Branco · 8.0 kg" |
+| Costura & Facções | envio parcial por SKU, retorno com perda, reflexo no estoque | remessa de 90 peças com resumo "Branco: M20 G20 · Preto: P20 M30"; retorno de 89 com 1 perda; Preto·P foi a 79 e Branco·G a 20 |
+| Pedidos | pedido com dois itens, entrega, bloqueio por falta, "Definir cor" | pedido com "Branco: M10" e "Preto: P5" entregue; PED-002 bloqueado com "Estoque insuficiente em 4 item(ns)" e o botão desabilitado; "Loja Antiga" passou de "cor não informada" para "Preto: P2" |
+
+**Um defeito real encontrado e corrigido** (commit `fix: chave da linha de cor da OP fora do updater de
+estado`): em `FormNovaOp`, a chave de cada linha de cor saía de um `useRef` mutado **dentro** do updater
+de `setLinhas`. Como o React em StrictMode invoca o updater duas vezes, a segunda linha nascia com
+`id="op-cor-2"` em vez de `op-cor-1` — numeração instável entre desenvolvimento e produção. A chave
+passou a ser calculada fora do updater.
+
+**Dois ajustes nos scripts de QA do plano** (eles nunca tinham sido executados): `waitForSelector` num
+`<option>` precisa de `{ state: 'attached' }`, porque opção de `select` fechado nunca conta como
+visível; e os rótulos da grade precisam de `{ exact: true }`, senão "Branco, tamanho G" casa também com
+"Branco, tamanho GG".
+
+**Três observações cosméticas, nenhuma corrigida** (nenhuma impede o uso):
+
+1. Em Produtos Prontos, a pilha de toasts cobre o botão "Fazer inventário" e o total de peças enquanto
+   está visível — são os controles no topo à direita, logo abaixo dos toasts.
+2. Na tabela de Pedidos, a coluna "Ação de Entrega" ficou estreita depois que a coluna "Itens" cresceu, e
+   o botão "Registrar Entrega" quebra em duas linhas junto do ícone.
+3. Uma OP recém-cortada aparece como "EM COSTURA": `formatarStatusOp` mapeia qualquer status com a
+   palavra "Costura" para "Em Costura", e o status após o corte é "Cortado (Pronto para Costura)". É
+   comportamento anterior à Fase 1B, não introduzido por ela.
