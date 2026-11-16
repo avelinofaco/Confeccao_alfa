@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.core.erros import ErroNegocio
 from app.models.camisetas_estampas import CamisetaEstampa
+from app.models.camisetas_sku import CamisetaPedidoItem
 from app.schemas.camisetas_estampas import EstampaCreate, EstampaUpdate
 from app.services.documentos import normalizar_nome
 from app.services.sequencias import proximo_codigo
@@ -140,5 +141,7 @@ def atualizar_estampa(db: Session, id_estampa: int, dados: EstampaUpdate) -> Cam
 
 def excluir_estampa(db: Session, id_estampa: int) -> None:
     estampa = obter_estampa(db, id_estampa)
+    if db.query(CamisetaPedidoItem.id_item).filter_by(id_estampa=id_estampa).first() is not None:
+        raise ErroNegocio(409, "Estampa em uso por pedidos; inative-a em vez de excluir.")
     db.delete(estampa)
     db.commit()

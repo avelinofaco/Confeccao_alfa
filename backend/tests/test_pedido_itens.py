@@ -5,6 +5,7 @@ from app.models.camisetas_sku import CamisetaPedidoItem
 from tests.fabricas import (
     criar_cliente,
     criar_cor,
+    criar_estampa_teste,
     criar_grade,
     criar_modelo,
     criar_modelo_com_grade,
@@ -128,3 +129,39 @@ def test_excluir_pedido_remove_os_itens(client, db):
     criado = client.post(URL, json=_pedido(cliente, [_item(modelo, preto, P=1)])).json()
     assert client.delete(f"{URL}{criado['id_pedido']}").status_code == 200
     assert db.query(CamisetaPedidoItem).count() == 0
+
+
+def test_pedido_com_mesmo_modelo_e_cor_mas_estampas_diferentes(client, db):
+    modelo, preto, _, cliente = _cenario(db)
+    est1 = criar_estampa_teste(db, nome="Leão", codigo="EST-1")
+    est2 = criar_estampa_teste(db, nome="Águia", codigo="EST-2")
+    i1 = {**_item(modelo, preto, P=10), "id_estampa": est1.id_estampa}
+    i2 = {**_item(modelo, preto, M=15), "id_estampa": est2.id_estampa, "posicao_estampa": "Costas"}
+    resposta = client.post(URL, json=_pedido(cliente, [i1, i2]))
+    assert resposta.status_code == 201
+    itens = resposta.json()["itens"]
+    assert [(i["codigo_estampa"], i["nome_estampa"], i["posicao_estampa"]) for i in itens] == [
+        ("EST-1", "Leão", "Frente"),
+        ("EST-2", "Águia", "Costas"),
+    ]
+    assert itens[0]["imagem_estampa_url"].startswith("data:image/png;base64,")
+
+
+def test_item_repetindo_mesma_estampa_e_posicao_retorna_400(client, db):
+    modelo, preto, _, cliente = _cenario(db)
+    est = criar_estampa_teste(db, nome="Leão", codigo="EST-1")
+    i1 = {**_item(modelo, preto, P=10), "id_estampa": est.id_estampa, "posicao_estampa": "Frente"}
+    i2 = {**_item(modelo, preto, M=5), "id_estampa": est.id_estampa, "posicao_estampa": "frente"}
+    resposta = client.post(URL, json=_pedido(cliente, [i1, i2]))
+    assert resposta.status_code == 400
+    assert "repete modelo e cor" in resposta.json()["detail"]
+
+
+def test_estampa_inativa_no_pedido_retorna_400(client, db):
+    modelo, preto, _, cliente = _cenario(db)
+    inativa = criar_estampa_teste(db, nome="Antiga", codigo="EST-OLD", ativo=False)
+    item = {**_item(modelo, preto, P=5), "id_estampa": inativa.id_estampa}
+    resposta = client.post(URL, json=_pedido(cliente, [item]))
+    assert resposta.status_code == 400
+    assert "inativa" in resposta.json()["detail"]
+

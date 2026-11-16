@@ -146,6 +146,8 @@ class QtdTamanhoEntrada(BaseModel):
 class PedidoItemEntrada(BaseModel):
     id_modelo: int
     id_cor: Optional[int] = None  # obrigatória nos pedidos novos (validado no serviço)
+    id_estampa: Optional[int] = None
+    posicao_estampa: Optional[str] = Field(None, max_length=40)
     quantidades: List[QtdTamanhoEntrada] = Field(..., min_length=1)
 
 
@@ -166,5 +168,10 @@ class PedidoItemResponse(BaseModel):
     id_cor: Optional[int] = None
     nome_cor: Optional[str] = None
     hex_cor: Optional[str] = None
+    id_estampa: Optional[int] = None
+    codigo_estampa: Optional[str] = None
+    nome_estampa: Optional[str] = None
+    imagem_estampa_url: Optional[str] = None
+    posicao_estampa: Optional[str] = None
     quantidades: List[QtdTamanhoResponse]
     total: int

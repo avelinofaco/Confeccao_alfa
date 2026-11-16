@@ -13,6 +13,7 @@ from app.models.camisetas import (
     CamisetaRegistroFinanceiro,
 )
 from app.models.camisetas_cadastros import CamisetaCliente, CamisetaCor, CamisetaGrade, CamisetaGradeTamanho
+from app.models.camisetas_estampas import CamisetaEstampa
 from app.models.camisetas_sku import CamisetaPedidoItem, CamisetaPedidoItemQtd, CamisetaVariacao
 from app.services.camisetas.grades import obter_grade_padrao
 from app.services.documentos import normalizar_nome
@@ -150,6 +151,25 @@ def criar_cliente(db, nome="Loja Beta", documento=None, telefone=None, ativo=Tru
 
 def criar_cor(db, nome="Preto", hex="#1F1F1F", ativo=True):
     return _salvar(db, CamisetaCor(nome=nome, hex=hex, ativo=ativo))
+
+
+PNG_MINIMO_BYTES = (
+    b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
+    b"\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x01"
+    b"\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82"
+)
+
+
+def criar_estampa_teste(db, nome="Leão Dourado", codigo="EST-001", ativo=True):
+    return _salvar(db, CamisetaEstampa(
+        codigo=codigo,
+        nome=nome,
+        nome_busca=normalizar_nome(nome),
+        imagem_bytes=PNG_MINIMO_BYTES,
+        imagem_mime="image/png",
+        tamanho_bytes=len(PNG_MINIMO_BYTES),
+        ativo=ativo,
+    ))
 
 
 def criar_pedido_com_itens(db, modelo, cor, quantidades, codigo="PED-T-1", status="Aguardando Produção",

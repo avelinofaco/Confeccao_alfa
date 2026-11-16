@@ -133,15 +133,24 @@ class Baixa:
 
 
 def _baixas_do_pedido(db: Session, pedido: CamisetaPedido) -> list[Baixa]:
-    return [
-        Baixa(
-            sku=f"{item.modelo.nome_modelo} · {item.cor.nome} · {qtd.tamanho.rotulo}",
-            variacao=buscar_variacao(db, item.id_modelo, item.id_cor, qtd.id_tamanho),
-            necessario=qtd.quantidade,
-        )
-        for item in pedido.itens
-        for qtd in sorted(item.quantidades, key=lambda q: q.tamanho.ordem)
-    ]
+    agrupado: dict[tuple[int, int, int], Baixa] = {}
+    for item in pedido.itens:
+        for qtd in sorted(item.quantidades, key=lambda q: q.tamanho.ordem):
+            chave = (item.id_modelo, item.id_cor, qtd.id_tamanho)
+            existente = agrupado.get(chave)
+            if existente is None:
+                agrupado[chave] = Baixa(
+                    sku=f"{item.modelo.nome_modelo} · {item.cor.nome} · {qtd.tamanho.rotulo}",
+                    variacao=buscar_variacao(db, item.id_modelo, item.id_cor, qtd.id_tamanho),
+                    necessario=qtd.quantidade,
+                )
+            else:
+                agrupado[chave] = Baixa(
+                    sku=existente.sku,
+                    variacao=existente.variacao,
+                    necessario=existente.necessario + qtd.quantidade,
+                )
+    return list(agrupado.values())
 
 
 def _validar_para_entrega(pedido: CamisetaPedido, data_entrega: date, hoje: date) -> None:

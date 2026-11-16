@@ -183,3 +183,35 @@ def test_api_ciclo_completo_de_estampas(client, client_sem_login):
     assert resp_del.status_code == 204
     assert client.get(f"/camisetas/estampas/{id_est}").status_code == 404
 
+
+def test_excluir_estampa_em_uso_por_pedido_retorna_409(client, db):
+    from datetime import datetime
+    from app.core.config import FUSO_HORARIO
+    from tests.fabricas import criar_cliente, criar_cor, criar_modelo, tamanho
+
+    modelo, preto, cliente = criar_modelo(db), criar_cor(db), criar_cliente(db)
+    criada = client.post(
+        "/camisetas/estampas/",
+        json={"nome": "Arte Exclusiva", "imagem_data_url": PNG_DATA_URL},
+    ).json()
+    id_est = criada["id_estampa"]
+    hoje_str = datetime.now(FUSO_HORARIO).date().isoformat()
+
+    resp_ped = client.post("/camisetas/pedidos/", json={
+        "id_cliente": cliente.id_cliente,
+        "prazo_entrega": hoje_str,
+        "valor_total": "500.00",
+        "itens": [{
+            "id_modelo": modelo.id_modelo,
+            "id_cor": preto.id_cor,
+            "id_estampa": id_est,
+            "quantidades": [{"id_tamanho": tamanho(modelo, "P").id_tamanho, "quantidade": 5}],
+        }],
+    })
+    assert resp_ped.status_code == 201
+
+    resp_del = client.delete(f"/camisetas/estampas/{id_est}")
+    assert resp_del.status_code == 409
+    assert "em uso por pedidos" in resp_del.json()["detail"]
+
+

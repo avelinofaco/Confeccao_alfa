@@ -2,7 +2,16 @@ from datetime import date, datetime, timedelta
 
 from app.core.config import FUSO_HORARIO
 from app.models.camisetas_sku import CamisetaMovimentoEstoque
-from tests.fabricas import criar_cor, criar_modelo, criar_pedido, criar_pedido_com_itens, criar_variacao
+from tests.fabricas import (
+    criar_cliente,
+    criar_cor,
+    criar_estampa_teste,
+    criar_modelo,
+    criar_pedido,
+    criar_pedido_com_itens,
+    criar_variacao,
+    tamanho,
+)
 
 
 def hoje():
@@ -133,3 +142,35 @@ def test_grade_negativa_e_recusada(client, db):
         "prazo_entrega": (hoje() + timedelta(days=3)).isoformat(), "valor_total": "100",
     })
     assert resposta.status_code == 422
+
+
+def test_entrega_consolida_necessidade_por_sku_entre_itens_com_estampas_diferentes(client, db):
+    modelo, preto, cliente = criar_modelo(db), criar_cor(db), criar_cliente(db)
+    est1 = criar_estampa_teste(db, nome="Arte 1", codigo="EST-1")
+    est2 = criar_estampa_teste(db, nome="Arte 2", codigo="EST-2")
+    var_m = criar_variacao(db, modelo, preto, "M", saldo=10)
+    id_m = tamanho(modelo, "M").id_tamanho
+
+    resp_ped = client.post("/camisetas/pedidos/", json={
+        "id_cliente": cliente.id_cliente,
+        "prazo_entrega": hoje().isoformat(),
+        "valor_total": "1000.00",
+        "itens": [
+            {"id_modelo": modelo.id_modelo, "id_cor": preto.id_cor, "id_estampa": est1.id_estampa,
+             "quantidades": [{"id_tamanho": id_m, "quantidade": 6}]},
+            {"id_modelo": modelo.id_modelo, "id_cor": preto.id_cor, "id_estampa": est2.id_estampa,
+             "quantidades": [{"id_tamanho": id_m, "quantidade": 7}]},
+        ],
+    })
+    assert resp_ped.status_code == 201
+    id_pedido = resp_ped.json()["id_pedido"]
+
+    # Juntos pedem 13 peças M, mas o saldo é 10 -> deve recusar com 409 apontando necessário=13, disponível=10
+    falha = client.post(f"/camisetas/pedidos/{id_pedido}/entregar", json={})
+    assert falha.status_code == 409
+    assert falha.json()["detail"]["faltas"] == [
+        {"id_variacao": var_m.id_variacao, "sku": "Camiseta Básica · Preto · M", "necessario": 13, "disponivel": 10}
+    ]
+    db.refresh(var_m)
+    assert var_m.saldo == 10
+

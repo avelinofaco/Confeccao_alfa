@@ -6,6 +6,7 @@ from app.core.erros import ErroNegocio
 from app.models.camisetas_sku import CamisetaPedidoItem, CamisetaPedidoItemQtd
 from app.schemas.camisetas_sku import PedidoItemEntrada, PedidoItemResponse, QtdTamanhoEntrada, QtdTamanhoResponse
 from app.services.camisetas.cores import obter_cor
+from app.services.camisetas.estampas import obter_estampa
 from app.services.camisetas.sku import obter_modelo, tamanho_do_modelo, tamanhos_do_modelo
 
 ROTULOS_LEGADOS = (("P", "grade_p"), ("M", "grade_m"), ("G", "grade_g"), ("GG", "grade_gg"))
@@ -20,6 +21,16 @@ def _validar_cor(db: Session, entrada: PedidoItemEntrada, numero: int, nome_mode
     cor = obter_cor(db, entrada.id_cor)
     if not cor.ativo:
         raise ErroNegocio(400, f"A cor {cor.nome} está inativa; escolha outra para o item {numero}.")
+
+
+def _resolver_estampa(db: Session, entrada: PedidoItemEntrada, numero: int) -> tuple[int | None, str | None]:
+    if entrada.id_estampa is None:
+        return None, None
+    estampa = obter_estampa(db, entrada.id_estampa)
+    if not estampa.ativo:
+        raise ErroNegocio(400, f"A estampa {estampa.nome} está inativa; escolha outra para o item {numero}.")
+    posicao = " ".join((entrada.posicao_estampa or "").split()) or "Frente"
+    return estampa.id_estampa, posicao
 
 
 def _quantidades(db: Session, modelo, entrada: PedidoItemEntrada, numero: int) -> list[CamisetaPedidoItemQtd]:
@@ -46,11 +57,18 @@ def montar_itens(db: Session, entradas: list[PedidoItemEntrada], exigir_cor: boo
     for numero, entrada in enumerate(entradas, start=1):
         modelo = obter_modelo(db, entrada.id_modelo)
         _validar_cor(db, entrada, numero, modelo.nome_modelo, exigir_cor)
-        if (entrada.id_modelo, entrada.id_cor) in vistos:
+        id_estampa, posicao = _resolver_estampa(db, entrada, numero)
+        chave_item = (entrada.id_modelo, entrada.id_cor, id_estampa, (posicao or "").casefold())
+        if chave_item in vistos:
             raise ErroNegocio(400, f"O item {numero} repete modelo e cor de outro item; junte as quantidades num item só.")
-        vistos.add((entrada.id_modelo, entrada.id_cor))
+        vistos.add(chave_item)
         itens.append(CamisetaPedidoItem(
-            id_modelo=modelo.id_modelo, id_cor=entrada.id_cor, quantidades=_quantidades(db, modelo, entrada, numero)))
+            id_modelo=modelo.id_modelo,
+            id_cor=entrada.id_cor,
+            id_estampa=id_estampa,
+            posicao_estampa=posicao,
+            quantidades=_quantidades(db, modelo, entrada, numero),
+        ))
     return itens
 
 
@@ -80,9 +98,19 @@ def total_do_item(item: CamisetaPedidoItem) -> int:
 
 def resposta_do_item(item: CamisetaPedidoItem) -> PedidoItemResponse:
     quantidades = sorted(item.quantidades, key=lambda q: q.tamanho.ordem)
+    est = item.estampa
     return PedidoItemResponse(
-        id_item=item.id_item, id_modelo=item.id_modelo, nome_modelo=item.modelo.nome_modelo,
-        id_cor=item.id_cor, nome_cor=item.cor.nome if item.cor else None, hex_cor=item.cor.hex if item.cor else None,
+        id_item=item.id_item,
+        id_modelo=item.id_modelo,
+        nome_modelo=item.modelo.nome_modelo,
+        id_cor=item.id_cor,
+        nome_cor=item.cor.nome if item.cor else None,
+        hex_cor=item.cor.hex if item.cor else None,
+        id_estampa=item.id_estampa,
+        codigo_estampa=est.codigo if est else None,
+        nome_estampa=est.nome if est else None,
+        imagem_estampa_url=est.imagem_data_url if est else None,
+        posicao_estampa=item.posicao_estampa,
         quantidades=[QtdTamanhoResponse(id_tamanho=q.id_tamanho, rotulo=q.tamanho.rotulo, quantidade=q.quantidade)
                      for q in quantidades],
         total=total_do_item(item),
