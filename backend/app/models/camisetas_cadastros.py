@@ -4,6 +4,7 @@ from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, T
 from sqlalchemy.orm import relationship
 
 from app.database import Base
+from app.models.camisetas import gerar_token_portal
 from app.models.estoque import get_utc_now
 
 
@@ -21,6 +22,7 @@ class CamisetaCliente(Base):
     uf = Column(String(2), nullable=True)
     endereco = Column(String(255), nullable=True)
     observacoes = Column(Text, nullable=True)
+    token_portal = Column(String(64), nullable=True, unique=True, index=True, default=gerar_token_portal)
     ativo = Column(Boolean, nullable=False, default=True)
     criado_em = Column(DateTime(timezone=True), default=get_utc_now)
     atualizado_em = Column(DateTime(timezone=True), default=get_utc_now, onupdate=get_utc_now)

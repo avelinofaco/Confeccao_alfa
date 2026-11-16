@@ -7,10 +7,15 @@ Todos os nomes de tabelas, colunas e relacionamentos estruturados em português.
 from sqlalchemy import Column, Integer, String, Numeric, DateTime, ForeignKey, Date, Text
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
+import secrets
 from app.database import Base
 
 def get_utc_now():
     return datetime.now(timezone.utc)
+
+
+def gerar_token_portal() -> str:
+    return secrets.token_urlsafe(24)
 
 class CamisetaModelo(Base):
     __tablename__ = "camisetas_modelos"
@@ -105,6 +110,10 @@ class CamisetaPedido(Base):
     status_pedido = Column(String(50), default="Aguardando Produção")
     observacoes = Column(Text, nullable=True)
     data_entrega_realizada = Column(Date, nullable=True)  # preenchida ao registrar a entrega
+    token_aprovacao = Column(String(64), nullable=True, unique=True, index=True, default=gerar_token_portal)
+    status_aprovacao_cliente = Column(String(30), nullable=False, default="Pendente")
+    observacao_cliente = Column(Text, nullable=True)
+    aprovado_pelo_cliente_em = Column(DateTime(timezone=True), nullable=True)
 
     criado_em = Column(DateTime(timezone=True), default=get_utc_now)
     atualizado_em = Column(DateTime(timezone=True), default=get_utc_now, onupdate=get_utc_now)

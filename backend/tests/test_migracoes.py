@@ -163,6 +163,29 @@ def test_migracao_pedido_item_estampa_sobe_e_desce(tmp_path):
     assert "posicao_estampa" not in colunas_apos
 
 
+def test_migracao_portal_cliente_sobe_e_desce(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    rodar_alembic("upgrade", "20261116_009_portal_cliente", url=url)
+    engine = sa.create_engine(url)
+    try:
+        cols_ped = {c["name"] for c in sa.inspect(engine).get_columns("camisetas_pedidos")}
+        cols_cli = {c["name"] for c in sa.inspect(engine).get_columns("camisetas_clientes")}
+    finally:
+        engine.dispose()
+    assert {"token_aprovacao", "status_aprovacao_cliente", "observacao_cliente", "aprovado_pelo_cliente_em"}.issubset(cols_ped)
+    assert "token_portal" in cols_cli
+
+    rodar_alembic("downgrade", "20261116_008_pedido_item_estampa", url=url)
+    engine = sa.create_engine(url)
+    try:
+        cols_ped_apos = {c["name"] for c in sa.inspect(engine).get_columns("camisetas_pedidos")}
+        cols_cli_apos = {c["name"] for c in sa.inspect(engine).get_columns("camisetas_clientes")}
+    finally:
+        engine.dispose()
+    assert "token_aprovacao" not in cols_ped_apos
+    assert "token_portal" not in cols_cli_apos
+
+
 def test_modelos_e_migracoes_estao_alinhados(tmp_path):
     url = f"sqlite:///{tmp_path / 'migracao.db'}"
     rodar_alembic("upgrade", "head", url=url)
