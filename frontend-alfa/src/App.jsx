@@ -29,6 +29,8 @@ import CorteRendimentoCamisetas from './pages/CorteRendimentoCamisetas';
 import RegistroFinanceiroCamisetas from './pages/RegistroFinanceiroCamisetas';
 import CosturaFaccoesCamisetas from './pages/CosturaFaccoesCamisetas';
 import ProdutosProntosCamisetas from './pages/ProdutosProntosCamisetas';
+import PortalPedidoCliente from './pages/PortalPedidoCliente';
+import PortalCatalogoCliente from './pages/PortalCatalogoCliente';
 
 import './App.css';
 
@@ -43,6 +45,8 @@ function AppRoutes() {
     <Routes>
       {/* Autenticação & Seleção de Segmento */}
       <Route path="/" element={<Login />} />
+      <Route path="/portal/pedido/:token" element={<PortalPedidoCliente />} />
+      <Route path="/portal/cliente/:token" element={<PortalCatalogoCliente />} />
       <Route path="/cadastro" element={<RotaProtegida><Cadastro /></RotaProtegida>} />
       <Route path="/selecao-segmento" element={<RotaProtegida><SelecaoSegmento /></RotaProtegida>} />
 

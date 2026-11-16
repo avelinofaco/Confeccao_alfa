@@ -1,0 +1,203 @@
+/* Portal do Cliente (mobile-first) — tokens do Ateliê Artesanal */
+.portal-cliente-pagina {
+  min-height: 100vh;
+  background: var(--bg-artisan-canvas);
+  color: var(--color-text-main);
+  padding: 1.2rem 1rem 3rem;
+}
+
+.portal-cliente-container {
+  max-width: 52rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.portal-cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding: 1.1rem 1.3rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-artisan);
+  background: var(--bg-artisan-surface);
+}
+
+.portal-marca {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.portal-marca h1 {
+  margin: 0;
+  font-family: var(--font-serif-editorial);
+  font-size: 1.35rem;
+}
+
+.portal-marca small {
+  color: var(--color-text-muted);
+  display: block;
+}
+
+.portal-card {
+  padding: 1.25rem 1.35rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-artisan);
+  background: var(--bg-artisan-surface);
+}
+
+.portal-card h2 {
+  margin: 0 0 0.8rem;
+  font-size: 1.15rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.portal-resumo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.portal-resumo-item {
+  padding: 0.7rem 0.85rem;
+  border-radius: 8px;
+  background: var(--bg-artisan-subtle);
+  border: 1px solid var(--border-artisan);
+}
+
+.portal-resumo-item span {
+  display: block;
+  font-size: 0.76rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.portal-resumo-item strong {
+  font-size: 1rem;
+}
+
+.portal-selo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.portal-selo.aprovado {
+  background: rgba(16, 185, 129, 0.14);
+  color: #047857;
+}
+
+.portal-selo.pendente {
+  background: rgba(245, 158, 11, 0.15);
+  color: #b45309;
+}
+
+.portal-selo.ajuste {
+  background: var(--accent-artisan-terracotta-bg);
+  color: var(--accent-artisan-terracotta);
+}
+
+.portal-itens-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.portal-item-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1rem;
+  padding: 0.95rem;
+  border-radius: 10px;
+  border: 1px solid var(--border-artisan);
+  background: var(--bg-artisan-subtle);
+  align-items: center;
+}
+
+.portal-item-arte {
+  width: 5.5rem;
+  height: 5.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-artisan-strong);
+  background: var(--bg-artisan-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 0.3rem;
+}
+
+.portal-item-arte img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.portal-item-lisa {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.portal-item-tamanhos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.portal-acoes-aprovacao {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-top: 0.9rem;
+}
+
+.portal-vitrine-estampas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  gap: 0.7rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.portal-vitrine-card {
+  padding: 0.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-artisan);
+  background: var(--bg-artisan-subtle);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.portal-vitrine-card img {
+  height: 4.5rem;
+  width: 100%;
+  object-fit: contain;
+  background: var(--bg-artisan-surface);
+  border-radius: 6px;
+}
+
+@media (max-width: 520px) {
+  .portal-item-card {
+    grid-template-columns: 1fr;
+  }
+}

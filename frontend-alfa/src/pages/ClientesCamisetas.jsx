@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { MessageCircle, Pencil, Plus, Search, Trash2, Users } from 'lucide-react';
+import { Link2, MessageCircle, Pencil, Plus, Search, Trash2, Users } from 'lucide-react';
 import api from '../services/api';
 import Sidebar from '../components/Sidebar';
 import { useToast } from '../components/feedback/useToast';
@@ -86,6 +86,17 @@ function ClientesCamisetas() {
     carregar();
   };
 
+  const copiarLinkPortal = async (cliente) => {
+    if (!cliente.token_portal) return;
+    const url = `${window.location.origin}/portal/cliente/${cliente.token_portal}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.sucesso(`Link do Portal copiado para ${cliente.nome}! Envie no WhatsApp.`);
+    } catch {
+      toast.info(`Link do Portal: ${url}`);
+    }
+  };
+
   return (
     <div className="clientes-container">
       <Sidebar />
@@ -166,6 +177,17 @@ function ClientesCamisetas() {
                   <td>{formatarData(cliente.ultimo_pedido_em)}</td>
                   <td>{formatarMoeda(cliente.valor_total_pedidos)}</td>
                   <td className="clientes-acoes">
+                    {cliente.ativo && cliente.token_portal && (
+                      <button
+                        type="button"
+                        className="cadastro-btn-icone"
+                        onClick={() => copiarLinkPortal(cliente)}
+                        title="Copiar link para o cliente montar pedido pelo celular"
+                        aria-label={`Copiar link do portal de ${cliente.nome}`}
+                      >
+                        <Link2 size={16} />
+                      </button>
+                    )}
                     <button
                       type="button"
                       className="cadastro-btn-icone"

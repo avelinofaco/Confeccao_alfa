@@ -6,7 +6,8 @@ import {
   Search,
   Truck,
   RotateCcw,
-  AlertTriangle
+  AlertTriangle,
+  Link2
 } from 'lucide-react';
 import api from '../services/api';
 import Sidebar from '../components/Sidebar';
@@ -151,6 +152,17 @@ function PedidoCamisetas() {
 
   const formatarMoeda = (val) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
+  };
+
+  const copiarLinkAprovacao = async (pedido) => {
+    if (!pedido.token_aprovacao) return;
+    const url = `${window.location.origin}/portal/pedido/${pedido.token_aprovacao}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.sucesso(`Link de aprovação do pedido ${pedido.codigo_pedido} copiado!`);
+    } catch {
+      toast.info(`Link de aprovação: ${url}`);
+    }
   };
 
   // Totais e KPIs
@@ -375,8 +387,30 @@ function PedidoCamisetas() {
                           }`}>
                             {isEntregue ? 'Entregue ao Cliente' : ped.status_pedido}
                           </span>
+                          <div style={{ marginTop: '0.35rem', fontSize: '0.78rem' }}>
+                            <span className="cadastro-etiqueta">
+                              Cliente: {ped.status_aprovacao_cliente || 'Pendente'}
+                            </span>
+                            {ped.observacao_cliente && (
+                              <div style={{ color: '#b45309', marginTop: '0.2rem' }}>
+                                "{ped.observacao_cliente}"
+                              </div>
+                            )}
+                          </div>
                         </td>
                         <td style={{ textAlign: 'center' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', alignItems: 'center' }}>
+                            {ped.token_aprovacao && (
+                              <button
+                                type="button"
+                                className="btn-link-itens"
+                                onClick={() => copiarLinkAprovacao(ped)}
+                                title="Copiar link para o cliente ver e aprovar o pedido no celular"
+                              >
+                                <Link2 size={13} style={{ verticalAlign: 'middle', marginRight: 3 }} />
+                                Link de aprovação
+                              </button>
+                            )}
                           {isEntregue ? (
                             <button
                               type="button"
@@ -400,6 +434,7 @@ function PedidoCamisetas() {
                               <span>Registrar Entrega</span>
                             </button>
                           )}
+                          </div>
                         </td>
                       </tr>
                     );
