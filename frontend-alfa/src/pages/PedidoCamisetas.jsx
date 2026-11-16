@@ -28,9 +28,9 @@ import {
 } from '../utils/pedidoItens';
 import './PedidoCamisetas.css';
 
-const formularioVazio = (hoje, idModelo = '') => ({
+const formularioVazio = (hoje, idModelo = '', idCor = '') => ({
   cliente: null,
-  itens: [itemVazio(1, idModelo)],
+  itens: [itemVazio(1, idModelo, idCor)],
   prazo_entrega: hoje,
   valor_total: '',
   observacoes: '',
@@ -64,9 +64,18 @@ function PedidoCamisetas() {
     ]);
     const [mods, listaPedidos, prontos, listaCores, listaEstampas] = dados;
     setModelos(mods);
-    setFormData((atual) => (atual.itens[0]?.id_modelo || mods.length === 0
-      ? atual
-      : { ...atual, itens: atual.itens.map((item, indice) => (indice === 0 ? { ...item, id_modelo: String(mods[0].id_modelo) } : item)) }));
+    setFormData((atual) => ({
+      ...atual,
+      itens: atual.itens.map((item, indice) =>
+        indice === 0
+          ? {
+              ...item,
+              id_modelo: item.id_modelo || (mods[0] ? String(mods[0].id_modelo) : ''),
+              id_cor: item.id_cor || (listaCores[0] ? String(listaCores[0].id_cor) : ''),
+            }
+          : item
+      ),
+    }));
     setPedidos(listaPedidos);
     setProdutosProntos(prontos);
     setCores(listaCores);
@@ -120,7 +129,7 @@ function PedidoCamisetas() {
         observacoes: formData.observacoes,
       });
       toast.sucesso(`Pedido ${pedidoCriado.codigo_pedido} registrado com ${pedidoCriado.quantidade_total} peças. Status inicial: 'Aguardando Produção'.`);
-      setFormData(formularioVazio(hoje, modelos[0]?.id_modelo ?? ''));
+      setFormData(formularioVazio(hoje, modelos[0]?.id_modelo ?? '', cores[0]?.id_cor ?? ''));
       setErroData('');
       await carregarDados();
     } catch (err) {

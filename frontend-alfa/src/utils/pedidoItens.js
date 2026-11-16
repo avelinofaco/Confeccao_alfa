@@ -14,11 +14,13 @@ export const POSICOES_ESTAMPA = [
 ];
 
 /** Item vazio do editor; `chave` só identifica o item na tela. */
-export const itemVazio = (chave, idModelo = '') => ({
+export const itemVazio = (chave, idModelo = '', idCor = '') => ({
   chave,
   id_modelo: String(idModelo),
-  id_cor: '',
+  id_cor: String(idCor),
   id_estampa: '',
+  imagem_data_url: '',
+  nome_estampa_nova: '',
   posicao_estampa: 'Frente',
   valores: {},
 });
@@ -27,11 +29,15 @@ export const colunasDoModelo = (modelo) => (modelo?.grade_tamanhos || []).map((t
 
 export const totalDoItem = (item) => Object.values(item.valores).reduce((total, valor) => total + (Number(valor) || 0), 0);
 
+export const temArteNoItem = (item) => Boolean(item.id_estampa || item.imagem_data_url);
+
 export const itemParaApi = (item) => ({
   id_modelo: Number(item.id_modelo),
   id_cor: item.id_cor ? Number(item.id_cor) : null,
   id_estampa: item.id_estampa ? Number(item.id_estampa) : null,
-  posicao_estampa: item.id_estampa ? (item.posicao_estampa || 'Frente') : null,
+  imagem_data_url: !item.id_estampa && item.imagem_data_url ? item.imagem_data_url : null,
+  nome_estampa_nova: !item.id_estampa && item.nome_estampa_nova ? item.nome_estampa_nova : null,
+  posicao_estampa: temArteNoItem(item) ? (item.posicao_estampa || 'Frente') : null,
   quantidades: Object.entries(item.valores)
     .map(([chave, valor]) => ({ id_tamanho: Number(chave.split(':')[1]), quantidade: Number(valor) || 0 }))
     .filter((q) => q.quantidade > 0),
@@ -42,6 +48,8 @@ export const itemDaApi = (item, chave) => ({
   id_modelo: String(item.id_modelo),
   id_cor: item.id_cor ? String(item.id_cor) : '',
   id_estampa: item.id_estampa ? String(item.id_estampa) : '',
+  imagem_data_url: '',
+  nome_estampa_nova: '',
   posicao_estampa: item.posicao_estampa || 'Frente',
   valores: Object.fromEntries(item.quantidades.map((q) => [chaveCelula(LINHA_QTD, q.id_tamanho), q.quantidade])),
 });
@@ -55,9 +63,11 @@ export function problemaDosItens(itens) {
   if (semCor >= 0) return `Escolha a cor do item ${semCor + 1}.`;
   const vazio = itens.findIndex((i) => totalDoItem(i) <= 0);
   if (vazio >= 0) return `Informe as quantidades do item ${vazio + 1}.`;
-  const chaves = itens.map(
-    (i) => `${i.id_modelo}:${i.id_cor}:${i.id_estampa || ''}:${i.id_estampa ? (i.posicao_estampa || 'Frente').toLowerCase() : ''}`,
-  );
+  const chaves = itens.map((i) => {
+    const arteChave = i.id_estampa ? `est:${i.id_estampa}` : i.imagem_data_url ? `upload:${i.chave}` : '';
+    const posChave = temArteNoItem(i) ? (i.posicao_estampa || 'Frente').toLowerCase() : '';
+    return `${i.id_modelo}:${i.id_cor}:${arteChave}:${posChave}`;
+  });
   const repetido = chaves.findIndex((chave, indice) => chaves.indexOf(chave) !== indice);
   if (repetido >= 0) return `O item ${repetido + 1} repete modelo, cor e estampa de outro item; junte as quantidades num item só.`;
   return '';

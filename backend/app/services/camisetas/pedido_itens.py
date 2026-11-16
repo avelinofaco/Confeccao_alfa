@@ -4,9 +4,10 @@ from sqlalchemy.orm import Session
 
 from app.core.erros import ErroNegocio
 from app.models.camisetas_sku import CamisetaPedidoItem, CamisetaPedidoItemQtd
+from app.schemas.camisetas_estampas import EstampaCreate
 from app.schemas.camisetas_sku import PedidoItemEntrada, PedidoItemResponse, QtdTamanhoEntrada, QtdTamanhoResponse
 from app.services.camisetas.cores import obter_cor
-from app.services.camisetas.estampas import obter_estampa
+from app.services.camisetas.estampas import criar_estampa, obter_estampa
 from app.services.camisetas.sku import obter_modelo, tamanho_do_modelo, tamanhos_do_modelo
 
 ROTULOS_LEGADOS = (("P", "grade_p"), ("M", "grade_m"), ("G", "grade_g"), ("GG", "grade_gg"))
@@ -24,13 +25,20 @@ def _validar_cor(db: Session, entrada: PedidoItemEntrada, numero: int, nome_mode
 
 
 def _resolver_estampa(db: Session, entrada: PedidoItemEntrada, numero: int) -> tuple[int | None, str | None]:
-    if entrada.id_estampa is None:
-        return None, None
-    estampa = obter_estampa(db, entrada.id_estampa)
-    if not estampa.ativo:
-        raise ErroNegocio(400, f"A estampa {estampa.nome} está inativa; escolha outra para o item {numero}.")
     posicao = " ".join((entrada.posicao_estampa or "").split()) or "Frente"
-    return estampa.id_estampa, posicao
+    if entrada.id_estampa is not None:
+        estampa = obter_estampa(db, entrada.id_estampa)
+        if not estampa.ativo:
+            raise ErroNegocio(400, f"A estampa {estampa.nome} está inativa; escolha outra para o item {numero}.")
+        return estampa.id_estampa, posicao
+    if entrada.imagem_data_url and entrada.imagem_data_url.strip():
+        nome_nova = " ".join((entrada.nome_estampa_nova or "").split()) or f"Estampa do Item {numero}"
+        nova = criar_estampa(
+            db,
+            EstampaCreate(nome=nome_nova, imagem_data_url=entrada.imagem_data_url),
+        )
+        return nova.id_estampa, posicao
+    return None, None
 
 
 def _quantidades(db: Session, modelo, entrada: PedidoItemEntrada, numero: int) -> list[CamisetaPedidoItemQtd]:

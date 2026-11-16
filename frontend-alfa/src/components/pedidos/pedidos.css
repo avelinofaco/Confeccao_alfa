@@ -1,9 +1,266 @@
-/* Itens e entrega do pedido — tokens do Ateliê Artesanal (index.css) */
-.itens-pedido { display: grid; gap: 0.9rem; margin: 0 0 1.2rem; padding: 1rem 1.1rem; border: var(--border-stitch); border-radius: 12px; }
-.itens-pedido legend { display: flex; align-items: center; gap: 0.6rem; padding: 0 0.4rem; font-weight: 700; }
-.item-pedido { padding: 0.8rem 0.9rem; border: 1px solid var(--border-artisan); border-radius: 10px; background: var(--bg-artisan-surface); }
-.item-pedido-cabecalho { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
-.item-pedido-campos { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 0.7rem; }
+/* Itens e entrega do pedido — grade responsiva de 4 colunas (grid-cols-4) */
+.itens-pedido {
+  margin: 0 0 1.4rem;
+  padding: 1.2rem;
+  border: 1px solid #d8d1c5;
+  border-radius: 16px;
+  background: #fdfcfa;
+}
+
+.itens-pedido legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0 0.5rem;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #2c2523;
+}
+
+/* Grade de 4 colunas: comporta até 4 cards por linha e quebra automaticamente */
+.itens-pedido-grade {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  align-items: stretch;
+}
+
+@media (max-width: 1180px) {
+  .itens-pedido-grade {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  .itens-pedido-grade {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .itens-pedido-grade {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Card de cada item do pedido */
+.item-pedido-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.75rem;
+  border-radius: 14px;
+  border: 1px solid #e0d9cc;
+  background: #f5f2ea;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.item-pedido-remover-btn {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  z-index: 3;
+  width: 1.55rem;
+  height: 1.55rem;
+  border-radius: 999px;
+  border: 1px solid #d8d1c5;
+  background: rgba(255, 255, 255, 0.92);
+  color: #7c6f64;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.item-pedido-remover-btn:hover {
+  color: #b91c1c;
+  border-color: #fca5a5;
+}
+
+/* Área superior dedicada ao upload/pré-visualização da imagem */
+.item-pedido-arte-wrapper {
+  position: relative;
+}
+
+.item-pedido-arte-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 10.5rem;
+  padding: 0.65rem;
+  border-radius: 10px;
+  border: 1.5px dashed #8a8175;
+  background: #f7f4ec;
+  cursor: pointer;
+  text-align: center;
+  overflow: hidden;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.item-pedido-arte-box:hover {
+  border-color: #2563eb;
+  background: #fbf9f4;
+}
+
+.item-pedido-arte-vazia {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #2c2523;
+}
+
+.item-pedido-camiseta-svg {
+  width: 5.2rem;
+  height: 4.8rem;
+}
+
+.item-pedido-arte-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
+.item-pedido-limpar-arte {
+  position: absolute;
+  bottom: 0.4rem;
+  right: 0.4rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  border: 1px solid #d8d1c5;
+  background: rgba(255, 255, 255, 0.92);
+  color: #44403c;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Seletores enxutos de modelo, cor e estampa do catálogo */
+.item-pedido-seletores-compactos {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.35rem;
+}
+
+.item-pedido-seletores-compactos select {
+  width: 100%;
+  min-width: 0;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 600;
+  padding: 0.28rem 0.35rem;
+  border-radius: 6px;
+  border: 1px solid #d5cec0;
+  background: #ffffff;
+  color: #2c2523;
+  text-overflow: ellipsis;
+}
+
+.item-pedido-cor-select-box {
+  display: flex;
+  align-items: center;
+  gap: 0.22rem;
+  min-width: 0;
+  background: #ffffff;
+  border: 1px solid #d5cec0;
+  border-radius: 6px;
+  padding-left: 0.32rem;
+}
+
+.item-pedido-cor-select-box select {
+  border: none;
+  padding-left: 0.1rem;
+  background: transparent;
+}
+
+.item-pedido-cor-bolinha {
+  width: 0.68rem;
+  height: 0.68rem;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+}
+
+/* Barra de tamanhos (P, M, G, GG) e inputs de quantidade logo abaixo */
+.item-pedido-tamanhos-bloco {
+  display: flex;
+  flex-direction: column;
+  gap: 0.42rem;
+  margin-top: auto;
+  min-width: 0;
+}
+
+.item-pedido-tamanhos-barra {
+  display: grid;
+  background: #dfd7c8;
+  border-radius: 7px;
+  padding: 0.35rem 0.2rem;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #2c2523;
+}
+
+.item-pedido-tamanhos-campos {
+  display: grid;
+  gap: 0.38rem;
+  min-width: 0;
+}
+
+.itens-pedido .item-pedido-qtd-input {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100%;
+  height: 2.15rem;
+  padding: 0.2rem 0.15rem;
+  border-radius: 7px;
+  border: 1px solid #d5cec0;
+  background: #ffffff;
+  text-align: center;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #2c2523;
+  box-sizing: border-box;
+}
+
+.itens-pedido .item-pedido-qtd-input:focus-visible {
+  outline: 2px solid #2563eb;
+  border-color: #2563eb;
+}
+
+/* Card "+ Adicionar item" posicionado imediatamente à direita do último card ativo */
+.item-pedido-card-adicionar {
+  min-height: 17.5rem;
+  border-radius: 14px;
+  border: 1.5px dashed #7a7067;
+  background: #f5f2ea;
+  color: #1f1b18;
+  font: inherit;
+  font-size: 0.98rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.item-pedido-card-adicionar:hover {
+  border-color: #2563eb;
+  background: #f9f7f1;
+}
+
 .pedido-itens-resumo { margin: 0; padding: 0; list-style: none; font-size: 0.85rem; }
 .pedido-itens-resumo .sem-cor { color: var(--accent-artisan-amber); font-weight: 600; }
 .btn-link-itens {
@@ -14,8 +271,5 @@
 .entrega-skus th, .entrega-skus td { padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--border-artisan); text-align: left; }
 .entrega-skus th { font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); }
 .entrega-falta td { color: var(--accent-artisan-terracotta); font-weight: 600; }
-.item-pedido-estampa-linha { display: flex; align-items: center; gap: 0.5rem; }
-.item-pedido-estampa-linha select { flex: 1; }
-.item-pedido-estampa-thumb { width: 2.3rem; height: 2.3rem; object-fit: contain; border-radius: 6px; border: 1px solid var(--border-artisan-strong); background: var(--bg-artisan-subtle); flex-shrink: 0; }
 .pedido-item-linha { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.15rem; }
 .pedido-item-thumb-mini { width: 1.5rem; height: 1.5rem; object-fit: contain; border-radius: 4px; border: 1px solid var(--border-artisan); background: var(--bg-artisan-subtle); flex-shrink: 0; }

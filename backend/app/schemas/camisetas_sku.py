@@ -147,6 +147,8 @@ class PedidoItemEntrada(BaseModel):
     id_modelo: int
     id_cor: Optional[int] = None  # obrigatória nos pedidos novos (validado no serviço)
     id_estampa: Optional[int] = None
+    imagem_data_url: Optional[str] = None
+    nome_estampa_nova: Optional[str] = Field(None, max_length=120)
     posicao_estampa: Optional[str] = Field(None, max_length=40)
     quantidades: List[QtdTamanhoEntrada] = Field(..., min_length=1)
 

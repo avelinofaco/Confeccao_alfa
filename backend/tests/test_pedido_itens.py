@@ -165,3 +165,24 @@ def test_estampa_inativa_no_pedido_retorna_400(client, db):
     assert resposta.status_code == 400
     assert "inativa" in resposta.json()["detail"]
 
+
+def test_item_com_upload_direto_de_imagem_cria_estampa_automaticamente(client, db):
+    import base64
+    from tests.fabricas import PNG_MINIMO_BYTES
+
+    modelo, preto, _, cliente = _cenario(db)
+    data_url = "data:image/png;base64," + base64.b64encode(PNG_MINIMO_BYTES).decode("ascii")
+    item = {
+        **_item(modelo, preto, P=4, M=6),
+        "imagem_data_url": data_url,
+        "nome_estampa_nova": "Arte Enviada no Card",
+    }
+    resposta = client.post(URL, json=_pedido(cliente, [item]))
+    assert resposta.status_code == 201
+    criado = resposta.json()["itens"][0]
+    assert criado["id_estampa"] is not None
+    assert criado["nome_estampa"] == "Arte Enviada no Card"
+    assert criado["codigo_estampa"].startswith("EST-")
+    assert criado["imagem_estampa_url"] == data_url
+
+
