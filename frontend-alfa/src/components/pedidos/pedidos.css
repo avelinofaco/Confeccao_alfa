@@ -1,0 +1,16 @@
+/* Itens e entrega do pedido — tokens do Ateliê Artesanal (index.css) */
+.itens-pedido { display: grid; gap: 0.9rem; margin: 0 0 1.2rem; padding: 1rem 1.1rem; border: var(--border-stitch); border-radius: 12px; }
+.itens-pedido legend { display: flex; align-items: center; gap: 0.6rem; padding: 0 0.4rem; font-weight: 700; }
+.item-pedido { padding: 0.8rem 0.9rem; border: 1px solid var(--border-artisan); border-radius: 10px; background: var(--bg-artisan-surface); }
+.item-pedido-cabecalho { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+.item-pedido-campos { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 0.7rem; }
+.pedido-itens-resumo { margin: 0; padding: 0; list-style: none; font-size: 0.85rem; }
+.pedido-itens-resumo .sem-cor { color: var(--accent-artisan-amber); font-weight: 600; }
+.btn-link-itens {
+  margin-top: 0.25rem; padding: 0; border: none; background: none; font: inherit; font-size: 0.8rem;
+  color: var(--accent-artisan-indigo); text-decoration: underline; cursor: pointer;
+}
+.entrega-skus { width: 100%; margin-bottom: 1rem; border-collapse: collapse; font-size: 0.88rem; }
+.entrega-skus th, .entrega-skus td { padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--border-artisan); text-align: left; }
+.entrega-skus th { font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); }
+.entrega-falta td { color: var(--accent-artisan-terracotta); font-weight: 600; }
