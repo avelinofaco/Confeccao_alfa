@@ -1,16 +1,31 @@
+from contextlib import asynccontextmanager
+
 from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from app.core import config
 from app.core.auth import usuario_atual
+from app.core.bootstrap import criar_primeiro_usuario
 from app.core.erros import ErroNegocio
 from app.routers import estoque, ficha_tecnica, producao, costura, comercial, equipe, auth, usuarios, camisetas
 from app.models import camisetas as camisetas_models
-from app.database import engine, Base
+from app.database import engine, Base, SessionLocal
 
 # Comando para criar as tabelas no PostgreSQL (caso ainda não existam)
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="API Confecção Alfa", version="1.0.0")
+@asynccontextmanager
+async def ciclo_de_vida(_app: FastAPI):
+    """Na subida, garante que exista uma conta para entrar (ver app/core/bootstrap.py)."""
+    db = SessionLocal()
+    try:
+        criar_primeiro_usuario(db, config.ADMIN_LOGIN, config.ADMIN_SENHA)
+    finally:
+        db.close()
+    yield
+
+
+app = FastAPI(title="API Confecção Alfa", version="1.0.0", lifespan=ciclo_de_vida)
 
 
 @app.exception_handler(ErroNegocio)
