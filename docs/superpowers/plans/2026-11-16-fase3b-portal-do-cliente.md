@@ -65,6 +65,20 @@
 **Files:**
 - Modify: `docs/superpowers/plans/2026-11-16-fase3b-portal-do-cliente.md`
 
-- [ ] **Step 1: Conferir cobertura `≥ 80%` e `alembic check`**
-- [ ] **Step 2: Verificar aprovação e montagem de pedido pelo Portal do Cliente no navegador automatizado**
-- [ ] **Step 3: Registrar notas de execução e commitar**
+- [x] **Step 1: Conferir cobertura `≥ 80%` e `alembic check`**
+- [x] **Step 2: Verificar aprovação e montagem de pedido pelo Portal do Cliente no navegador automatizado**
+- [x] **Step 3: Registrar notas de execução e commitar**
+
+---
+
+## Notas de execução
+
+Fase 3B executada em 2026-11-16 na branch `feat/camisetas-portal-cliente` (a partir de `feat/camisetas-pedido-estampas`), seguindo as 4 tasks em TDD.
+
+**Resultado:**
+- **255 testes passando** (eram 249 após Fase 3A); cobertura de `app/services/camisetas/portal.py` em **94%** e geral de `app/services/` em **96%**.
+- Migração `20261116_009_portal_cliente` testada em subida, descida (`downgrade`) e `alembic check` sem diferenças, gerando `token_aprovacao` nos pedidos e `token_portal` nos clientes existentes.
+- Rotas `/portal/pedido/{token}` e `/portal/cliente/{token}` protegidas por tokens criptográficos de capacidade (`secrets.token_urlsafe(24)`), sem exigir login interno de funcionário.
+- Telas mobile-first `PortalPedidoCliente.jsx` e `PortalCatalogoCliente.jsx` testadas no navegador real (`browser.mjs`) com `localStorage.clear()`: aprovação do pedido pelo link e montagem de novo pedido com modelo, cor, estampa e tamanhos pelo celular funcionando com **zero erros de console**.
+
+
