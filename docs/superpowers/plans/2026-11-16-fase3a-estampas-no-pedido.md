@@ -63,6 +63,21 @@
 **Files:**
 - Modify: `docs/superpowers/plans/2026-11-16-fase3a-estampas-no-pedido.md`
 
-- [ ] **Step 1: Conferir cobertura `≥ 80%` e `alembic check`**
-- [ ] **Step 2: Verificar criação de pedido com estampa no navegador automatizado**
-- [ ] **Step 3: Registrar notas de execução e commitar**
+- [x] **Step 1: Conferir cobertura `≥ 80%` e `alembic check`**
+- [x] **Step 2: Verificar criação de pedido com estampa no navegador automatizado**
+- [x] **Step 3: Registrar notas de execução e commitar**
+
+---
+
+## Notas de execução
+
+Fase 3A executada em 2026-11-16 na branch `feat/camisetas-pedido-estampas` (a partir de `feat/camisetas-estampas`), seguindo as 4 tasks em TDD.
+
+**Resultado:**
+- **249 testes passando** (eram 243 após Fase 2); cobertura de `app/services/` em **97%**.
+- Migração `20261116_008_pedido_item_estampa` testada em subida, descida (`downgrade`) e `alembic check` sem diferenças.
+- Itens do pedido aceitam `id_estampa` (opcional) e `posicao_estampa` (padrão `"Frente"`), permitindo múltiplos itens do mesmo modelo e cor no mesmo pedido com estampas ou posições distintas.
+- Entrega (`registrar_entrega`) consolida a necessidade por SKU (`modelo + cor + tamanho`) entre todos os itens do pedido antes de conferir saldo e lançar `SAIDA_ENTREGA`.
+- Exclusão de estampa em uso por pedido bloqueada com `409`, oferecendo inativação na tela.
+- Conferido no navegador real (`browser.mjs`): seleção de estampa, miniatura instantânea e seletor de posição na tela **2. Pedidos do Cliente**, com **zero erros de console e zero requisições falhas**.
+
