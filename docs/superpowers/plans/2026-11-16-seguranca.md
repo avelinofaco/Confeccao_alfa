@@ -1010,3 +1010,57 @@ Escrever, na resposta ao usuário, o passo a passo — **sem executar nada disso
 git add docs README.md
 git commit -m "docs: notas de execução da fase de Segurança" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
+
+---
+
+## Notas de execução
+
+Fase executada em 2026-11-16 no branch `feat/camisetas-seguranca`, seguindo as 8 tasks em TDD.
+
+**Resultado**
+
+- **228 testes passando** (eram 177 antes da fase); cobertura de `app/services` em **96,4%**.
+- Exatamente **duas rotas abertas** no sistema inteiro — `GET /` e `POST /login` — provado pelo
+  esquema OpenAPI (operação sem `security` é porta aberta).
+- `grep "sua_chave_secreta_super_segura_aqui" app/` não encontra mais nada.
+- Com `AMBIENTE=producao` e sem `SECRET_KEY`, a aplicação recusa subir com mensagem explicativa
+  (conferido de verdade, não só no teste unitário).
+- Conferido no navegador: abrir `/camisetas/produtos-prontos` sem login cai no `/`; o login guarda
+  quem entrou; token forjado derruba para o login com "Sua sessão expirou. Entre de novo.".
+- Build e `oxlint` sem erros, sem nenhum aviso nos arquivos tocados.
+
+**Diferenças em relação ao plano**
+
+1. **O `client` dos testes passou a chegar autenticado**, em vez de criar um `cliente_autenticado` e
+   alterar os 16 arquivos de teste (a spec previa o segundo caminho). **Nenhum arquivo de teste
+   existente precisou mudar.** Um `client_sem_login` cobre o outro lado.
+2. **`lifespan` no lugar de `on_event("startup")`.** O plano usava `@app.on_event`, que esta versão
+   do FastAPI acusa como depreciado — teria nascido código velho. Trocado pelo gerenciador de
+   contexto `lifespan`.
+3. **Hash da senha de teste calculado uma vez por sessão.** Com o `client` autenticado, cada teste
+   passou a gerar um hash bcrypt e a suíte foi de 4,5 s para 27 s. Hasheando uma vez no `conftest`,
+   voltou para 5,5 s.
+4. **Trava no redirecionamento de sessão expirada.** Descoberto no navegador: uma tela faz várias
+   chamadas em paralelo e, com o token vencido, **cada 401 disparava a sua própria navegação** — 8
+   erros de console e 7 navegações abortadas numa queda só. Com a trava, cai uma vez.
+5. **`Login.jsx` perdeu os `alert()`.** O arquivo já era tocado nesta fase e o projeto não usa
+   `alert`; virou `useToast`. Os 7 `alert()` de `PerfilUsuario.jsx` **ficaram como estavam**: são
+   anteriores e não têm relação com segurança — trocá-los seria ampliar o escopo.
+6. **`.env` não foi tocado**, conforme a decisão do usuário.
+
+**Correção de bug que a fase trouxe junto**
+
+`PerfilUsuario.jsx` tinha `const idUsuarioLogado = 1;` — o perfil sempre editava o usuário nº 1,
+fosse quem fosse que estivesse logado. Com várias contas (a decisão desta fase), a segunda pessoa a
+salvar sobrescreveria os dados da primeira, e passaria a tomar 403 sem entender o porquê. Agora o id
+vem de `GET /usuarios/eu`.
+
+## Pendências de produção (ação do usuário)
+
+1. **Rotacionar a senha do Postgres no Render.** A atual está no histórico do git público; tirar o
+   arquivo agora não a apaga de lá.
+2. Definir no painel do Render: `SECRET_KEY` (longa e aleatória, ex.: `openssl rand -base64 48`),
+   `AMBIENTE=producao`, `ADMIN_LOGIN` e `ADMIN_SENHA`.
+3. Fazer o deploy e conferir no log: "Primeira conta criada a partir do ambiente".
+4. Entrar com essa conta, trocar a senha pela tela de Perfil e **remover `ADMIN_SENHA`** do painel.
+5. Conferir que `https://<api>/camisetas/pedidos/` sem token responde 401.

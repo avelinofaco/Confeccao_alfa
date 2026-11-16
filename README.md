@@ -461,6 +461,22 @@ DATABASE_URL=sqlite:///./dev.db venv/bin/python -m alembic upgrade head
 DATABASE_URL=sqlite:///./dev.db venv/bin/python -m uvicorn app.main:app --reload
 ```
 
+### Variáveis de ambiente
+
+Todas as rotas de negócio exigem login. Estas variáveis controlam o acesso:
+
+| Variável | Para que serve | Em desenvolvimento |
+|---|---|---|
+| `DATABASE_URL` | Conexão com o banco | obrigatória |
+| `SECRET_KEY` | Assina os tokens de sessão | opcional: sem ela, o sistema gera uma a cada subida (os logins caem no restart). **Em produção é obrigatória e, sem ela, a aplicação não sobe.** |
+| `AMBIENTE` | `desenvolvimento` (padrão) ou `producao` | opcional |
+| `MINUTOS_DE_SESSAO` | Duração do login; padrão 720 (12 h) | opcional |
+| `ADMIN_LOGIN` / `ADMIN_SENHA` | Criam a primeira conta na subida, **só se não houver nenhum usuário**. Depois disso não têm efeito | opcional |
+
+Com o banco vazio, suba a API uma vez com `ADMIN_LOGIN` e `ADMIN_SENHA` definidos para criar a conta
+inicial; dali em diante novos usuários são cadastrados por dentro do sistema, já logado.
+Em produção, `/camisetas/seed-inicial` responde 403: dados de demonstração não entram lá.
+
 ---
 
 ## 🔄 Integrações e Regras de Negócio
