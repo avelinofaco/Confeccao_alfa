@@ -42,6 +42,8 @@ function FichaTecnicaCamisetas() {
     nome_modelo: '',
     id_grade: '',
     consumo_tecido_kg: '0.180',
+    preco_venda_lisa: '28.00',
+    acrescimo_estampa: '5.00',
     descricao: ''
   });
 
@@ -173,7 +175,14 @@ function FichaTecnicaCamisetas() {
 
   const abrirNovoModelo = () => {
     setIdModeloEdicao(null);
-    setFormModelo({ nome_modelo: '', id_grade: grades[0]?.id_grade ?? '', consumo_tecido_kg: '0.180', descricao: '' });
+    setFormModelo({
+      nome_modelo: '',
+      id_grade: grades[0]?.id_grade ?? '',
+      consumo_tecido_kg: '0.180',
+      preco_venda_lisa: '28.00',
+      acrescimo_estampa: '5.00',
+      descricao: '',
+    });
     setModalNovoModelo(true);
   };
 
@@ -183,6 +192,8 @@ function FichaTecnicaCamisetas() {
       nome_modelo: modelo.nome_modelo,
       id_grade: modelo.id_grade ?? '',
       consumo_tecido_kg: String(modelo.consumo_tecido_kg),
+      preco_venda_lisa: String(modelo.preco_venda_lisa ?? '0.00'),
+      acrescimo_estampa: String(modelo.acrescimo_estampa ?? '0.00'),
       descricao: modelo.descricao || '',
     });
     setModalNovoModelo(true);
@@ -197,6 +208,8 @@ function FichaTecnicaCamisetas() {
     const corpo = {
       nome_modelo: formModelo.nome_modelo,
       consumo_tecido_kg: parseFloat(formModelo.consumo_tecido_kg),
+      preco_venda_lisa: parseFloat(formModelo.preco_venda_lisa || 0),
+      acrescimo_estampa: parseFloat(formModelo.acrescimo_estampa || 0),
       descricao: formModelo.descricao,
       id_grade: formModelo.id_grade ? Number(formModelo.id_grade) : null,
     };
@@ -513,6 +526,16 @@ function FichaTecnicaCamisetas() {
                     {formatarMoeda(custoTotalEstimado)} / peça
                   </strong>
                 </div>
+
+                <div className="espec-item">
+                  <span className="espec-rotulo">Preço de Venda (Lisa / Estampa)</span>
+                  <strong className="espec-valor">
+                    {formatarMoeda(modeloAtivo.preco_venda_lisa)}
+                    <small className="espec-detalhe">
+                      (+{formatarMoeda(modeloAtivo.acrescimo_estampa)} por estampa)
+                    </small>
+                  </strong>
+                </div>
               </div>
 
               {/* TABELA DE COMPOSIÇÃO DOS INSUMOS */}
@@ -659,6 +682,31 @@ function FichaTecnicaCamisetas() {
                     />
                   </div>
                   <span className="form-help-hint">Ex: 0.180 kg = 180 gramas por camiseta</span>
+                </div>
+
+                <div className="modal-form-grid-2">
+                  <div className="form-group">
+                    <label htmlFor="modelo-preco-lisa">Preço Venda Peça Lisa (R$)</label>
+                    <input
+                      id="modelo-preco-lisa"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={formModelo.preco_venda_lisa}
+                      onChange={(e) => setFormModelo({ ...formModelo, preco_venda_lisa: e.target.value })}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="modelo-acrescimo-estampa">Adicional por Estampa (R$)</label>
+                    <input
+                      id="modelo-acrescimo-estampa"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={formModelo.acrescimo_estampa}
+                      onChange={(e) => setFormModelo({ ...formModelo, acrescimo_estampa: e.target.value })}
+                    />
+                  </div>
                 </div>
 
                 <div className="form-group">

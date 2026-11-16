@@ -31,6 +31,21 @@ export const totalDoItem = (item) => Object.values(item.valores).reduce((total, 
 
 export const temArteNoItem = (item) => Boolean(item.id_estampa || item.imagem_data_url);
 
+export const precoUnitarioDoItem = (item, modelos = []) => {
+  const modelo = modelos.find((m) => String(m.id_modelo) === String(item.id_modelo));
+  const base = Number(modelo?.preco_venda_lisa || 0);
+  if (!temArteNoItem(item)) return Math.round(base * 100) / 100;
+  const adicional = Number(modelo?.acrescimo_estampa || 0);
+  const mult = (item.posicao_estampa || 'Frente').toLowerCase() === 'frente e costas' ? 2 : 1;
+  return Math.round((base + adicional * mult) * 100) / 100;
+};
+
+export const subtotalDoItem = (item, modelos = []) =>
+  Math.round(precoUnitarioDoItem(item, modelos) * totalDoItem(item) * 100) / 100;
+
+export const totalCalculadoDosItens = (itens = [], modelos = []) =>
+  Math.round(itens.reduce((acc, item) => acc + subtotalDoItem(item, modelos), 0) * 100) / 100;
+
 export const itemParaApi = (item) => ({
   id_modelo: Number(item.id_modelo),
   id_cor: item.id_cor ? Number(item.id_cor) : null,

@@ -25,6 +25,7 @@ import {
   problemaDosItens,
   resumoDoItem,
   saldosDosProdutos,
+  totalCalculadoDosItens,
 } from '../utils/pedidoItens';
 import './PedidoCamisetas.css';
 
@@ -52,6 +53,13 @@ function PedidoCamisetas() {
 
   // Formulário do novo pedido
   const [formData, setFormData] = useState(() => formularioVazio(hoje));
+  const [valorManual, setValorManual] = useState(false);
+  const valorTabelado = useMemo(() => totalCalculadoDosItens(formData.itens, modelos), [formData.itens, modelos]);
+  const valorExibido = valorManual
+    ? formData.valor_total
+    : valorTabelado > 0
+      ? valorTabelado.toFixed(2)
+      : formData.valor_total;
 
   // Modais: entrega ao cliente e edição dos itens
   const [pedidoParaEntrega, setPedidoParaEntrega] = useState(null);
@@ -107,7 +115,7 @@ function PedidoCamisetas() {
       toast.aviso('Escolha o cliente do pedido (ou cadastre um novo pela própria busca).');
       return;
     }
-    if (!formData.prazo_entrega || !formData.valor_total) {
+    if (!formData.prazo_entrega || (valorExibido === '' && valorTabelado <= 0)) {
       toast.aviso('Preencha o prazo de entrega e o valor do pedido.');
       return;
     }
@@ -121,15 +129,17 @@ function PedidoCamisetas() {
       return;
     }
     try {
+      const valorFinal = valorExibido !== '' ? parseFloat(valorExibido) : valorTabelado;
       const { data: pedidoCriado } = await api.post('/camisetas/pedidos/', {
         id_cliente: formData.cliente.id_cliente,
         itens: formData.itens.map(itemParaApi),
         prazo_entrega: formData.prazo_entrega,
-        valor_total: parseFloat(formData.valor_total),
+        valor_total: valorFinal,
         observacoes: formData.observacoes,
       });
       toast.sucesso(`Pedido ${pedidoCriado.codigo_pedido} registrado com ${pedidoCriado.quantidade_total} peças. Status inicial: 'Aguardando Produção'.`);
       setFormData(formularioVazio(hoje, modelos[0]?.id_modelo ?? '', cores[0]?.id_cor ?? ''));
+      setValorManual(false);
       setErroData('');
       await carregarDados();
     } catch (err) {
@@ -280,11 +290,26 @@ function PedidoCamisetas() {
                   id="campo-valor-total"
                   type="number"
                   step="0.01"
-                  placeholder="Ex: 3500.00"
-                  value={formData.valor_total}
-                  onChange={(e) => setFormData({ ...formData, valor_total: e.target.value })}
+                  placeholder="Calculado pelos itens ou digite..."
+                  value={valorExibido}
+                  onChange={(e) => {
+                    setValorManual(true);
+                    setFormData({ ...formData, valor_total: e.target.value });
+                  }}
                   required
                 />
+                {valorManual && valorTabelado > 0 && (
+                  <button
+                    type="button"
+                    className="btn-link-itens"
+                    onClick={() => {
+                      setValorManual(false);
+                      setFormData((atual) => ({ ...atual, valor_total: '' }));
+                    }}
+                  >
+                    Usar valor tabelado ({formatarMoeda(valorTabelado)})
+                  </button>
+                )}
               </div>
             </div>
 

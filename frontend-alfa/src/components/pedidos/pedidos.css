@@ -237,6 +237,19 @@
   border-color: #2563eb;
 }
 
+.item-pedido-preco-rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.74rem;
+  color: #57534e;
+  padding: 0.15rem 0.15rem 0;
+}
+
+.item-pedido-preco-rodape strong {
+  color: #047857;
+}
+
 /* Card "+ Adicionar item" posicionado imediatamente à direita do último card ativo */
 .item-pedido-card-adicionar {
   min-height: 17.5rem;

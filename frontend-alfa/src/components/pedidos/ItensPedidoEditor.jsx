@@ -6,13 +6,18 @@ import {
   POSICOES_ESTAMPA,
   colunasDoModelo,
   itemVazio,
+  precoUnitarioDoItem,
+  subtotalDoItem,
   temArteNoItem,
+  totalCalculadoDosItens,
   totalDoItem,
 } from '../../utils/pedidoItens';
 import '../cadastros/cadastros.css';
 import './pedidos.css';
 
 const LIMITE_BYTES = 2 * 1024 * 1024; // 2 MB
+const formatarMoeda = (val) =>
+  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(val) || 0);
 
 /** Silhueta de camiseta com ícone de quadro no peito, idêntica ao modelo visual. */
 function IconeCamisetaArte() {
@@ -90,11 +95,15 @@ export function ItensPedidoEditor({ itens, onChange, modelos, cores, estampas = 
   };
 
   const totalGeral = itens.reduce((total, item) => total + totalDoItem(item), 0);
+  const valorCalculado = totalCalculadoDosItens(itens, modelos);
 
   return (
     <fieldset className="itens-pedido">
       <legend>
         Itens do pedido <span className="total-grade-badge">Total: {totalGeral} peças</span>
+        {valorCalculado > 0 && (
+          <span className="total-grade-badge">Tabela: {formatarMoeda(valorCalculado)}</span>
+        )}
       </legend>
 
       <div className="itens-pedido-grade">
@@ -105,6 +114,8 @@ export function ItensPedidoEditor({ itens, onChange, modelos, cores, estampas = 
           const previaUrl = item.imagem_data_url || estampaCatalogo?.imagem_data_url || '';
           const colunas = colunasDoModelo(modelo);
           const id = `${idPrefixo}-${item.chave}`;
+          const precoUnit = precoUnitarioDoItem(item, modelos);
+          const subtotal = subtotalDoItem(item, modelos);
 
           return (
             <div key={item.chave} className="item-pedido-card">
@@ -270,6 +281,12 @@ export function ItensPedidoEditor({ itens, onChange, modelos, cores, estampas = 
                       );
                     })}
                   </div>
+                  {precoUnit > 0 && (
+                    <div className="item-pedido-preco-rodape">
+                      <span>{formatarMoeda(precoUnit)}/un</span>
+                      <strong>{formatarMoeda(subtotal)}</strong>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <p className="painel-cadastro-vazio" style={{ margin: '0.4rem 0 0', fontSize: '0.78rem' }}>
