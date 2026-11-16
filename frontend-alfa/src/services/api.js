@@ -26,4 +26,27 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Uma tela faz várias chamadas em paralelo; com o token vencido, todas voltam 401 ao mesmo tempo.
+// Sem esta trava, cada uma dispararia a sua navegação e o navegador abortaria as anteriores.
+let derrubandoSessao = false;
+
+// Sessão expirada ou token inválido: limpa e volta ao login, em vez de deixar a tela vazia.
+api.interceptors.response.use(
+  (resposta) => resposta,
+  (erro) => {
+    const ehTentativaDeLogin = erro.config?.url?.includes('/login');
+    if (erro.response?.status === 401 && !ehTentativaDeLogin && !derrubandoSessao) {
+      derrubandoSessao = true;
+      localStorage.removeItem('token_confeccao');
+      localStorage.removeItem('usuario_confeccao');
+      if (window.location.pathname !== '/') {
+        window.location.assign('/?sessao=expirada');
+      } else {
+        derrubandoSessao = false;
+      }
+    }
+    return Promise.reject(erro);
+  },
+);
+
 export default api;

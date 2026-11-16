@@ -1,13 +1,27 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Scissors } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { useToast } from '../components/feedback/useToast';
+import { mensagemDeErro } from '../components/feedback/mensagemErro';
+
+const AVISO_SEM_SERVIDOR = 'Não foi possível conectar ao servidor. Se estiver usando a nuvem, o '
+  + 'servidor gratuito pode estar acordando: espere cerca de um minuto e tente de novo.';
 
 function Login() {
   const [login, setLogin] = useState('');
   const [senha, setSenha] = useState('');
-  
+
   const navigate = useNavigate();
+  const toast = useToast();
+
+  // Quem caiu aqui por token vencido merece saber o motivo, em vez de achar que se deslogou sozinho.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('sessao') === 'expirada') {
+      toast.aviso('Sua sessão expirou. Entre de novo.');
+      window.history.replaceState({}, '', '/');
+    }
+  }, [toast]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -25,18 +39,20 @@ function Login() {
       });
 
       // Se deu certo, o FastAPI devolve um token. Vamos salvar no navegador!
-      const token = response.data.access_token;
-      localStorage.setItem('token_confeccao', token);
+      localStorage.setItem('token_confeccao', response.data.access_token);
+
+      // Quem é o dono deste token: o resto do sistema lê daqui, em vez de supor o usuário nº 1.
+      const { data: usuario } = await api.get('/usuarios/eu');
+      localStorage.setItem('usuario_confeccao', JSON.stringify(usuario));
 
       // Redireciona para a tela de decisão de segmento (Camisetas ou Moda Íntima)
-      navigate('/selecao-segmento'); 
+      navigate('/selecao-segmento');
 
     } catch (error) {
-      console.error("Erro no login:", error);
       if (error.message === 'Network Error' || !error.response) {
-        alert('Não foi possível conectar ao servidor (Erro de Conexão).\n\n• Se estiver usando a nuvem (Render), o servidor gratuito pode estar acordando (aguarde cerca de 1 minuto e tente novamente).\n• Para acesso imediato, utilize o ambiente local em: http://localhost:5173');
+        toast.erro(AVISO_SEM_SERVIDOR);
       } else {
-        alert(error.response?.data?.detail || 'Credenciais inválidas ou erro no servidor. Verifique os dados digitados.');
+        toast.erro(mensagemDeErro(error, 'Login ou senha incorretos.'));
       }
     }
   };

@@ -31,8 +31,9 @@ function PerfilUsuario() {
   const [salvando, setSalvando] = useState(false);
   const [mensagemSucesso, setMensagemSucesso] = useState('');
 
-  // ID do usuário gestor padrão
-  const idUsuarioLogado = 1;
+  // Quem está logado: vem de /usuarios/eu, não de um id fixo. Com várias contas, um id
+  // chutado faria uma pessoa editar o perfil da outra.
+  const [idUsuarioLogado, setIdUsuarioLogado] = useState(null);
 
   // Dados do Perfil
   const [formPerfil, setFormPerfil] = useState({
@@ -63,16 +64,17 @@ function PerfilUsuario() {
     const carregarPerfil = async () => {
       try {
         setLoading(true);
-        const res = await api.get(`/usuarios/${idUsuarioLogado}`);
+        const res = await api.get('/usuarios/eu');
         if (res.data) {
+          setIdUsuarioLogado(res.data.id_usuario);
           setFormPerfil(prev => ({
             ...prev,
-            nome_usuario: res.data.nome_usuario || 'Gestor Alfa',
-            login: res.data.login || 'admin@confeccaoalfa.com.br'
+            nome_usuario: res.data.nome_usuario || '',
+            login: res.data.login || ''
           }));
         }
-      } catch (err) {
-        console.error("Erro ao buscar dados do perfil:", err);
+      } catch {
+        // 401 já derruba para o login pelo interceptor; outros erros ficam com a tela vazia.
       } finally {
         setLoading(false);
       }
@@ -94,6 +96,8 @@ function PerfilUsuario() {
       alert("Nome e login são obrigatórios.");
       return;
     }
+
+    if (!idUsuarioLogado) return;  // o perfil ainda não carregou
 
     try {
       setSalvando(true);
@@ -140,6 +144,8 @@ function PerfilUsuario() {
       return;
     }
 
+    if (!idUsuarioLogado) return;  // o perfil ainda não carregou
+
     try {
       setSalvando(true);
       await api.put(`/usuarios/${idUsuarioLogado}`, {
@@ -163,6 +169,8 @@ function PerfilUsuario() {
 
   const handleSalvarPreferencias = async (e) => {
     e.preventDefault();
+    if (!idUsuarioLogado) return;  // o perfil ainda não carregou
+
     try {
       setSalvando(true);
       if (setSegmentoAtivo && preferencias.segmento_padrao) {

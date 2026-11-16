@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Scissors } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { useToast } from '../components/feedback/useToast';
 
 function Cadastro() {
   // Ajustando os estados para refletir o backend
@@ -12,6 +13,7 @@ function Cadastro() {
   
   const [carregando, setCarregando] = useState(false);
   const navigate = useNavigate();
+  const toast = useToast();
 
   const handleCadastro = async (e) => {
     e.preventDefault();
@@ -20,12 +22,12 @@ function Cadastro() {
     const nomeFormatado = nomeUsuario.trim();
 
     if (!loginFormatado || !nomeFormatado || !senha) {
-      alert('Por favor, preencha todos os campos obrigatórios.');
+      toast.aviso('Preencha todos os campos obrigatórios.');
       return;
     }
 
     if (senha.length < 6) {
-      alert('A senha deve conter no mínimo 6 caracteres.');
+      toast.aviso('A senha precisa de pelo menos 6 caracteres.');
       return;
     }
 
@@ -42,8 +44,8 @@ function Cadastro() {
 
       await api.post('/usuarios/', payload);
 
-      alert('Cadastro realizado com sucesso!');
-      navigate('/'); // Redireciona para o Login
+      toast.sucesso(`Usuário ${nomeFormatado} cadastrado.`);
+      navigate('/configuracoes'); // quem cadastrou já estava logado: não cai para fora
 
     } catch (error) {
       console.error("Erro no cadastro:", error);
@@ -61,7 +63,7 @@ function Cadastro() {
         }).join('\n');
       }
 
-      alert(mensagemErro);
+      toast.erro(mensagemErro);
     } finally {
       setCarregando(false);
     }
@@ -73,7 +75,7 @@ function Cadastro() {
         <div className="logo-box">
           <Scissors className="logo-icon" strokeWidth={1.5} />
         </div>
-        <h1>Criar nova conta</h1>
+        <h1>Cadastrar novo usuário</h1>
       </div>
 
       <div className="login-card">
@@ -133,7 +135,7 @@ function Cadastro() {
 
         <div className="register-link-container">
           <span>Já possui uma conta? </span>
-          <Link to="/" className="register-link">Voltar para o Login</Link>
+          <Link to="/configuracoes" className="register-link">Voltar</Link>
         </div>
       </div>
     </div>

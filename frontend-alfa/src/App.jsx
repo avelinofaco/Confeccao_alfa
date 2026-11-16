@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { SegmentoProvider, useSegmento } from './context/SegmentoContext';
 import { ToastProvider } from './components/feedback/ToastProvider';
 import { ConfirmProvider } from './components/feedback/ConfirmProvider';
+import { RotaProtegida } from './components/auth/RotaProtegida';
 
 // Páginas de Autenticação e Seleção
 import Login from './pages/Login';
@@ -42,66 +43,66 @@ function AppRoutes() {
     <Routes>
       {/* Autenticação & Seleção de Segmento */}
       <Route path="/" element={<Login />} />
-      <Route path="/cadastro" element={<Cadastro />} />
-      <Route path="/selecao-segmento" element={<SelecaoSegmento />} />
+      <Route path="/cadastro" element={<RotaProtegida><Cadastro /></RotaProtegida>} />
+      <Route path="/selecao-segmento" element={<RotaProtegida><SelecaoSegmento /></RotaProtegida>} />
 
       {/* 1. Dashboard: Alterna automaticamente pelo segmento ativo */}
       <Route 
         path="/dashboard" 
-        element={<RotaDinamica telaCamisetas={DashboardCamisetas} telaModaIntima={DashboardModaIntima} />} 
+        element={<RotaProtegida><RotaDinamica telaCamisetas={DashboardCamisetas} telaModaIntima={DashboardModaIntima} /></RotaProtegida>} 
       />
 
       {/* 2. Pedidos / Comercial */}
       <Route 
         path="/comercial" 
-        element={<RotaDinamica telaCamisetas={PedidoCamisetas} telaModaIntima={ComercialModaIntima} />} 
+        element={<RotaProtegida><RotaDinamica telaCamisetas={PedidoCamisetas} telaModaIntima={ComercialModaIntima} /></RotaProtegida>} 
       />
 
       {/* 3. Estoque de Insumos */}
       <Route 
         path="/estoque" 
-        element={<RotaDinamica telaCamisetas={EstoqueCamisetas} telaModaIntima={EstoqueModaIntima} />} 
+        element={<RotaProtegida><RotaDinamica telaCamisetas={EstoqueCamisetas} telaModaIntima={EstoqueModaIntima} /></RotaProtegida>} 
       />
 
       {/* 4. Ficha Técnica */}
       <Route 
         path="/ficha-tecnica" 
-        element={<RotaDinamica telaCamisetas={FichaTecnicaCamisetas} telaModaIntima={FichaTecnicaModaIntima} />} 
+        element={<RotaProtegida><RotaDinamica telaCamisetas={FichaTecnicaCamisetas} telaModaIntima={FichaTecnicaModaIntima} /></RotaProtegida>} 
       />
 
       {/* 5. Corte e Rendimento (PCP) */}
       <Route 
         path="/corte-rendimento" 
-        element={<RotaDinamica telaCamisetas={CorteRendimentoCamisetas} telaModaIntima={CorteRendimentoModaIntima} />} 
+        element={<RotaProtegida><RotaDinamica telaCamisetas={CorteRendimentoCamisetas} telaModaIntima={CorteRendimentoModaIntima} /></RotaProtegida>} 
       />
 
       {/* 6. Registro Financeiro */}
-      <Route path="/financeiro" element={<RegistroFinanceiroCamisetas />} />
+      <Route path="/financeiro" element={<RotaProtegida><RegistroFinanceiroCamisetas /></RotaProtegida>} />
 
       {/* 7. Costura e Facções */}
       <Route 
         path="/costura" 
-        element={<RotaDinamica telaCamisetas={CosturaFaccoesCamisetas} telaModaIntima={CosturaModaIntima} />} 
+        element={<RotaProtegida><RotaDinamica telaCamisetas={CosturaFaccoesCamisetas} telaModaIntima={CosturaModaIntima} /></RotaProtegida>} 
       />
 
       {/* Rotas Explícitas Diretas de Camisetas */}
-      <Route path="/camisetas/dashboard" element={<DashboardCamisetas />} />
-      <Route path="/camisetas/pedidos" element={<PedidoCamisetas />} />
-      <Route path="/camisetas/clientes" element={<ClientesCamisetas />} />
-      <Route path="/camisetas/estoque" element={<EstoqueCamisetas />} />
-      <Route path="/camisetas/ficha-tecnica" element={<FichaTecnicaCamisetas />} />
-      <Route path="/camisetas/corte-rendimento" element={<CorteRendimentoCamisetas />} />
-      <Route path="/camisetas/financeiro" element={<RegistroFinanceiroCamisetas />} />
-      <Route path="/camisetas/costura-faccoes" element={<CosturaFaccoesCamisetas />} />
-      <Route path="/camisetas/produtos-prontos" element={<ProdutosProntosCamisetas />} />
+      <Route path="/camisetas/dashboard" element={<RotaProtegida><DashboardCamisetas /></RotaProtegida>} />
+      <Route path="/camisetas/pedidos" element={<RotaProtegida><PedidoCamisetas /></RotaProtegida>} />
+      <Route path="/camisetas/clientes" element={<RotaProtegida><ClientesCamisetas /></RotaProtegida>} />
+      <Route path="/camisetas/estoque" element={<RotaProtegida><EstoqueCamisetas /></RotaProtegida>} />
+      <Route path="/camisetas/ficha-tecnica" element={<RotaProtegida><FichaTecnicaCamisetas /></RotaProtegida>} />
+      <Route path="/camisetas/corte-rendimento" element={<RotaProtegida><CorteRendimentoCamisetas /></RotaProtegida>} />
+      <Route path="/camisetas/financeiro" element={<RotaProtegida><RegistroFinanceiroCamisetas /></RotaProtegida>} />
+      <Route path="/camisetas/costura-faccoes" element={<RotaProtegida><CosturaFaccoesCamisetas /></RotaProtegida>} />
+      <Route path="/camisetas/produtos-prontos" element={<RotaProtegida><ProdutosProntosCamisetas /></RotaProtegida>} />
 
       {/* Módulos do Sistema e Perfil */}
-      <Route path="/configuracoes" element={<PerfilUsuario />} />
-      <Route path="/perfil" element={<PerfilUsuario />} />
-      <Route path="/equipe" element={<Navigate to="/configuracoes" replace />} />
+      <Route path="/configuracoes" element={<RotaProtegida><PerfilUsuario /></RotaProtegida>} />
+      <Route path="/perfil" element={<RotaProtegida><PerfilUsuario /></RotaProtegida>} />
+      <Route path="/equipe" element={<RotaProtegida><Navigate to="/configuracoes" replace /></RotaProtegida>} />
 
       {/* Fallback */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<RotaProtegida><Navigate to="/" replace /></RotaProtegida>} />
     </Routes>
   );
 }
