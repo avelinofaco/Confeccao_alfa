@@ -101,6 +101,7 @@ class CamisetaPedidoItem(Base):
     id_cor = Column(Integer, ForeignKey("camisetas_cores.id_cor", ondelete="RESTRICT"), nullable=True)  # nulo = cor não informada
     id_estampa = Column(Integer, ForeignKey("camisetas_estampas.id_estampa", ondelete="RESTRICT"), nullable=True)
     posicao_estampa = Column(String(40), nullable=True)
+    preco_unitario = Column(Numeric(12, 2), nullable=False, default=0.00)
 
     pedido = relationship("CamisetaPedido", back_populates="itens")
     modelo = relationship("CamisetaModelo")

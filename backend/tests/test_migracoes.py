@@ -186,6 +186,29 @@ def test_migracao_portal_cliente_sobe_e_desce(tmp_path):
     assert "token_portal" not in cols_cli_apos
 
 
+def test_migracao_precificacao_sobe_e_desce(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    rodar_alembic("upgrade", "20261116_010_precificacao", url=url)
+    engine = sa.create_engine(url)
+    try:
+        cols_mod = {c["name"] for c in sa.inspect(engine).get_columns("camisetas_modelos")}
+        cols_item = {c["name"] for c in sa.inspect(engine).get_columns("camisetas_pedido_itens")}
+    finally:
+        engine.dispose()
+    assert {"preco_venda_lisa", "acrescimo_estampa"}.issubset(cols_mod)
+    assert "preco_unitario" in cols_item
+
+    rodar_alembic("downgrade", "20261116_009_portal_cliente", url=url)
+    engine = sa.create_engine(url)
+    try:
+        cols_mod_apos = {c["name"] for c in sa.inspect(engine).get_columns("camisetas_modelos")}
+        cols_item_apos = {c["name"] for c in sa.inspect(engine).get_columns("camisetas_pedido_itens")}
+    finally:
+        engine.dispose()
+    assert "preco_venda_lisa" not in cols_mod_apos
+    assert "preco_unitario" not in cols_item_apos
+
+
 def test_modelos_e_migracoes_estao_alinhados(tmp_path):
     url = f"sqlite:///{tmp_path / 'migracao.db'}"
     rodar_alembic("upgrade", "head", url=url)

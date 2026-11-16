@@ -24,6 +24,8 @@ class CamisetaModelo(Base):
     nome_modelo = Column(String(150), unique=True, nullable=False, index=True) # Ex: Camiseta Básica Gola Redonda
     grade_disponivel = Column(String(100), default="P, M, G, GG")
     consumo_tecido_kg = Column(Numeric(10, 4), default=0.1800, nullable=False) # Ex: 0.180 kg/peça (180g)
+    preco_venda_lisa = Column(Numeric(12, 2), default=0.00, nullable=False)
+    acrescimo_estampa = Column(Numeric(12, 2), default=0.00, nullable=False)
     descricao = Column(String(255), nullable=True)
     id_grade = Column(Integer, ForeignKey("camisetas_grades.id_grade", ondelete="SET NULL"), nullable=True)
     
