@@ -136,3 +136,35 @@ class RemessaItemResponse(BaseModel):
     rotulo: str
     qtd_enviada: int
     qtd_retornada: Optional[int] = None
+
+
+class QtdTamanhoEntrada(BaseModel):
+    id_tamanho: int
+    quantidade: int = Field(..., ge=0)
+
+
+class PedidoItemEntrada(BaseModel):
+    id_modelo: int
+    id_cor: Optional[int] = None  # obrigatória nos pedidos novos (validado no serviço)
+    quantidades: List[QtdTamanhoEntrada] = Field(..., min_length=1)
+
+
+class PedidoItensEntrada(BaseModel):
+    itens: List[PedidoItemEntrada] = Field(..., min_length=1)
+
+
+class QtdTamanhoResponse(BaseModel):
+    id_tamanho: int
+    rotulo: str
+    quantidade: int
+
+
+class PedidoItemResponse(BaseModel):
+    id_item: int
+    id_modelo: int
+    nome_modelo: str
+    id_cor: Optional[int] = None
+    nome_cor: Optional[str] = None
+    hex_cor: Optional[str] = None
+    quantidades: List[QtdTamanhoResponse]
+    total: int

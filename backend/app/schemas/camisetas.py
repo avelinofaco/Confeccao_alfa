@@ -14,6 +14,8 @@ from app.schemas.camisetas_sku import (
     ItemEnvioEntrada,
     ItemRetornoEntrada,
     OpCorEntrada,
+    PedidoItemEntrada,
+    PedidoItemResponse,
     OpCorResponse,
     OpCorteResponse,
     RemessaItemResponse,
@@ -117,7 +119,8 @@ class CamisetaPedidoCreate(BaseModel):
     codigo_pedido: Optional[str] = None  # ignorado: o servidor gera PED-AAAA-NNNN
     nome_cliente: Optional[str] = None  # usado só se id_cliente não vier (frontend antigo)
     id_cliente: Optional[int] = None
-    id_modelo: int
+    id_modelo: Optional[int] = None  # corpo antigo (com grade_p/m/g/gg)
+    itens: Optional[List[PedidoItemEntrada]] = None  # Fase 1B: modelo + cor + quantidade por tamanho
     grade_p: int = Field(0, ge=0)
     grade_m: int = Field(0, ge=0)
     grade_g: int = Field(0, ge=0)
@@ -164,6 +167,7 @@ class CamisetaPedidoResponse(BaseModel):
     observacoes: Optional[str] = None
     data_entrega_realizada: Optional[date] = None
     criado_em: Optional[datetime] = None
+    itens: List[PedidoItemResponse] = Field(default_factory=list)
     model_config = ConfigDict(from_attributes=True)
 
 # ----------------- CORTE E RENDIMENTO (PCP) -----------------

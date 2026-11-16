@@ -1,14 +1,12 @@
 # app/routers/camisetas/pedidos.py
 """Pedidos de clientes e estoque de produtos acabados (segmento Camisetas)."""
-from datetime import date, datetime
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.core.config import FUSO_HORARIO
 from app.database import get_db
-from app.models.camisetas import CamisetaModelo, CamisetaPedido, CamisetaProdutoAcabado, get_utc_now
+from app.models.camisetas import CamisetaPedido, CamisetaProdutoAcabado, get_utc_now
 from app.schemas.camisetas import (
     CamisetaPedidoCreate,
     CamisetaPedidoEntregar,
@@ -16,7 +14,7 @@ from app.schemas.camisetas import (
     CamisetaPedidoStatusUpdate,
     CamisetaProdutoAcabadoResponse,
 )
-from app.services.camisetas.clientes import resolver_cliente
+from app.schemas.camisetas_sku import PedidoItensEntrada
 from app.services.camisetas.estoque import (
     baixar_estoque_acabado,
     devolver_estoque_acabado,
@@ -24,24 +22,16 @@ from app.services.camisetas.estoque import (
 )
 from app.services.camisetas.pedidos import (
     STATUS_ENTREGUE,
-    STATUS_INICIAL,
     STATUS_VALIDOS,
+    criar_pedido,
+    excluir_pedido,
+    hoje_local,
     montar_resposta_pedido,
+    obter_pedido,
+    substituir_itens,
 )
-from app.services.sequencias import proximo_codigo
 
 router = APIRouter()
-
-
-def hoje_local() -> date:
-    return datetime.now(FUSO_HORARIO).date()
-
-
-def buscar_pedido(db: Session, id_pedido: int) -> CamisetaPedido:
-    pedido = db.query(CamisetaPedido).filter_by(id_pedido=id_pedido).first()
-    if not pedido:
-        raise HTTPException(status_code=404, detail="Pedido não encontrado")
-    return pedido
 
 
 @router.get("/pedidos/", response_model=List[CamisetaPedidoResponse])
@@ -52,44 +42,19 @@ def listar_pedidos(db: Session = Depends(get_db)):
 
 @router.post("/pedidos/", response_model=CamisetaPedidoResponse, status_code=status.HTTP_201_CREATED)
 def cadastrar_pedido(pedido_in: CamisetaPedidoCreate, db: Session = Depends(get_db)):
-    if pedido_in.prazo_entrega < hoje_local():
-        raise HTTPException(
-            status_code=400,
-            detail="O prazo de entrega desejado não pode ser anterior à data de hoje. Selecione hoje ou uma data futura.",
-        )
-    modelo = db.query(CamisetaModelo).filter_by(id_modelo=pedido_in.id_modelo).first()
-    if not modelo:
-        raise HTTPException(status_code=404, detail="Modelo de camiseta informado não encontrado")
+    """Cria o pedido com itens (modelo + cor + quantidade por tamanho)."""
+    return montar_resposta_pedido(criar_pedido(db, pedido_in, hoje_local()))
 
-    qtd_total = pedido_in.grade_p + pedido_in.grade_m + pedido_in.grade_g + pedido_in.grade_gg
-    if qtd_total <= 0:
-        raise HTTPException(status_code=400, detail="A soma das grades (P, M, G, GG) deve ser maior que zero")
 
-    cliente = resolver_cliente(db, pedido_in.id_cliente, pedido_in.nome_cliente)
-    novo_pedido = CamisetaPedido(
-        codigo_pedido=proximo_codigo(db, "PED"),
-        nome_cliente=cliente.nome,
-        id_cliente=cliente.id_cliente,
-        id_modelo=pedido_in.id_modelo,
-        grade_p=pedido_in.grade_p,
-        grade_m=pedido_in.grade_m,
-        grade_g=pedido_in.grade_g,
-        grade_gg=pedido_in.grade_gg,
-        quantidade_total=qtd_total,
-        prazo_entrega=pedido_in.prazo_entrega,
-        valor_total=pedido_in.valor_total,
-        status_pedido=STATUS_INICIAL,
-        observacoes=pedido_in.observacoes,
-    )
-    db.add(novo_pedido)
-    db.commit()
-    db.refresh(novo_pedido)
-    return montar_resposta_pedido(novo_pedido)
+@router.put("/pedidos/{id_pedido}/itens", response_model=CamisetaPedidoResponse)
+def editar_itens_pedido(id_pedido: int, dados: PedidoItensEntrada, db: Session = Depends(get_db)):
+    """Substitui os itens de um pedido ainda não entregue (é assim que um pedido antigo recebe a cor)."""
+    return montar_resposta_pedido(substituir_itens(db, id_pedido, dados))
 
 
 @router.put("/pedidos/{id_pedido}/status", response_model=CamisetaPedidoResponse)
 def atualizar_status_pedido(id_pedido: int, status_in: CamisetaPedidoStatusUpdate, db: Session = Depends(get_db)):
-    pedido = buscar_pedido(db, id_pedido)
+    pedido = obter_pedido(db, id_pedido)
     novo_status = status_in.status_pedido
 
     if novo_status not in STATUS_VALIDOS:
@@ -116,7 +81,7 @@ def atualizar_status_pedido(id_pedido: int, status_in: CamisetaPedidoStatusUpdat
 @router.post("/pedidos/{id_pedido}/entregar", response_model=CamisetaPedidoResponse)
 def registrar_entrega_pedido(id_pedido: int, dados_entrega: CamisetaPedidoEntregar, db: Session = Depends(get_db)):
     """Registra a entrega: confere e baixa o estoque pronto e grava a data real da entrega."""
-    pedido = buscar_pedido(db, id_pedido)
+    pedido = obter_pedido(db, id_pedido)
     if pedido.status_pedido == STATUS_ENTREGUE:
         raise HTTPException(status_code=400, detail="Este pedido já foi registrado como Entregue anteriormente.")
 
@@ -151,17 +116,8 @@ def registrar_entrega_pedido(id_pedido: int, dados_entrega: CamisetaPedidoEntreg
 
 @router.delete("/pedidos/{id_pedido}")
 def excluir_pedido_camiseta(id_pedido: int, db: Session = Depends(get_db)):
-    """Exclui um pedido. Impede exclusão de pedido já entregue."""
-    pedido = buscar_pedido(db, id_pedido)
-    if (pedido.status_pedido or "").lower() == STATUS_ENTREGUE.lower():
-        raise HTTPException(
-            status_code=400,
-            detail="Não é permitido excluir um pedido que já foi formalizado como Entregue ao cliente.",
-        )
-    codigo = pedido.codigo_pedido
-    db.delete(pedido)
-    db.commit()
-    return {"mensagem": f"Pedido {codigo} excluído com sucesso!"}
+    """Exclui um pedido (com seus itens). Pedido entregue não pode ser excluído."""
+    return {"mensagem": f"Pedido {excluir_pedido(db, id_pedido)} excluído com sucesso!"}
 
 
 @router.get("/estoque-acabado/", response_model=List[CamisetaProdutoAcabadoResponse])
