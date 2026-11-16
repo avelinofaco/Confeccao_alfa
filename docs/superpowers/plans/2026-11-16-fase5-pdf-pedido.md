@@ -42,5 +42,18 @@
 **Files:**
 - Modify: `docs/superpowers/plans/2026-11-16-fase5-pdf-pedido.md`
 
-- [ ] **Step 1: Abrir o modal de PDF no navegador automatizado, alternar perfis/checkboxes e inspecionar screenshot da grade 4×4**
-- [ ] **Step 2: Registrar notas de execução e commitar**
+- [x] **Step 1: Abrir o modal de PDF no navegador automatizado, alternar perfis/checkboxes e inspecionar screenshot da grade 4×4**
+- [x] **Step 2: Registrar notas de execução e commitar**
+
+---
+
+## Notas de execução
+
+Fase 5 executada em 2026-11-16 na branch `feat/camisetas-pdf-pedido` (a partir de `feat/camisetas-precificacao`).
+
+**Resultado:**
+- Criado `frontend-alfa/src/utils/pdfPedido.js` com os 4 perfis (`Cliente`, `Produção`, `Estamparia`, `Facção`), paginação em blocos de **16 quadros (grade 4×4 por folha A4)** e gerador de documento A4 retrato.
+- Criado `frontend-alfa/src/components/pedidos/ModalPdfPedido.jsx` com abas de perfil, 6 checkboxes personalizáveis e pré-visualização ao vivo da folha A4 com a grade 4×4.
+- Integrado em `PedidoCamisetas.jsx` (botão **Exportar PDF** em cada pedido) e `PortalPedidoCliente.jsx` (botão **Salvar PDF**).
+- Conferido no navegador real (`browser.mjs`) com screenshot verificado: alternância entre perfis (`Cliente` → `Estamparia` ocultando valores financeiros e destacando a grade 4×4), `npm run build` e `npx oxlint` com **zero avisos e zero erros**.
+
