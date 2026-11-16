@@ -13,10 +13,11 @@ from app.routers.camisetas import (
     modelos,
     ordens,
     pedidos,
+    produtos_prontos,
     seed,
 )
 
 router = APIRouter(prefix="/camisetas", tags=["Segmento Camisetas"])
 
-for _modulo in (seed, dashboard, pedidos, clientes, cores, grades, insumos, modelos, ordens, financeiro, costura):
+for _modulo in (seed, dashboard, pedidos, produtos_prontos, clientes, cores, grades, insumos, modelos, ordens, financeiro, costura):
     router.include_router(_modulo.router)
