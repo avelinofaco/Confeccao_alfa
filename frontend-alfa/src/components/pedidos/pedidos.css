@@ -286,3 +286,180 @@
 .entrega-falta td { color: var(--accent-artisan-terracotta); font-weight: 600; }
 .pedido-item-linha { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.15rem; }
 .pedido-item-thumb-mini { width: 1.5rem; height: 1.5rem; object-fit: contain; border-radius: 4px; border: 1px solid var(--border-artisan); background: var(--bg-artisan-subtle); flex-shrink: 0; }
+
+/* Modal de PDF do Pedido — Perfis, Checkboxes e Grade 4×4 por Folha A4 (Fase 5) */
+.pdf-pedido-config {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.pdf-pedido-perfis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.pdf-perfil-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 10px;
+  border: 1.5px solid #d8d1c5;
+  background: #f5f2ea;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.pdf-perfil-btn strong {
+  font-size: 0.88rem;
+  color: #2c2523;
+}
+
+.pdf-perfil-btn small {
+  font-size: 0.72rem;
+  color: #6b7280;
+  line-height: 1.25;
+}
+
+.pdf-perfil-btn.ativo {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+.pdf-pedido-checkboxes {
+  border: 1px solid #d8d1c5;
+  border-radius: 10px;
+  padding: 0.7rem 0.9rem;
+  background: #fdfcfa;
+}
+
+.pdf-pedido-checkboxes legend {
+  font-weight: 700;
+  font-size: 0.82rem;
+  padding: 0 0.35rem;
+}
+
+.pdf-checkboxes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 0.45rem 0.9rem;
+}
+
+.pdf-previa-folha-a4 {
+  border: 1px solid #cfc7b8;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 1rem;
+  max-height: 52vh;
+  overflow-y: auto;
+}
+
+.pdf-previa-cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 2px solid #2c2523;
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.65rem;
+}
+
+.pdf-previa-cabecalho h3 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.pdf-previa-metadados {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: 8px;
+  background: #f5f2ea;
+  font-size: 0.8rem;
+  margin-bottom: 0.75rem;
+}
+
+.pdf-previa-secao-titulo {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #57534e;
+  margin: 0.5rem 0 0.4rem;
+}
+
+.pdf-grade-4x4 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.pdf-quadro-4x4 {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.5rem;
+  border-radius: 10px;
+  border: 1px solid #e0d9cc;
+  background: #f5f2ea;
+  min-width: 0;
+}
+
+.pdf-quadro-arte {
+  height: 5.5rem;
+  border: 1px dashed #8a8175;
+  border-radius: 7px;
+  background: #faf8f3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 0.25rem;
+}
+
+.pdf-quadro-arte img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.pdf-quadro-lisa {
+  font-size: 0.72rem;
+  color: #78716c;
+  font-weight: 600;
+}
+
+.pdf-quadro-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  gap: 0.25rem;
+}
+
+.pdf-quadro-estampa {
+  font-size: 0.68rem;
+  color: #57534e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pdf-quadro-qtds {
+  display: grid;
+  gap: 0.25rem;
+  text-align: center;
+}
+
+.pdf-quadro-qtds strong {
+  background: #ffffff;
+  border: 1px solid #d5cec0;
+  border-radius: 5px;
+  padding: 0.15rem 0;
+  font-size: 0.75rem;
+}

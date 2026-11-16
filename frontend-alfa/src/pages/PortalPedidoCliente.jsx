@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { CheckCircle, MessageSquareWarning, Scissors } from 'lucide-react';
+import { CheckCircle, MessageSquareWarning, Printer, Scissors } from 'lucide-react';
 import api from '../services/api';
 import { useToast } from '../components/feedback/useToast';
 import { mensagemDeErro } from '../components/feedback/mensagemErro';
+import { PERFIS_PDF_PEDIDO, imprimirPdfPedido } from '../utils/pdfPedido';
 import '../components/cadastros/cadastros.css';
 import './PortalCliente.css';
 
@@ -99,9 +100,25 @@ export default function PortalPedidoCliente() {
               <small>Cliente: {pedido.nome_cliente}</small>
             </div>
           </div>
-          <span className={`portal-selo ${classeSelo(pedido.status_aprovacao_cliente)}`}>
-            {pedido.status_aprovacao_cliente}
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <button
+              type="button"
+              className="cadastro-btn secundario"
+              onClick={() =>
+                imprimirPdfPedido(
+                  pedido,
+                  PERFIS_PDF_PEDIDO.cliente.opcoes,
+                  PERFIS_PDF_PEDIDO.cliente.tituloDoc,
+                  () => toast.aviso('Permita janelas pop-up para salvar o PDF.'),
+                )
+              }
+            >
+              <Printer size={15} aria-hidden="true" /> Salvar PDF
+            </button>
+            <span className={`portal-selo ${classeSelo(pedido.status_aprovacao_cliente)}`}>
+              {pedido.status_aprovacao_cliente}
+            </span>
+          </div>
         </header>
 
         <section className="portal-card" aria-label="Resumo do pedido">

@@ -7,7 +7,8 @@ import {
   Truck,
   RotateCcw,
   AlertTriangle,
-  Link2
+  Link2,
+  Printer
 } from 'lucide-react';
 import api from '../services/api';
 import Sidebar from '../components/Sidebar';
@@ -19,6 +20,7 @@ import { SeletorCliente } from '../components/cadastros/SeletorCliente';
 import { ItensPedidoEditor } from '../components/pedidos/ItensPedidoEditor';
 import { ModalItensPedido } from '../components/pedidos/ModalItensPedido';
 import { ModalEntregaPedido } from '../components/pedidos/ModalEntregaPedido';
+import { ModalPdfPedido } from '../components/pedidos/ModalPdfPedido';
 import {
   itemParaApi,
   itemVazio,
@@ -61,9 +63,10 @@ function PedidoCamisetas() {
       ? valorTabelado.toFixed(2)
       : formData.valor_total;
 
-  // Modais: entrega ao cliente e edição dos itens
+  // Modais: entrega ao cliente, edição dos itens e exportação de PDF
   const [pedidoParaEntrega, setPedidoParaEntrega] = useState(null);
   const [pedidoEmEdicao, setPedidoEmEdicao] = useState(null);
+  const [pedidoParaPdf, setPedidoParaPdf] = useState(null);
 
   const carregarDados = async () => {
     setLoading(true);
@@ -434,6 +437,15 @@ function PedidoCamisetas() {
                         </td>
                         <td style={{ textAlign: 'center' }}>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', alignItems: 'center' }}>
+                            <button
+                              type="button"
+                              className="btn-link-itens"
+                              onClick={() => setPedidoParaPdf(ped)}
+                              title="Exportar PDF do pedido (Cliente, Produção, Estamparia ou Facção com grade 4×4)"
+                            >
+                              <Printer size={13} style={{ verticalAlign: 'middle', marginRight: 3 }} />
+                              Exportar PDF
+                            </button>
                             {ped.token_aprovacao && (
                               <button
                                 type="button"
@@ -496,6 +508,12 @@ function PedidoCamisetas() {
             estampas={estampas}
             onFechar={() => setPedidoEmEdicao(null)}
             onSalvo={() => { setPedidoEmEdicao(null); carregarDados(); }}
+          />
+        )}
+        {pedidoParaPdf && (
+          <ModalPdfPedido
+            pedido={pedidoParaPdf}
+            onFechar={() => setPedidoParaPdf(null)}
           />
         )}
       </main>
