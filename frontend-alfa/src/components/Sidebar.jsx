@@ -12,6 +12,7 @@ import {
   RefreshCw,
   Settings,
   Layers,
+  PackageCheck,
   Shirt,
   Sparkles,
   DollarSign,
@@ -140,11 +141,18 @@ function Sidebar({ menuMobileAberto, setMenuMobileAberto }) {
               <span>7. Costura & Facções</span>
             </button>
             <button
+              className={`nav-item ${isActive('/camisetas/produtos-prontos') ? 'active' : ''}`}
+              onClick={() => irPara('/camisetas/produtos-prontos')}
+            >
+              <PackageCheck size={19} />
+              <span>8. Produtos Prontos</span>
+            </button>
+            <button
               className={`nav-item ${isActive('/financeiro') || isActive('/camisetas/financeiro') ? 'active' : ''}`}
               onClick={() => irPara('/camisetas/financeiro')}
             >
               <DollarSign size={19} />
-              <span>8. Registro Financeiro</span>
+              <span>9. Registro Financeiro</span>
             </button>
           </>
         ) : (

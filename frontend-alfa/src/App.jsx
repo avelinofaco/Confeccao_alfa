@@ -27,6 +27,7 @@ import FichaTecnicaCamisetas from './pages/FichaTecnicaCamisetas';
 import CorteRendimentoCamisetas from './pages/CorteRendimentoCamisetas';
 import RegistroFinanceiroCamisetas from './pages/RegistroFinanceiroCamisetas';
 import CosturaFaccoesCamisetas from './pages/CosturaFaccoesCamisetas';
+import ProdutosProntosCamisetas from './pages/ProdutosProntosCamisetas';
 
 import './App.css';
 
@@ -92,6 +93,7 @@ function AppRoutes() {
       <Route path="/camisetas/corte-rendimento" element={<CorteRendimentoCamisetas />} />
       <Route path="/camisetas/financeiro" element={<RegistroFinanceiroCamisetas />} />
       <Route path="/camisetas/costura-faccoes" element={<CosturaFaccoesCamisetas />} />
+      <Route path="/camisetas/produtos-prontos" element={<ProdutosProntosCamisetas />} />
 
       {/* Módulos do Sistema e Perfil */}
       <Route path="/configuracoes" element={<PerfilUsuario />} />

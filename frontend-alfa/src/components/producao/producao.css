@@ -1,0 +1,48 @@
+/* Produção e estoque por cor e tamanho — tokens do Ateliê Artesanal (index.css) */
+.grade-qtd-rolagem { overflow-x: auto; margin: 0.6rem 0 0.9rem; }
+.grade-qtd { border-collapse: collapse; min-width: 100%; font-variant-numeric: tabular-nums; }
+.grade-qtd th, .grade-qtd td { padding: 0.4rem 0.55rem; border-bottom: 1px solid var(--border-artisan); text-align: center; }
+.grade-qtd thead th {
+  font-size: 0.76rem; letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--color-text-muted); background: var(--bg-artisan-subtle);
+}
+.grade-qtd tbody th, .grade-qtd tfoot th { text-align: left; white-space: nowrap; font-weight: 600; }
+.grade-qtd .cadastro-amostra { margin-right: 0.45rem; vertical-align: middle; }
+.grade-qtd tfoot th, .grade-qtd tfoot td { font-weight: 700; background: var(--bg-artisan-subtle); }
+.grade-qtd-total { font-weight: 700; color: var(--accent-artisan-indigo); }
+.grade-qtd-campo {
+  width: 4.4rem; padding: 0.35rem 0.4rem; border: 1px solid var(--border-artisan-strong); border-radius: 6px;
+  text-align: center; font: inherit; background: var(--bg-artisan-surface);
+}
+.grade-qtd-campo:focus-visible { outline: 2px solid var(--accent-artisan-indigo); outline-offset: 1px; }
+.grade-qtd-campo.excede { border-color: var(--accent-artisan-terracotta); background: var(--accent-artisan-terracotta-bg); }
+.grade-qtd-campo:disabled { background: var(--bg-artisan-subtle); color: var(--color-text-subtle); }
+.grade-qtd-maximo { display: block; margin-top: 0.15rem; font-size: 0.7rem; color: var(--color-text-subtle); }
+.grade-qtd-celula {
+  min-width: 2.8rem; padding: 0.25rem 0.5rem; border: 1px solid transparent; border-radius: 6px;
+  background: none; font: inherit; color: inherit; cursor: pointer;
+}
+.grade-qtd-celula:hover, .grade-qtd-celula:focus-visible {
+  border-color: var(--accent-artisan-indigo-border); background: var(--accent-artisan-indigo-bg); outline: none;
+}
+.grade-qtd-alerta, .grade-qtd-alerta .grade-qtd-celula { color: var(--accent-artisan-terracotta); font-weight: 700; }
+
+.cadastro-modal.largo { width: min(60rem, 100%); }
+.producao-resumo { margin: 0 0 0.8rem; color: var(--color-text-muted); }
+.producao-aviso {
+  margin: 0.4rem 0 0.8rem; padding: 0.6rem 0.8rem; border-radius: 8px;
+  border: 1px solid var(--accent-artisan-amber-border); background: var(--accent-artisan-amber-bg); color: var(--accent-artisan-amber);
+}
+.producao-aviso li { margin-left: 1rem; }
+.producao-lista { list-style: none; margin: 0.4rem 0 0; padding: 0; display: grid; gap: 0.3rem; font-size: 0.9rem; }
+.producao-campo-modelo { max-width: 30rem; margin-bottom: 1rem; }
+.producao-linhas-cor { display: grid; gap: 0.7rem; margin: 0 0 0.9rem; padding: 0.9rem 1rem; border: var(--border-stitch); border-radius: 10px; }
+.producao-linhas-cor legend { padding: 0 0.4rem; font-weight: 700; }
+.producao-linha-cor { display: grid; grid-template-columns: minmax(9rem, 1fr) minmax(14rem, 2fr) minmax(7rem, 1fr) auto; gap: 0.6rem; align-items: end; }
+.producao-envio-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+.op-cor-etiqueta { display: inline-flex; align-items: center; gap: 0.3rem; margin: 0 0.6rem 0.2rem 0; white-space: nowrap; }
+.remessa-resumo { display: block; margin-top: 0.2rem; color: var(--color-text-muted); font-size: 0.78rem; }
+
+@media (max-width: 720px) {
+  .producao-linha-cor { grid-template-columns: 1fr; }
+}

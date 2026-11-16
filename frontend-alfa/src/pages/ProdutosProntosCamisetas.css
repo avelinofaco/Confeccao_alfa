@@ -1,0 +1,43 @@
+.produtos-container { display: flex; min-height: 100vh; background: var(--bg-artisan-cream); color: var(--color-text-main); font-family: var(--font-sans-humanist); }
+.produtos-main { flex: 1; padding: 2.2rem 2.8rem; overflow-y: auto; }
+.produtos-main .page-header { margin-bottom: 1.4rem; }
+.produtos-main .page-header h1 {
+  display: flex; align-items: center; gap: 0.6rem; margin: 0 0 0.35rem;
+  font-family: var(--font-serif-editorial); font-size: 1.95rem; font-weight: 600;
+}
+.produtos-main .page-header p { margin: 0; color: var(--color-text-muted); }
+.produtos-barra { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.8rem 1.4rem; margin-bottom: 1.2rem; }
+.produtos-filtros { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.8rem 1rem; }
+.produtos-filtros label { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.82rem; font-weight: 600; color: var(--color-text-muted); }
+.produtos-filtros select { min-width: 12rem; padding: 0.45rem 0.6rem; border: 1px solid var(--border-artisan-strong); border-radius: 8px; font: inherit; background: var(--bg-artisan-surface); }
+.produtos-filtros .produtos-filtro-check { flex-direction: row; align-items: center; gap: 0.4rem; padding-bottom: 0.5rem; }
+.produtos-total { margin-left: auto; padding-bottom: 0.45rem; color: var(--color-text-muted); }
+.produtos-total strong { font-family: var(--font-serif-editorial); font-size: 1.5rem; color: var(--accent-artisan-indigo); }
+.produtos-card {
+  margin-bottom: 1.2rem; padding: 1.1rem 1.3rem; border: 1px solid var(--border-artisan); border-radius: 12px;
+  background: var(--bg-artisan-surface); box-shadow: 0 1px 2px rgba(44, 37, 35, 0.04);
+}
+.produtos-card h2 { display: flex; align-items: center; gap: 0.5rem; margin: 0 0 0.4rem; font-family: var(--font-serif-editorial); font-size: 1.2rem; }
+.produtos-vazio { padding: 2rem; text-align: center; color: var(--color-text-muted); border: var(--border-stitch); border-radius: 12px; }
+.inventario-barra {
+  margin-bottom: 1.2rem; padding: 1rem 1.2rem; border-radius: 12px;
+  border: 1px solid var(--accent-artisan-indigo-border); background: var(--accent-artisan-indigo-bg);
+}
+.inventario-barra h2 { margin: 0 0 0.3rem; font-family: var(--font-serif-editorial); font-size: 1.15rem; color: var(--accent-artisan-indigo); }
+.inventario-barra p { margin: 0 0 0.8rem; color: var(--color-text-body); }
+.inventario-campos { display: grid; grid-template-columns: 2fr 1.5fr 1fr auto; gap: 0.7rem; align-items: end; }
+.inventario-acoes { display: flex; justify-content: flex-end; gap: 0.6rem; margin-top: 0.9rem; }
+.historico-filtro { display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 0.6rem; font-weight: 600; }
+.historico-tabela { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.historico-tabela th, .historico-tabela td { padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--border-artisan); text-align: left; }
+.historico-tabela th { font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); }
+.historico-entrada { color: var(--accent-artisan-sage); font-weight: 700; }
+.historico-saida { color: var(--accent-artisan-terracotta); font-weight: 700; }
+.painel-sku-bloco { padding: 0.9rem 0; border-top: 1px solid var(--border-artisan); }
+.painel-sku-bloco h3 { margin: 0 0 0.6rem; font-size: 0.95rem; }
+
+@media (max-width: 768px) {
+  .produtos-main { padding: 1.2rem 1rem; }
+  .inventario-campos { grid-template-columns: 1fr; }
+  .produtos-total { margin-left: 0; }
+}
