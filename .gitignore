@@ -21,3 +21,6 @@ venv/
 # Relatórios de cobertura de testes
 .coverage
 htmlcov/
+
+# Jevflow (histórico local das execuções)
+.jevflow/
