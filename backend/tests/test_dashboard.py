@@ -2,7 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 
 from app.core.config import FUSO_HORARIO
-from tests.fabricas import criar_modelo, criar_pedido
+from tests.fabricas import criar_cor, criar_modelo, criar_pedido, criar_variacao
 
 
 def test_banco_vazio_nao_mostra_numeros_inventados(client):
@@ -23,3 +23,10 @@ def test_grafico_usa_entregas_reais_do_mes(client, db):
     mes_atual = grafico[hoje.month - 1]
     assert mes_atual["mes_ano"] == hoje.strftime("%Y-%m")
     assert Decimal(mes_atual["faturamento"]) == Decimal("1200.00")
+
+
+def test_estoque_pronto_soma_os_skus(client, db):
+    modelo, preto = criar_modelo(db), criar_cor(db)
+    criar_variacao(db, modelo, preto, "P", saldo=7)
+    criar_variacao(db, modelo, preto, "M", saldo=5)
+    assert client.get("/camisetas/dashboard/").json()["cards"]["estoque_pronto_total"] == 12

@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.core.erros import ErroNegocio
 from app.models.camisetas import CamisetaModelo
 from app.models.camisetas_cadastros import CamisetaGrade, CamisetaGradeTamanho
+from app.models.camisetas_sku import CamisetaPedidoItemQtd, CamisetaVariacao
 from app.schemas.camisetas_cadastros import GradeEntrada, GradeResponse
 
 GRADE_PADRAO_NOME = "Adulto (P, M, G, GG)"
@@ -117,11 +118,26 @@ def criar_grade(db: Session, dados: GradeEntrada) -> CamisetaGrade:
     return grade
 
 
+def _tamanho_em_uso(db: Session, id_tamanho: int) -> bool:
+    return (
+        db.query(CamisetaVariacao.id_variacao).filter_by(id_tamanho=id_tamanho).first() is not None
+        or db.query(CamisetaPedidoItemQtd.id_item).filter_by(id_tamanho=id_tamanho).first() is not None
+    )
+
+
+def _proteger_tamanhos_em_uso(db: Session, grade: CamisetaGrade, rotulos: list[str]) -> None:
+    for tamanho in grade.tamanhos:
+        if tamanho.rotulo not in rotulos and _tamanho_em_uso(db, tamanho.id_tamanho):
+            raise ErroNegocio(409, f"O tamanho {tamanho.rotulo} tem pedidos ou estoque e não pode sair da grade.")
+
+
 def atualizar_grade(db: Session, id_grade: int, dados: GradeEntrada) -> CamisetaGrade:
     grade = obter_grade(db, id_grade)
+    rotulos = limpar_tamanhos(dados.tamanhos)
+    _proteger_tamanhos_em_uso(db, grade, rotulos)
     grade.nome = _validar_nome(db, dados.nome, id_grade)
     grade.ativo = dados.ativo
-    aplicar_tamanhos(grade, limpar_tamanhos(dados.tamanhos))
+    aplicar_tamanhos(grade, rotulos)
     db.flush()
     _sincronizar_modelos(db, grade)
     db.commit()

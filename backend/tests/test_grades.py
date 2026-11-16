@@ -3,7 +3,7 @@ import pytest
 from app.core.erros import ErroNegocio
 from app.models.camisetas_cadastros import CamisetaGrade
 from app.services.camisetas.grades import aplicar_tamanhos, limpar_tamanhos, obter_grade_padrao
-from tests.fabricas import criar_modelo
+from tests.fabricas import criar_cor, criar_modelo, criar_pedido_com_itens, criar_variacao, tamanho
 
 
 def test_limpar_tamanhos_apara_e_mantem_ordem():
@@ -94,3 +94,43 @@ def test_api_modelo_com_nome_repetido_retorna_409(client, db):
 def test_api_modelo_com_grade_inexistente_retorna_404(client):
     resposta = client.post("/camisetas/modelos/", json={"nome_modelo": "X", "consumo_tecido_kg": "0.2", "id_grade": 999})
     assert resposta.status_code == 404
+
+
+def _editar_grade(client, modelo, tamanhos):
+    return client.put(f"/camisetas/grades/{modelo.id_grade}", json={"nome": "Adulto (P, M, G, GG)", "tamanhos": tamanhos})
+
+
+def test_api_remover_tamanho_com_estoque_retorna_409(client, db):
+    modelo = criar_modelo(db)
+    criar_variacao(db, modelo, criar_cor(db), "GG", saldo=1)
+    resposta = _editar_grade(client, modelo, ["P", "M", "G"])
+    assert resposta.status_code == 409
+    assert "O tamanho GG tem pedidos ou estoque" in resposta.json()["detail"]
+
+
+def test_api_remover_tamanho_com_pedido_retorna_409(client, db):
+    modelo = criar_modelo(db)
+    criar_pedido_com_itens(db, modelo, None, {"P": 3})
+    assert _editar_grade(client, modelo, ["M", "G", "GG"]).status_code == 409
+
+
+def test_api_remover_tamanho_livre_continua_permitido(client, db):
+    modelo = criar_modelo(db)
+    criar_variacao(db, modelo, criar_cor(db), "P")
+    assert _editar_grade(client, modelo, ["P", "M", "G"]).status_code == 200
+
+
+def test_api_trocar_grade_de_modelo_em_uso_retorna_409(client, db):
+    modelo = criar_modelo(db, nome="Básica")
+    criar_variacao(db, modelo, criar_cor(db), "P")
+    babylook = client.post("/camisetas/grades/", json={"nome": "Babylook", "tamanhos": ["PP", "P"]}).json()
+    resposta = client.put(f"/camisetas/modelos/{modelo.id_modelo}", json={
+        "nome_modelo": "Básica", "consumo_tecido_kg": "0.18", "id_grade": babylook["id_grade"]})
+    assert resposta.status_code == 409
+
+
+def test_api_modelo_traz_os_tamanhos_com_id(client, db):
+    modelo = criar_modelo(db)
+    corpo = client.get("/camisetas/modelos/").json()[0]
+    assert [t["rotulo"] for t in corpo["grade_tamanhos"]] == ["P", "M", "G", "GG"]
+    assert corpo["grade_tamanhos"][0]["id_tamanho"] == tamanho(modelo, "P").id_tamanho

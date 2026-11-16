@@ -15,8 +15,8 @@ from app.models.camisetas import (
     CamisetaInsumo,
     CamisetaOrdemProducao,
     CamisetaPedido,
-    CamisetaProdutoAcabado,
 )
+from app.models.camisetas_sku import CamisetaVariacao
 from app.schemas.camisetas import (
     CamisetaCardDestaque,
     CamisetaDashboardCompletoResponse,
@@ -58,7 +58,7 @@ def obter_metricas_dashboard(db: Session = Depends(get_db)):
     total_cortado = _soma(db, CamisetaOrdemProducao.pecas_reais_cortadas)
     total_costurado = _soma(db, CamisetaCosturaFaccao.saldo_aprovado)
     total_entregue = _soma(db, CamisetaPedido.quantidade_total, CamisetaPedido.status_pedido == STATUS_ENTREGUE)
-    total_estoque_pronto = _soma(db, CamisetaProdutoAcabado.quantidade_total)
+    total_estoque_pronto = _soma(db, CamisetaVariacao.saldo)
     criticos = db.query(CamisetaInsumo).filter(CamisetaInsumo.saldo_atual <= CamisetaInsumo.estoque_minimo).count()
 
     # Regra mantida: a produção total é abatida pelas peças já entregues aos clientes.

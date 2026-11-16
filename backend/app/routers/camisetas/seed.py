@@ -16,10 +16,11 @@ from app.models.camisetas import (
     CamisetaPedido,
     CamisetaOrdemProducao,
     CamisetaCosturaFaccao,
-    CamisetaProdutoAcabado,
     CamisetaRegistroFinanceiro,
     get_utc_now
 )
+from app.models.camisetas_cadastros import CamisetaCor
+from app.models.camisetas_sku import CamisetaPedidoItem, CamisetaPedidoItemQtd, CamisetaVariacao
 from app.schemas.camisetas import (
     CamisetaModeloCreate, CamisetaModeloResponse,
     CamisetaInsumoCreate, CamisetaInsumoResponse,
@@ -32,10 +33,53 @@ from app.schemas.camisetas import (
     CamisetaRegistroFinanceiroCreate, CamisetaRegistroFinanceiroResponse, CamisetaApuracaoMensalResponse,
     CamisetaDashboardCompletoResponse, CamisetaCardDestaque, CamisetaItemFinanceiroMensal
 )
+from app.schemas.camisetas_sku import ContagemInventario, InventarioEntrada
 from app.services.camisetas.clientes import resolver_cliente
 from app.services.camisetas.modelos import definir_grade
+from app.services.camisetas.produtos_prontos import registrar_inventario
 
 router = APIRouter()
+
+CORES_DEMONSTRACAO = (("Preto", "#1F1F1F"), ("Branco", "#FFFFFF"), ("Azul Marinho", "#1F2A44"))
+COR_DOS_ROLOS = {"MALHA-01": "Preto", "MALHA-02": "Branco", "MALHA-03": "Azul Marinho"}
+ROTULOS_DEMONSTRACAO = ("P", "M", "G", "GG")
+ESTOQUE_DEMONSTRACAO = {"P": 60, "M": 120, "G": 120, "GG": 50}
+
+
+def _semear_cores(db: Session) -> dict:
+    """Cores de demonstração, ligadas aos rolos de malha que ainda não têm cor."""
+    if db.query(CamisetaCor).count() == 0:
+        db.add_all([CamisetaCor(nome=nome, hex=hex_cor, ativo=True) for nome, hex_cor in CORES_DEMONSTRACAO])
+        db.flush()
+    por_nome = {c.nome: c for c in db.query(CamisetaCor).all()}
+    rolos = db.query(CamisetaInsumo).filter(
+        CamisetaInsumo.codigo.in_(COR_DOS_ROLOS), CamisetaInsumo.id_cor.is_(None)).all()
+    for rolo in rolos:
+        cor = por_nome.get(COR_DOS_ROLOS[rolo.codigo])
+        if cor is not None:
+            rolo.id_cor = cor.id_cor
+    db.commit()
+    return por_nome
+
+
+def _itens_demonstracao(modelo, cor, grade) -> list:
+    if cor is None or modelo.grade is None:
+        return []
+    tamanhos = {t.rotulo: t.id_tamanho for t in modelo.grade.tamanhos}
+    return [CamisetaPedidoItem(id_modelo=modelo.id_modelo, id_cor=cor.id_cor, quantidades=[
+        CamisetaPedidoItemQtd(id_tamanho=tamanhos[rotulo], quantidade=qtd)
+        for rotulo, qtd in zip(ROTULOS_DEMONSTRACAO, grade) if qtd > 0 and rotulo in tamanhos
+    ])]
+
+
+def _semear_estoque_pronto(db: Session, modelo, cor) -> None:
+    if db.query(CamisetaVariacao).count() > 0 or modelo is None or cor is None or modelo.grade is None:
+        return
+    tamanhos = {t.rotulo: t.id_tamanho for t in modelo.grade.tamanhos}
+    registrar_inventario(db, InventarioEntrada(motivo="Carga de demonstração", contagens=[
+        ContagemInventario(id_modelo=modelo.id_modelo, id_cor=cor.id_cor, id_tamanho=tamanhos[rotulo], quantidade_contada=qtd)
+        for rotulo, qtd in ESTOQUE_DEMONSTRACAO.items() if rotulo in tamanhos
+    ]))
 
 # ----------------- SEED INICIAL AUTOMÁTICO SE BANCO ESTIVER VAZIO -----------------
 @router.post("/seed-inicial", summary="Popula dados iniciais de demonstração para o segmento de Camisetas")
@@ -135,6 +179,8 @@ def seed_camisetas(db: Session = Depends(get_db)):
         db.add_all(insumos)
         db.commit()
 
+    cores = _semear_cores(db)
+
     # 3. Fichas Técnicas
     if db.query(CamisetaFichaTecnica).count() == 0:
         m1 = db.query(CamisetaModelo).first()
@@ -194,30 +240,32 @@ def seed_camisetas(db: Session = Depends(get_db)):
                 nome_cliente="Lojas Alpha Wear",
                 id_cliente=resolver_cliente(db, None, "Lojas Alpha Wear").id_cliente,
                 id_modelo=m1.id_modelo,
-                grade_p=25,
-                grade_m=50,
-                grade_g=50,
-                grade_gg=25,
+                grade_p=0,
+                grade_m=0,
+                grade_g=0,
+                grade_gg=0,
                 quantidade_total=150,
                 prazo_entrega=datetime.now().date() + timedelta(days=15),
                 valor_total=Decimal("4500.00"),
                 status_pedido="Aguardando Produção",
-                observacoes="Camisetas pretas básicas com silk discreto na nuca"
+                observacoes="Camisetas pretas básicas com silk discreto na nuca",
+                itens=_itens_demonstracao(m1, cores.get("Preto"), (25, 50, 50, 25)),
             )
             ped2 = CamisetaPedido(
                 codigo_pedido="PED-002",
                 nome_cliente="Confecções Brasil Moda",
                 id_cliente=resolver_cliente(db, None, "Confecções Brasil Moda").id_cliente,
                 id_modelo=m1.id_modelo,
-                grade_p=40,
-                grade_m=80,
-                grade_g=60,
-                grade_gg=20,
+                grade_p=0,
+                grade_m=0,
+                grade_g=0,
+                grade_gg=0,
                 quantidade_total=200,
                 prazo_entrega=datetime.now().date() + timedelta(days=20),
                 valor_total=Decimal("6200.00"),
                 status_pedido="Aguardando Produção",
-                observacoes="Lote promocional"
+                observacoes="Lote promocional",
+                itens=_itens_demonstracao(m1, cores.get("Branco"), (40, 80, 60, 20)),
             )
             db.add_all([ped1, ped2])
             db.commit()
@@ -241,21 +289,8 @@ def seed_camisetas(db: Session = Depends(get_db)):
             db.add(op1)
             db.commit()
 
-    # 5.1 Saldo inicial de Estoque de Produtos Acabados (peças prontas)
-    if db.query(CamisetaProdutoAcabado).count() == 0:
-        m1 = db.query(CamisetaModelo).first()
-        if m1:
-            estoque_ini = CamisetaProdutoAcabado(
-                id_modelo=m1.id_modelo,
-                grade_p=60,
-                grade_m=120,
-                grade_g=120,
-                grade_gg=50,
-                quantidade_total=350,
-                atualizado_em=get_utc_now()
-            )
-            db.add(estoque_ini)
-            db.commit()
+    # 5.1 Saldo inicial de peças prontas, por inventário de demonstração
+    _semear_estoque_pronto(db, db.query(CamisetaModelo).first(), cores.get("Preto"))
 
     # 6. Registros Financeiros (12 meses em ordem crescente: Janeiro a Dezembro)
     if db.query(CamisetaRegistroFinanceiro).count() == 0:

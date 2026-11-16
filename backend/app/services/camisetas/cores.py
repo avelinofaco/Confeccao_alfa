@@ -8,7 +8,10 @@ from sqlalchemy.orm import Session
 from app.core.erros import ErroNegocio
 from app.models.camisetas import CamisetaInsumo
 from app.models.camisetas_cadastros import CamisetaCor
+from app.models.camisetas_sku import CamisetaOpCor, CamisetaPedidoItem, CamisetaVariacao
 from app.schemas.camisetas_cadastros import CorEntrada
+
+MODELOS_QUE_USAM_COR = (CamisetaVariacao, CamisetaPedidoItem, CamisetaOpCor)
 
 
 def listar_cores(db: Session, incluir_inativas: bool = False) -> list[CamisetaCor]:
@@ -60,6 +63,8 @@ def excluir_cor(db: Session, id_cor: int) -> None:
     cor = obter_cor(db, id_cor)
     if db.query(CamisetaInsumo.id_insumo).filter_by(id_cor=id_cor).first() is not None:
         raise ErroNegocio(409, "Cor em uso por malhas do estoque; inative-a em vez de excluir.")
+    if any(db.query(modelo).filter_by(id_cor=id_cor).first() is not None for modelo in MODELOS_QUE_USAM_COR):
+        raise ErroNegocio(409, "Cor em uso por estoque pronto, pedidos ou produção; inative-a em vez de excluir.")
     db.delete(cor)
     db.commit()
 

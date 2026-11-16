@@ -44,6 +44,7 @@ class CamisetaModeloResponse(CamisetaModeloBase):
     id_grade: Optional[int] = None
     nome_grade: Optional[str] = None
     tamanhos: List[str] = Field(default_factory=list)
+    grade_tamanhos: List[TamanhoResponse] = Field(default_factory=list)
     criado_em: Optional[datetime] = None
     atualizado_em: Optional[datetime] = None
     model_config = ConfigDict(from_attributes=True)

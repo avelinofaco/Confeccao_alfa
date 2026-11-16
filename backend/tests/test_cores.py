@@ -1,6 +1,14 @@
 from decimal import Decimal
 
-from tests.fabricas import criar_cor, criar_insumo
+from app.models.camisetas_sku import CamisetaOpCor
+from tests.fabricas import (
+    criar_cor,
+    criar_insumo,
+    criar_modelo,
+    criar_op_cortada,
+    criar_pedido_com_itens,
+    criar_variacao,
+)
 
 
 def test_cria_cor_e_padroniza_hex(client):
@@ -74,3 +82,17 @@ def test_editar_insumo_nao_altera_saldo_nem_custo(client, db):
     assert insumo.estoque_minimo == Decimal("25.000")
     assert insumo.saldo_atual == Decimal("100.000")
     assert insumo.preco_custo_medio == Decimal("40.00")
+
+
+def test_api_excluir_cor_usada_por_estoque_pedido_ou_op_retorna_409(client, db):
+    modelo = criar_modelo(db)
+    preto, branco, azul = criar_cor(db), criar_cor(db, "Branco", "#FFFFFF"), criar_cor(db, "Azul", "#0000FF")
+    criar_variacao(db, modelo, preto, "P")
+    criar_pedido_com_itens(db, modelo, branco, {"P": 1})
+    op = criar_op_cortada(db, modelo)
+    db.add(CamisetaOpCor(id_op=op.id_op, id_cor=azul.id_cor, peso_kg=Decimal("1.000")))
+    db.commit()
+    for cor in (preto, branco, azul):
+        resposta = client.delete(f"/camisetas/cores/{cor.id_cor}")
+        assert resposta.status_code == 409
+        assert "inative-a" in resposta.json()["detail"]
