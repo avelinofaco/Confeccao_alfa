@@ -1,11 +1,11 @@
 import { Plus, Trash2 } from 'lucide-react';
 import { GradeQuantidades } from '../producao/GradeQuantidades';
-import { LINHA_QTD, colunasDoModelo, itemVazio, totalDoItem } from '../../utils/pedidoItens';
+import { LINHA_QTD, POSICOES_ESTAMPA, colunasDoModelo, itemVazio, totalDoItem } from '../../utils/pedidoItens';
 import '../cadastros/cadastros.css';
 import './pedidos.css';
 
-/** Lista de itens do pedido: modelo, cor e quantidades por tamanho da grade do modelo. */
-export function ItensPedidoEditor({ itens, onChange, modelos, cores, idPrefixo }) {
+/** Lista de itens do pedido: modelo, cor, estampa/posição opcional e quantidades por tamanho da grade do modelo. */
+export function ItensPedidoEditor({ itens, onChange, modelos, cores, estampas = [], idPrefixo }) {
   const alterar = (chave, mudancas) => onChange(itens.map((item) => (item.chave === chave ? { ...item, ...mudancas } : item)));
   const adicionar = () => {
     const proxima = Math.max(0, ...itens.map((item) => item.chave)) + 1;
@@ -19,6 +19,7 @@ export function ItensPedidoEditor({ itens, onChange, modelos, cores, idPrefixo }
       {itens.map((item, indice) => {
         const modelo = modelos.find((m) => String(m.id_modelo) === String(item.id_modelo));
         const cor = cores.find((c) => String(c.id_cor) === String(item.id_cor));
+        const estampa = estampas.find((est) => String(est.id_estampa) === String(item.id_estampa));
         const id = `${idPrefixo}-${item.chave}`;
         return (
           <div key={item.chave} className="item-pedido">
@@ -46,6 +47,48 @@ export function ItensPedidoEditor({ itens, onChange, modelos, cores, idPrefixo }
                   {cores.map((c) => <option key={c.id_cor} value={c.id_cor}>{c.nome}</option>)}
                 </select>
               </div>
+              <div className="cadastro-campo">
+                <label htmlFor={`${id}-estampa`}>Estampa (opcional)</label>
+                <div className="item-pedido-estampa-linha">
+                  <select
+                    id={`${id}-estampa`}
+                    value={item.id_estampa || ''}
+                    onChange={(e) => alterar(item.chave, {
+                      id_estampa: e.target.value,
+                      posicao_estampa: e.target.value ? (item.posicao_estampa || 'Frente') : 'Frente',
+                    })}
+                  >
+                    <option value="">Lisa (sem estampa)</option>
+                    {estampas.map((est) => (
+                      <option key={est.id_estampa} value={est.id_estampa}>
+                        [{est.codigo}] {est.nome}
+                      </option>
+                    ))}
+                  </select>
+                  {estampa?.imagem_data_url && (
+                    <img
+                      src={estampa.imagem_data_url}
+                      alt={estampa.nome}
+                      className="item-pedido-estampa-thumb"
+                      title={`${estampa.codigo} — ${estampa.nome}`}
+                    />
+                  )}
+                </div>
+              </div>
+              {item.id_estampa && (
+                <div className="cadastro-campo">
+                  <label htmlFor={`${id}-posicao`}>Posição da estampa</label>
+                  <select
+                    id={`${id}-posicao`}
+                    value={item.posicao_estampa || 'Frente'}
+                    onChange={(e) => alterar(item.chave, { posicao_estampa: e.target.value })}
+                  >
+                    {POSICOES_ESTAMPA.map((pos) => (
+                      <option key={pos} value={pos}>{pos}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
             {modelo ? (
               <GradeQuantidades

@@ -14,3 +14,8 @@
 .entrega-skus th, .entrega-skus td { padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--border-artisan); text-align: left; }
 .entrega-skus th { font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); }
 .entrega-falta td { color: var(--accent-artisan-terracotta); font-weight: 600; }
+.item-pedido-estampa-linha { display: flex; align-items: center; gap: 0.5rem; }
+.item-pedido-estampa-linha select { flex: 1; }
+.item-pedido-estampa-thumb { width: 2.3rem; height: 2.3rem; object-fit: contain; border-radius: 6px; border: 1px solid var(--border-artisan-strong); background: var(--bg-artisan-subtle); flex-shrink: 0; }
+.pedido-item-linha { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.15rem; }
+.pedido-item-thumb-mini { width: 1.5rem; height: 1.5rem; object-fit: contain; border-radius: 4px; border: 1px solid var(--border-artisan); background: var(--bg-artisan-subtle); flex-shrink: 0; }

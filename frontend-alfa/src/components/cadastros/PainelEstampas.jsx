@@ -147,7 +147,29 @@ export function PainelEstampas() {
       limparFormulario();
       carregar();
     } catch (err) {
-      toast.erro(mensagemDeErro(err, 'Não foi possível excluir a estampa.'));
+      if (err.response?.status !== 409) {
+        toast.erro(mensagemDeErro(err, 'Não foi possível excluir a estampa.'));
+        return;
+      }
+      const inativar = await confirmar({
+        titulo: 'Estampa em uso',
+        mensagem: `"${estampa.nome}" está vinculada a pedidos. Deseja inativá-la para que não apareça em novos pedidos?`,
+        textoConfirmar: 'Inativar estampa',
+      });
+      if (!inativar) return;
+      try {
+        await api.put(`/camisetas/estampas/${estampa.id_estampa}`, {
+          nome: estampa.nome,
+          codigo: estampa.codigo,
+          observacoes: estampa.observacoes || null,
+          ativo: false,
+        });
+        toast.sucesso(`Estampa "${estampa.nome}" inativada.`);
+        limparFormulario();
+        carregar();
+      } catch (erroInativar) {
+        toast.erro(mensagemDeErro(erroInativar, 'Não foi possível inativar a estampa.'));
+      }
     }
   };
 

@@ -7,7 +7,7 @@ import { itemDaApi, itemParaApi, problemaDosItens } from '../../utils/pedidoIten
 import { ItensPedidoEditor } from './ItensPedidoEditor';
 
 /** Edição dos itens de um pedido ainda não entregue (é aqui que o pedido antigo recebe a cor). */
-export function ModalItensPedido({ pedido, modelos, cores, onFechar, onSalvo }) {
+export function ModalItensPedido({ pedido, modelos, cores, estampas = [], onFechar, onSalvo }) {
   const toast = useToast();
   const [itens, setItens] = useState(() => pedido.itens.map((item, indice) => itemDaApi(item, indice + 1)));
   const [salvando, setSalvando] = useState(false);
@@ -34,7 +34,7 @@ export function ModalItensPedido({ pedido, modelos, cores, onFechar, onSalvo }) 
         {pedido.itens.some((item) => !item.id_cor) && (
           <p className="producao-aviso">Este pedido veio do sistema antigo, sem cor. Escolha a cor de cada item para poder entregar.</p>
         )}
-        <ItensPedidoEditor itens={itens} onChange={setItens} modelos={modelos} cores={cores} idPrefixo="editar-item" />
+        <ItensPedidoEditor itens={itens} onChange={setItens} modelos={modelos} cores={cores} estampas={estampas} idPrefixo="editar-item" />
         <footer className="cadastro-modal-rodape">
           <button type="button" className="cadastro-btn secundario" onClick={onFechar}>Cancelar</button>
           <button type="submit" className="cadastro-btn primario" disabled={salvando}>Salvar itens</button>

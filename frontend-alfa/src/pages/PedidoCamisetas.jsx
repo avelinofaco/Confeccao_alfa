@@ -42,6 +42,7 @@ function PedidoCamisetas() {
   const [pedidos, setPedidos] = useState([]);
   const [produtosProntos, setProdutosProntos] = useState([]);
   const [cores, setCores] = useState([]);
+  const [estampas, setEstampas] = useState([]);
   const [loading, setLoading] = useState(false);
   const [busca, setBusca] = useState('');
   const [erroData, setErroData] = useState('');
@@ -58,9 +59,9 @@ function PedidoCamisetas() {
   const carregarDados = async () => {
     setLoading(true);
     const { dados, houveFalha } = await buscarEmParalelo([
-      '/camisetas/modelos/', '/camisetas/pedidos/', '/camisetas/produtos-prontos/', '/camisetas/cores/',
+      '/camisetas/modelos/', '/camisetas/pedidos/', '/camisetas/produtos-prontos/', '/camisetas/cores/', '/camisetas/estampas/',
     ]);
-    const [mods, listaPedidos, prontos, listaCores] = dados;
+    const [mods, listaPedidos, prontos, listaCores, listaEstampas] = dados;
     setModelos(mods);
     setFormData((atual) => (atual.itens[0]?.id_modelo || mods.length === 0
       ? atual
@@ -68,6 +69,7 @@ function PedidoCamisetas() {
     setPedidos(listaPedidos);
     setProdutosProntos(prontos);
     setCores(listaCores);
+    setEstampas(listaEstampas);
     if (houveFalha) {
       toast.erro('Não foi possível carregar todos os dados de pedidos. Verifique a conexão e recarregue a página.');
     }
@@ -162,7 +164,12 @@ function PedidoCamisetas() {
     (p.nome_cliente || '').toLowerCase().includes(termo) ||
     (p.codigo_pedido || '').toLowerCase().includes(termo) ||
     (p.nome_modelo || '').toLowerCase().includes(termo) ||
-    (p.itens || []).some((i) => i.nome_modelo.toLowerCase().includes(termo))
+    (p.itens || []).some(
+      (i) =>
+        i.nome_modelo.toLowerCase().includes(termo) ||
+        (i.nome_estampa || '').toLowerCase().includes(termo) ||
+        (i.codigo_estampa || '').toLowerCase().includes(termo)
+    )
   );
 
   return (
@@ -265,6 +272,7 @@ function PedidoCamisetas() {
               onChange={(itens) => setFormData((atual) => ({ ...atual, itens }))}
               modelos={modelos}
               cores={cores}
+              estampas={estampas}
               idPrefixo="novo-item"
             />
 
@@ -337,7 +345,16 @@ function PedidoCamisetas() {
                         <td>
                           <ul className="pedido-itens-resumo">
                             {ped.itens.map((item) => (
-                              <li key={item.id_item} className={item.id_cor ? undefined : 'sem-cor'}>{resumoDoItem(item)}</li>
+                              <li key={item.id_item} className={`pedido-item-linha ${item.id_cor ? '' : 'sem-cor'}`}>
+                                {item.imagem_estampa_url && (
+                                  <img
+                                    src={item.imagem_estampa_url}
+                                    alt={item.nome_estampa || 'Estampa'}
+                                    className="pedido-item-thumb-mini"
+                                  />
+                                )}
+                                <span>{resumoDoItem(item)}</span>
+                              </li>
                             ))}
                           </ul>
                           {!isEntregue && (
@@ -407,6 +424,7 @@ function PedidoCamisetas() {
             pedido={pedidoEmEdicao}
             modelos={modelos}
             cores={cores}
+            estampas={estampas}
             onFechar={() => setPedidoEmEdicao(null)}
             onSalvo={() => { setPedidoEmEdicao(null); carregarDados(); }}
           />
