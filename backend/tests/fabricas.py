@@ -13,7 +13,9 @@ from app.models.camisetas import (
     CamisetaProdutoAcabado,
     CamisetaRegistroFinanceiro,
 )
-from app.models.camisetas_cadastros import CamisetaCliente, CamisetaCor
+from app.models.camisetas_cadastros import CamisetaCliente, CamisetaCor, CamisetaGrade, CamisetaGradeTamanho
+from app.models.camisetas_sku import CamisetaPedidoItem, CamisetaPedidoItemQtd, CamisetaVariacao
+from app.services.camisetas.grades import obter_grade_padrao
 from app.services.documentos import normalizar_nome
 
 
@@ -24,12 +26,37 @@ def _salvar(db, objeto):
     return objeto
 
 
-def criar_modelo(db, nome="Camiseta Básica", consumo_kg="0.1800"):
-    return _salvar(db, CamisetaModelo(nome_modelo=nome, consumo_tecido_kg=Decimal(consumo_kg)))
+def criar_grade(db, nome="Adulto", rotulos=("P", "M", "G", "GG")):
+    grade = CamisetaGrade(nome=nome, ativo=True)
+    grade.tamanhos = [CamisetaGradeTamanho(rotulo=r, ordem=i) for i, r in enumerate(rotulos, start=1)]
+    return _salvar(db, grade)
+
+
+def criar_modelo(db, nome="Camiseta Básica", consumo_kg="0.1800", grade=None):
+    grade = grade or obter_grade_padrao(db)
+    return _salvar(db, CamisetaModelo(
+        nome_modelo=nome, consumo_tecido_kg=Decimal(consumo_kg), id_grade=grade.id_grade,
+        grade_disponivel=", ".join(t.rotulo for t in grade.tamanhos),
+    ))
+
+
+def criar_modelo_com_grade(db, nome="Camiseta Básica", rotulos=("P", "M", "G", "GG"), consumo_kg="0.1800"):
+    return criar_modelo(db, nome=nome, consumo_kg=consumo_kg, grade=criar_grade(db, nome=f"Grade {nome}", rotulos=rotulos))
+
+
+def tamanho(modelo, rotulo):
+    return next(t for t in modelo.grade.tamanhos if t.rotulo == rotulo)
+
+
+def criar_variacao(db, modelo, cor, rotulo, saldo=0, minimo=0):
+    return _salvar(db, CamisetaVariacao(
+        id_modelo=modelo.id_modelo, id_cor=cor.id_cor, id_tamanho=tamanho(modelo, rotulo).id_tamanho,
+        saldo=saldo, estoque_minimo=minimo,
+    ))
 
 
 def criar_insumo(db, codigo="MALHA-01", categoria="ROLO_TECIDO", nome="Meia Malha 30.1",
-                 unidade="kg", saldo="100.000", custo="40.00", minimo="10.000"):
+                 unidade="kg", saldo="100.000", custo="40.00", minimo="10.000", cor=None):
     return _salvar(db, CamisetaInsumo(
         codigo=codigo,
         categoria=categoria,
@@ -38,6 +65,7 @@ def criar_insumo(db, codigo="MALHA-01", categoria="ROLO_TECIDO", nome="Meia Malh
         saldo_atual=Decimal(saldo),
         estoque_minimo=Decimal(minimo),
         preco_custo_medio=Decimal(custo),
+        id_cor=cor.id_cor if cor else None,
     ))
 
 
@@ -132,3 +160,19 @@ def criar_cliente(db, nome="Loja Beta", documento=None, telefone=None, ativo=Tru
 
 def criar_cor(db, nome="Preto", hex="#1F1F1F", ativo=True):
     return _salvar(db, CamisetaCor(nome=nome, hex=hex, ativo=ativo))
+
+
+def criar_pedido_com_itens(db, modelo, cor, quantidades, codigo="PED-T-1", status="Aguardando Produção",
+                           data_entrega_realizada=None):
+    """Pedido com um item (modelo + cor) e quantidades por rótulo, ex.: {"P": 5, "M": 10}. `cor=None` = cor não informada."""
+    pedido = CamisetaPedido(
+        codigo_pedido=codigo, nome_cliente="Cliente Teste", id_modelo=modelo.id_modelo,
+        grade_p=0, grade_m=0, grade_g=0, grade_gg=0, quantidade_total=sum(quantidades.values()),
+        prazo_entrega=date.today() + timedelta(days=10), valor_total=Decimal("1000.00"),
+        status_pedido=status, data_entrega_realizada=data_entrega_realizada,
+    )
+    pedido.itens = [CamisetaPedidoItem(
+        id_modelo=modelo.id_modelo, id_cor=cor.id_cor if cor else None,
+        quantidades=[CamisetaPedidoItemQtd(id_tamanho=tamanho(modelo, r).id_tamanho, quantidade=q) for r, q in quantidades.items()],
+    )]
+    return _salvar(db, pedido)
