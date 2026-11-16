@@ -91,6 +91,20 @@
 **Files:**
 - Modify: `docs/superpowers/plans/2026-11-16-fase2-banco-estampas.md`
 
-- [ ] **Step 1: Conferir cobertura `≥ 80%` e `alembic check`**
-- [ ] **Step 2: Verificar a aba Estampas no navegador automatizado**
-- [ ] **Step 3: Registrar notas de execução e commitar**
+- [x] **Step 1: Conferir cobertura `≥ 80%` e `alembic check`**
+- [x] **Step 2: Verificar a aba Estampas no navegador automatizado**
+- [x] **Step 3: Registrar notas de execução e commitar**
+
+---
+
+## Notas de execução
+
+Fase 2 executada em 2026-11-16 na branch `feat/camisetas-estampas` (a partir de `feat/camisetas-seguranca`), seguindo as 5 tasks em TDD.
+
+**Resultado:**
+- **243 testes passando** (eram 228 após Segurança); cobertura de `app/services/camisetas/estampas.py` em **98%** e de `app/services/` geral em **97%**.
+- Migração `20261116_007_estampas` testada em subida, descida (`downgrade`) e `alembic check` sem diferenças.
+- Validação real de bytes mágicos (`PNG`, `JPEG`, `WEBP`) e limite de 2 MB implementados e cobertos por testes unitários.
+- Código sequencial `EST-AAAA-NNNN` gerado via `proximo_codigo(db, "EST")` quando omitido, ou validado como único quando informado.
+- Aba **Estampas** (`PainelEstampas.jsx`) integrada em **4. Ficha Técnica Digital**, conferida no navegador real (`browser.mjs`): login → Ficha Técnica → aba Estampas → upload de PNG → cadastro → modal de ampliação → fechar com `Escape`, com **zero erros de console e zero requisições falhas**.
+
