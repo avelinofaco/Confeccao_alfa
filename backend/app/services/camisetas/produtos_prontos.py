@@ -2,10 +2,18 @@
 """Produtos Prontos: saldos por modelo × cor × tamanho, inventário, ajuste, estoque mínimo e histórico."""
 from typing import Optional
 
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.core.erros import ErroNegocio
-from app.models.camisetas_sku import CamisetaMovimentoEstoque, CamisetaVariacao
+from app.models.camisetas import CamisetaModelo, CamisetaPedido
+from app.models.camisetas_cadastros import CamisetaCor
+from app.models.camisetas_sku import (
+    CamisetaMovimentoEstoque,
+    CamisetaPedidoItem,
+    CamisetaPedidoItemQtd,
+    CamisetaVariacao,
+)
 from app.schemas.camisetas_sku import (
     AjusteEntrada,
     CelulaSku,
@@ -32,28 +40,98 @@ from app.services.camisetas.sku import (
 
 MOTIVO_INVENTARIO_PADRAO = "Inventário de abertura"
 LIMITE_MOVIMENTOS = 100
+STATUS_PEDIDO_ENTREGUE = "Entregue"
 
 
 def esta_abaixo_do_minimo(variacao: CamisetaVariacao) -> bool:
     return variacao.estoque_minimo > 0 and variacao.saldo < variacao.estoque_minimo
 
 
-def _celula(tamanho, variacao: Optional[CamisetaVariacao]) -> CelulaSku:
+def _celula(tamanho, variacao: Optional[CamisetaVariacao], reservado: int = 0) -> CelulaSku:
+    saldo = variacao.saldo if variacao is not None else 0
+    disponivel = max(0, saldo - reservado)
+    falta_produzir = max(0, reservado - saldo)
     if variacao is None:
-        return CelulaSku(id_tamanho=tamanho.id_tamanho, rotulo=tamanho.rotulo)
+        return CelulaSku(
+            id_tamanho=tamanho.id_tamanho,
+            rotulo=tamanho.rotulo,
+            saldo=0,
+            reservado=reservado,
+            disponivel=disponivel,
+            falta_produzir=falta_produzir,
+        )
     return CelulaSku(
-        id_tamanho=tamanho.id_tamanho, rotulo=tamanho.rotulo, id_variacao=variacao.id_variacao,
-        saldo=variacao.saldo, estoque_minimo=variacao.estoque_minimo, abaixo_minimo=esta_abaixo_do_minimo(variacao),
+        id_tamanho=tamanho.id_tamanho,
+        rotulo=tamanho.rotulo,
+        id_variacao=variacao.id_variacao,
+        saldo=saldo,
+        estoque_minimo=variacao.estoque_minimo,
+        abaixo_minimo=esta_abaixo_do_minimo(variacao),
+        reservado=reservado,
+        disponivel=disponivel,
+        falta_produzir=falta_produzir,
     )
 
 
-def _montar_linha(variacoes: list[CamisetaVariacao]) -> LinhaProdutoPronto:
-    modelo, cor = variacoes[0].modelo, variacoes[0].cor
+def _reservas_por_sku(
+    db: Session, id_modelo: Optional[int] = None, id_cor: Optional[int] = None
+) -> dict[tuple[int, int, int], int]:
+    consulta = (
+        db.query(
+            CamisetaPedidoItem.id_modelo,
+            CamisetaPedidoItem.id_cor,
+            CamisetaPedidoItemQtd.id_tamanho,
+            func.coalesce(func.sum(CamisetaPedidoItemQtd.quantidade), 0),
+        )
+        .join(CamisetaPedidoItem, CamisetaPedidoItem.id_item == CamisetaPedidoItemQtd.id_item)
+        .join(CamisetaPedido, CamisetaPedido.id_pedido == CamisetaPedidoItem.id_pedido)
+        .filter(
+            CamisetaPedido.status_pedido != STATUS_PEDIDO_ENTREGUE,
+            CamisetaPedidoItem.id_cor.is_not(None),
+        )
+    )
+    if id_modelo is not None:
+        consulta = consulta.filter(CamisetaPedidoItem.id_modelo == id_modelo)
+    if id_cor is not None:
+        consulta = consulta.filter(CamisetaPedidoItem.id_cor == id_cor)
+    linhas = consulta.group_by(
+        CamisetaPedidoItem.id_modelo,
+        CamisetaPedidoItem.id_cor,
+        CamisetaPedidoItemQtd.id_tamanho,
+    ).all()
+    return {
+        (int(mod), int(cor), int(tam)): int(qtd)
+        for mod, cor, tam, qtd in linhas
+        if int(qtd) > 0
+    }
+
+
+def _montar_linha(
+    modelo: CamisetaModelo,
+    cor: CamisetaCor,
+    variacoes: list[CamisetaVariacao],
+    reservas: dict[tuple[int, int, int], int],
+) -> LinhaProdutoPronto:
     por_tamanho = {v.id_tamanho: v for v in variacoes}
-    celulas = [_celula(t, por_tamanho.get(t.id_tamanho)) for t in tamanhos_do_modelo(modelo)]
+    celulas = [
+        _celula(
+            t,
+            por_tamanho.get(t.id_tamanho),
+            reservas.get((modelo.id_modelo, cor.id_cor, t.id_tamanho), 0),
+        )
+        for t in tamanhos_do_modelo(modelo)
+    ]
     return LinhaProdutoPronto(
-        id_modelo=modelo.id_modelo, nome_modelo=modelo.nome_modelo, id_cor=cor.id_cor, nome_cor=cor.nome,
-        hex_cor=cor.hex, tamanhos=celulas, total=sum(c.saldo for c in celulas),
+        id_modelo=modelo.id_modelo,
+        nome_modelo=modelo.nome_modelo,
+        id_cor=cor.id_cor,
+        nome_cor=cor.nome,
+        hex_cor=cor.hex,
+        tamanhos=celulas,
+        total=sum(c.saldo for c in celulas),
+        total_reservado=sum(c.reservado for c in celulas),
+        total_disponivel=sum(c.disponivel for c in celulas),
+        total_falta_produzir=sum(c.falta_produzir for c in celulas),
     )
 
 
@@ -65,9 +143,30 @@ def listar_produtos_prontos(db: Session, id_modelo: Optional[int] = None, id_cor
     if id_cor is not None:
         consulta = consulta.filter(CamisetaVariacao.id_cor == id_cor)
     grupos: dict[tuple[int, int], list[CamisetaVariacao]] = {}
+    modelos_cache: dict[int, CamisetaModelo] = {}
+    cores_cache: dict[int, CamisetaCor] = {}
     for variacao in consulta.all():
         grupos.setdefault((variacao.id_modelo, variacao.id_cor), []).append(variacao)
-    linhas = [_montar_linha(variacoes) for variacoes in grupos.values()]
+        modelos_cache[variacao.id_modelo] = variacao.modelo
+        cores_cache[variacao.id_cor] = variacao.cor
+
+    reservas = _reservas_por_sku(db, id_modelo=id_modelo, id_cor=id_cor)
+    for mod_id, cor_id, _ in reservas.keys():
+        grupos.setdefault((mod_id, cor_id), [])
+        if mod_id not in modelos_cache:
+            mod_obj = db.get(CamisetaModelo, mod_id)
+            if mod_obj is not None:
+                modelos_cache[mod_id] = mod_obj
+        if cor_id not in cores_cache:
+            cor_obj = db.get(CamisetaCor, cor_id)
+            if cor_obj is not None:
+                cores_cache[cor_id] = cor_obj
+
+    linhas = [
+        _montar_linha(modelos_cache[mod_id], cores_cache[cor_id], variacoes, reservas)
+        for (mod_id, cor_id), variacoes in grupos.items()
+        if mod_id in modelos_cache and cor_id in cores_cache
+    ]
     if abaixo_minimo:
         linhas = [linha for linha in linhas if any(c.abaixo_minimo for c in linha.tamanhos)]
     return sorted(linhas, key=lambda linha: (linha.nome_modelo.casefold(), linha.nome_cor.casefold()))

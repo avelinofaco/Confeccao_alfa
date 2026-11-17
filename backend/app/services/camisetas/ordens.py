@@ -6,7 +6,7 @@ from typing import Optional
 from sqlalchemy.orm import Session
 
 from app.core.erros import ErroNegocio
-from app.models.camisetas import CamisetaInsumo, CamisetaOrdemProducao, get_utc_now
+from app.models.camisetas import CamisetaInsumo, CamisetaOrdemProducao, CamisetaPedido, get_utc_now
 from app.models.camisetas_sku import CamisetaOpCor, CamisetaOpCorte
 from app.schemas.camisetas import (
     CamisetaOrdemProducaoCreate,
@@ -80,9 +80,21 @@ def _validar_linhas(db: Session, linhas: list[OpCorEntrada]) -> list[tuple[OpCor
     return validadas
 
 
+def _obter_pedido_para_op(db: Session, id_pedido: Optional[int]) -> Optional[CamisetaPedido]:
+    if id_pedido is None:
+        return None
+    pedido = db.get(CamisetaPedido, id_pedido)
+    if pedido is None:
+        raise ErroNegocio(404, "Pedido não encontrado para vincular à Ordem de Produção.")
+    if pedido.status_pedido == "Entregue":
+        raise ErroNegocio(400, "Não é possível vincular uma Ordem de Produção a um pedido já entregue.")
+    return pedido
+
+
 def abrir_op(db: Session, dados: CamisetaOrdemProducaoCreate) -> CamisetaOrdemProducao:
     modelo = obter_modelo(db, dados.id_modelo)
     tamanhos_do_modelo(modelo)  # sem grade não há como cortar por tamanho
+    pedido = _obter_pedido_para_op(db, dados.id_pedido)
     linhas = dados.cores if dados.cores is not None else _linhas_do_corpo_antigo(db, dados)
     validadas = _validar_linhas(db, linhas)
     peso_total = sum((linha.peso_kg for linha, _ in validadas), ZERO)
@@ -90,11 +102,14 @@ def abrir_op(db: Session, dados: CamisetaOrdemProducaoCreate) -> CamisetaOrdemPr
     op = CamisetaOrdemProducao(
         codigo_op=proximo_codigo(db, "OP"),
         id_modelo=modelo.id_modelo,
+        id_pedido=pedido.id_pedido if pedido else None,
         id_insumo_tecido=validadas[0][1].id_insumo,
         peso_malha_enviado_kg=peso_total,
         pecas_planejadas=int(peso_total / consumo) if consumo > ZERO else 0,
         status_op=STATUS_OP_ENFESTADA,
     )
+    if pedido is not None and pedido.status_pedido == "Aguardando Produção":
+        pedido.status_pedido = "Em Produção"
     op.cores = [CamisetaOpCor(id_cor=linha.id_cor, id_insumo_tecido=rolo.id_insumo, peso_kg=linha.peso_kg)
                 for linha, rolo in validadas]
     for linha, rolo in validadas:
@@ -202,6 +217,9 @@ def montar_resposta_op(op: CamisetaOrdemProducao) -> CamisetaOrdemProducaoRespon
         codigo_op=op.codigo_op,
         id_modelo=op.id_modelo,
         nome_modelo=op.modelo.nome_modelo if op.modelo else "Modelo",
+        id_pedido=op.id_pedido,
+        codigo_pedido=op.pedido.codigo_pedido if op.pedido else None,
+        nome_cliente_pedido=op.pedido.nome_cliente if op.pedido else None,
         id_insumo_tecido=op.id_insumo_tecido,
         nome_tecido=_nome_tecido(op),
         peso_malha_enviado_kg=op.peso_malha_enviado_kg,

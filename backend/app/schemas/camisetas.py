@@ -183,6 +183,7 @@ class CamisetaPedidoResponse(BaseModel):
 class CamisetaOrdemProducaoCreate(BaseModel):
     codigo_op: Optional[str] = None  # ignorado: o servidor gera OP-AAAA-NNNN
     id_modelo: int
+    id_pedido: Optional[int] = None
     cores: Optional[List[OpCorEntrada]] = None  # uma linha por cor do enfesto
     id_insumo_tecido: Optional[int] = None  # corpo antigo: uma malha só (a cor vem do rolo)
     peso_malha_enviado_kg: Optional[Decimal] = None
@@ -197,6 +198,9 @@ class CamisetaOrdemProducaoResponse(BaseModel):
     codigo_op: str
     id_modelo: int
     nome_modelo: Optional[str] = None
+    id_pedido: Optional[int] = None
+    codigo_pedido: Optional[str] = None
+    nome_cliente_pedido: Optional[str] = None
     id_insumo_tecido: Optional[int] = None
     nome_tecido: Optional[str] = None
     peso_malha_enviado_kg: Decimal

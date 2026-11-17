@@ -19,6 +19,9 @@ class CelulaSku(BaseModel):
     saldo: int = 0
     estoque_minimo: int = 0
     abaixo_minimo: bool = False
+    reservado: int = 0
+    disponivel: int = 0
+    falta_produzir: int = 0
 
 
 class LinhaProdutoPronto(BaseModel):
@@ -29,6 +32,9 @@ class LinhaProdutoPronto(BaseModel):
     hex_cor: str
     tamanhos: List[CelulaSku]
     total: int
+    total_reservado: int = 0
+    total_disponivel: int = 0
+    total_falta_produzir: int = 0
 
 
 class ContagemInventario(BaseModel):
