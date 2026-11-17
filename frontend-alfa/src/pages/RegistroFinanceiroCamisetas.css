@@ -233,3 +233,190 @@
   font-size: 0.85rem;
   color: var(--color-text-muted);
 }
+
+/* FASE 7: DRE MENSAL, DESPESAS POR CATEGORIA E CONTAS A PAGAR/RECEBER */
+.dre-topo-barra {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+}
+
+.dre-resumo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.6rem;
+}
+
+.dre-item {
+  padding: 1rem 1.2rem;
+  border-radius: 10px;
+  background: #FAF8F5;
+  border: 1px solid var(--border-artisan, #EAE4DD);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.dre-item-destaque {
+  background: #F4F9F5;
+  border-color: #B9DEC8;
+}
+
+.dre-item span {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #6E635F);
+}
+
+.dre-item strong {
+  font-size: 1.35rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.dre-item small {
+  font-size: 0.76rem;
+  color: var(--color-text-muted, #6E635F);
+}
+
+.dre-valor-azul { color: #204B72; }
+.dre-valor-vermelho { color: #B94A3E; }
+.dre-valor-verde { color: #236342; }
+
+.despesa-form-bloco {
+  padding: 1.1rem 1.25rem;
+  border-radius: 10px;
+  background: #FAF8F5;
+  border: 1px dashed var(--border-artisan, #D5CCC0);
+  margin-bottom: 1.5rem;
+}
+
+.despesa-form-bloco h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0 0 0.9rem;
+  font-size: 1rem;
+}
+
+.despesa-form-grid {
+  display: grid;
+  grid-template-columns: 1.3fr 1.8fr 0.9fr 1fr 1fr auto;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.despesa-form-acao {
+  display: flex;
+  align-items: flex-end;
+}
+
+.dre-listas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 1.2rem;
+  margin-bottom: 1.2rem;
+}
+
+.dre-lista-card {
+  border: 1px solid var(--border-artisan, #EAE4DD);
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+  background: #ffffff;
+}
+
+.dre-lista-card h3 {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+}
+
+.dre-vazio {
+  margin: 0;
+  padding: 1rem;
+  text-align: center;
+  color: var(--color-text-muted, #6E635F);
+  font-size: 0.88rem;
+}
+
+.tabela-fin-compacta th,
+.tabela-fin-compacta td {
+  padding: 0.55rem 0.65rem;
+  font-size: 0.83rem;
+}
+
+.fin-status-badge {
+  display: inline-block;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.fin-status-badge.pago {
+  background: #EDF7F1;
+  color: #236342;
+  border: 1px solid #A6D8BB;
+}
+
+.fin-status-badge.pendente {
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FCD34D;
+}
+
+.fin-acoes-celula {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.fin-btn-quitar {
+  padding: 0.25rem 0.55rem;
+  border-radius: 6px;
+  border: 1px solid #204B72;
+  background: #ffffff;
+  color: #204B72;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.fin-btn-quitar:hover {
+  background: #204B72;
+  color: #ffffff;
+}
+
+.fin-btn-excluir {
+  padding: 0.25rem 0.4rem;
+  border-radius: 6px;
+  border: 1px solid #FECACA;
+  background: #FEF2F2;
+  color: #B91C1C;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+}
+
+.fin-avulso-details {
+  margin-top: 0.8rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--border-artisan, #EAE4DD);
+}
+
+.fin-avulso-details summary {
+  cursor: pointer;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--color-text-muted, #6E635F);
+}
+
+@media (max-width: 1024px) {
+  .despesa-form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
