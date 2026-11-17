@@ -19,11 +19,11 @@
 - Create: `backend/alembic/versions/20261117_011_producao_pedido_op.py`
 - Test: `backend/tests/test_migracoes.py`
 
-- [ ] **Step 1: Escrever o teste de migração que falha**
-- [ ] **Step 2: Rodar e ver falhar**
-- [ ] **Step 3: Atualizar `CamisetaOrdemProducao` e criar `20261117_011_producao_pedido_op.py`**
-- [ ] **Step 4: Rodar os testes de migração e `alembic check`**
-- [ ] **Step 5: Commit**
+- [x] **Step 1: Escrever o teste de migração que falha**
+- [x] **Step 2: Rodar e ver falhar**
+- [x] **Step 3: Atualizar `CamisetaOrdemProducao` e criar `20261117_011_producao_pedido_op.py`**
+- [x] **Step 4: Rodar os testes de migração e `alembic check`**
+- [x] **Step 5: Commit**
 
 ---
 
@@ -33,11 +33,11 @@
 - Modify: `backend/app/schemas/camisetas.py`, `backend/app/schemas/camisetas_sku.py`, `backend/app/services/camisetas/ordens.py`, `backend/app/services/camisetas/produtos_prontos.py`
 - Test: `backend/tests/test_producao_fase6.py`
 
-- [ ] **Step 1: Escrever os testes que falham em `tests/test_producao_fase6.py`**
-- [ ] **Step 2: Rodar e ver falhar**
-- [ ] **Step 3: Implementar o cálculo de reserva em `produtos_prontos.py` e o vínculo `id_pedido` em `ordens.py`**
-- [ ] **Step 4: Rodar toda a suíte do backend e ver passar**
-- [ ] **Step 5: Commit**
+- [x] **Step 1: Escrever os testes que falham em `tests/test_producao_fase6.py`**
+- [x] **Step 2: Rodar e ver falhar**
+- [x] **Step 3: Implementar o cálculo de reserva em `produtos_prontos.py` e o vínculo `id_pedido` em `ordens.py`**
+- [x] **Step 4: Rodar toda a suíte do backend e ver passar**
+- [x] **Step 5: Commit**
 
 ---
 
@@ -46,10 +46,10 @@
 **Files:**
 - Modify: `frontend-alfa/src/components/producao/FormNovaOp.jsx`, `frontend-alfa/src/pages/CorteRendimentoCamisetas.jsx`, `frontend-alfa/src/pages/ProdutosProntosCamisetas.jsx`
 
-- [ ] **Step 1: Adicionar seletor de pedido em aberto em `FormNovaOp.jsx` e coluna/etiqueta de pedido em `CorteRendimentoCamisetas.jsx`**
-- [ ] **Step 2: Exibir reservado/disponível/falta produzir em `ProdutosProntosCamisetas.jsx`**
-- [ ] **Step 3: Rodar `npm run build` e `npx oxlint`**
-- [ ] **Step 4: Commit**
+- [x] **Step 1: Adicionar seletor de pedido em aberto em `FormNovaOp.jsx` e coluna/etiqueta de pedido em `CorteRendimentoCamisetas.jsx`**
+- [x] **Step 2: Exibir reservado/disponível/falta produzir em `ProdutosProntosCamisetas.jsx`**
+- [x] **Step 3: Rodar `npm run build` e `npx oxlint`**
+- [x] **Step 4: Commit**
 
 ---
 
@@ -58,6 +58,14 @@
 **Files:**
 - Modify: `docs/superpowers/plans/2026-11-17-fase6-producao.md`
 
-- [ ] **Step 1: Conferir cobertura `≥ 80%` e `alembic check`**
-- [ ] **Step 2: Verificar telas no navegador automatizado**
-- [ ] **Step 3: Registrar notas de execução e commitar**
+- [x] **Step 1: Conferir cobertura `≥ 80%` e `alembic check`**
+- [x] **Step 2: Verificar telas no navegador automatizado**
+- [x] **Step 3: Registrar notas de execução e commitar**
+
+---
+
+## Notas de execução (2026-11-17)
+
+- **Migração `20261117_011_producao_pedido_op`:** adiciona `id_pedido` (`FK camisetas_pedidos.id_pedido ON DELETE SET NULL`, índice `ix_camisetas_op_id_pedido`) em `camisetas_ordens_producao`. Testada com `upgrade` e `downgrade` em `tests/test_migracoes.py` e `alembic check` sem pendências.
+- **Backend TDD:** 5 novos testes em `tests/test_producao_fase6.py` cobrindo cálculo de `reservado`, `disponivel` e `falta_produzir` por SKU, listagem de linhas com pedido em aberto mesmo sem `CamisetaVariacao` prévia, exclusão de pedidos entregues da reserva e vínculo Pedido → OP com avanço automático de `"Aguardando Produção"` para `"Em Produção"`. Cobertura nos serviços alterados: `ordens.py` 93%, `produtos_prontos.py` 94% (total 94%).
+- **Frontend e QA no navegador:** `npm run build` e `npx oxlint` com 0 erros. Verificação automatizada via Playwright (`/camisetas/produtos-prontos` e `/camisetas/corte-rendimento`) confirmou os KPIs (`peças prontas`, `reservadas em pedidos`, `livres`, `faltam produzir`), o preenchimento automático de modelo e cores ao selecionar um pedido em aberto na abertura da OP e a exibição do código do pedido na tabela de OPs, com `0` erros de console ou de página.
