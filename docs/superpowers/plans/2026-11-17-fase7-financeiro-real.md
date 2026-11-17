@@ -19,11 +19,11 @@
 - Create: `backend/alembic/versions/20261117_012_financeiro_despesas_recebimentos.py`
 - Test: `backend/tests/test_migracoes.py`
 
-- [ ] **Step 1: Escrever o teste de migração que falha em `tests/test_migracoes.py`**
-- [ ] **Step 2: Rodar e ver falhar**
-- [ ] **Step 3: Criar `CamisetaDespesa`, adicionar `status_pagamento` e `data_pagamento` em `CamisetaPedido` e criar a migração `012`**
-- [ ] **Step 4: Rodar os testes de migração e `alembic check`**
-- [ ] **Step 5: Commit**
+- [x] **Step 1: Escrever o teste de migração que falha em `tests/test_migracoes.py`**
+- [x] **Step 2: Rodar e ver falhar**
+- [x] **Step 3: Criar `CamisetaDespesa`, adicionar `status_pagamento` e `data_pagamento` em `CamisetaPedido` e criar a migração `012`**
+- [x] **Step 4: Rodar os testes de migração e `alembic check`**
+- [x] **Step 5: Commit**
 
 ---
 
@@ -33,11 +33,11 @@
 - Modify: `backend/app/schemas/camisetas.py`, `backend/app/services/camisetas/financeiro.py`, `backend/app/routers/camisetas/financeiro.py`
 - Test: `backend/tests/test_financeiro_fase7.py`
 
-- [ ] **Step 1: Escrever os testes que falham em `tests/test_financeiro_fase7.py`**
-- [ ] **Step 2: Rodar e ver falhar**
-- [ ] **Step 3: Implementar os schemas, serviços e endpoints de despesas, pagamento de pedido e DRE mensal**
-- [ ] **Step 4: Rodar toda a suíte do backend e ver passar**
-- [ ] **Step 5: Commit**
+- [x] **Step 1: Escrever os testes que falham em `tests/test_financeiro_fase7.py`**
+- [x] **Step 2: Rodar e ver falhar**
+- [x] **Step 3: Implementar os schemas, serviços e endpoints de despesas, pagamento de pedido e DRE mensal**
+- [x] **Step 4: Rodar toda a suíte do backend e ver passar**
+- [x] **Step 5: Commit**
 
 ---
 
@@ -46,9 +46,9 @@
 **Files:**
 - Modify: `frontend-alfa/src/pages/RegistroFinanceiroCamisetas.jsx`, `frontend-alfa/src/pages/RegistroFinanceiroCamisetas.css`
 
-- [ ] **Step 1: Atualizar `RegistroFinanceiroCamisetas.jsx` com DRE mensal, despesas categorizadas (lançar/quitar/excluir), recebimento de pedidos e remoção de `console.error`**
-- [ ] **Step 2: Rodar `npm run build` e `npx oxlint src/pages/RegistroFinanceiroCamisetas.jsx`**
-- [ ] **Step 3: Commit**
+- [x] **Step 1: Atualizar `RegistroFinanceiroCamisetas.jsx` com DRE mensal, despesas categorizadas (lançar/quitar/excluir), recebimento de pedidos e remoção de `console.error`**
+- [x] **Step 2: Rodar `npm run build` e `npx oxlint src/pages/RegistroFinanceiroCamisetas.jsx`**
+- [x] **Step 3: Commit**
 
 ---
 
@@ -57,6 +57,16 @@
 **Files:**
 - Modify: `docs/superpowers/plans/2026-11-17-fase7-financeiro-real.md`
 
-- [ ] **Step 1: Conferir cobertura `≥ 80%` e `alembic check`**
-- [ ] **Step 2: Verificar tela financeira no navegador automatizado**
-- [ ] **Step 3: Registrar notas de execução, atualizar memória de pendências de produção e commitar**
+- [x] **Step 1: Conferir cobertura `≥ 80%` e `alembic check`**
+- [x] **Step 2: Verificar tela financeira no navegador automatizado**
+- [x] **Step 3: Registrar notas de execução, atualizar memória de pendências de produção e commitar**
+
+---
+
+## Notas de execução (2026-11-17)
+
+- **Migração `20261117_012_financeiro_despesas_recebimentos`:** cria tabela `camisetas_despesas` com índice por `id_despesa` e `mes_ano`, e adiciona `status_pagamento` (default `'Pendente'`) e `data_pagamento` em `camisetas_pedidos`. Testada com `upgrade` e `downgrade` em `tests/test_migracoes.py` e `alembic check` com 0 diferenças.
+- **Backend TDD:** novos testes em `tests/test_financeiro_fase7.py` cobrindo lançamento, listagem, quitação e exclusão de despesas operacionais categorizadas, validações de negócio, atualização de status de recebimento de pedidos e cálculo do DRE mensal detalhado (`faturamento_entregas`, `receita_recebida`, `receita_a_receber`, `gasto_materiais`, `margem_bruta`, `despesas_pagas`, `despesas_pendentes`, `lucro_liquido`). Cobertura do serviço `app.services.camisetas.financeiro`: **97%**.
+- **Frontend e QA no navegador:** `npm run build` e `npx oxlint` com 0 erros. Verificação automatizada via Playwright (`/camisetas/financeiro`) confirmou os cards do DRE do mês selecionado, formulário de lançamento de despesa operacional, exibição imediata na lista de despesas, quitação e contas a receber de pedidos com 0 erros de console ou página.
+
+
