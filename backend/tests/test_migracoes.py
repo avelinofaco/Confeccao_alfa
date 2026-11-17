@@ -228,6 +228,30 @@ def test_migracao_producao_pedido_op_sobe_e_desce(tmp_path):
     assert "id_pedido" not in cols_op_apos
 
 
+def test_migracao_financeiro_despesas_recebimentos_sobe_e_desce(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    rodar_alembic("upgrade", "20261117_012_financeiro_despesas_recebimentos", url=url)
+    engine = sa.create_engine(url)
+    try:
+        inspetor = sa.inspect(engine)
+        assert "camisetas_despesas" in inspetor.get_table_names()
+        cols_ped = {c["name"] for c in inspetor.get_columns("camisetas_pedidos")}
+    finally:
+        engine.dispose()
+    assert {"status_pagamento", "data_pagamento"}.issubset(cols_ped)
+
+    rodar_alembic("downgrade", "20261117_011_producao_pedido_op", url=url)
+    engine = sa.create_engine(url)
+    try:
+        inspetor_apos = sa.inspect(engine)
+        assert "camisetas_despesas" not in inspetor_apos.get_table_names()
+        cols_ped_apos = {c["name"] for c in inspetor_apos.get_columns("camisetas_pedidos")}
+    finally:
+        engine.dispose()
+    assert "status_pagamento" not in cols_ped_apos
+    assert "data_pagamento" not in cols_ped_apos
+
+
 def test_modelos_e_migracoes_estao_alinhados(tmp_path):
     url = f"sqlite:///{tmp_path / 'migracao.db'}"
     rodar_alembic("upgrade", "head", url=url)

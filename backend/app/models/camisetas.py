@@ -116,6 +116,8 @@ class CamisetaPedido(Base):
     status_aprovacao_cliente = Column(String(30), nullable=False, default="Pendente")
     observacao_cliente = Column(Text, nullable=True)
     aprovado_pelo_cliente_em = Column(DateTime(timezone=True), nullable=True)
+    status_pagamento = Column(String(20), nullable=False, default="Pendente")
+    data_pagamento = Column(Date, nullable=True)
 
     criado_em = Column(DateTime(timezone=True), default=get_utc_now)
     atualizado_em = Column(DateTime(timezone=True), default=get_utc_now, onupdate=get_utc_now)
@@ -199,6 +201,20 @@ class CamisetaRegistroFinanceiro(Base):
     outros_custos_operacionais = Column(Numeric(14, 2), default=0.00) # Facções, energia, etc.
     lucro_liquido = Column(Numeric(14, 2), default=0.00) # Entradas líquidas (faturamento - gastos)
     observacoes = Column(Text, nullable=True)
+    criado_em = Column(DateTime(timezone=True), default=get_utc_now)
+
+
+class CamisetaDespesa(Base):
+    __tablename__ = "camisetas_despesas"
+
+    id_despesa = Column(Integer, primary_key=True, index=True)
+    mes_ano = Column(String(7), nullable=False, index=True)
+    categoria = Column(String(40), nullable=False)
+    descricao = Column(String(255), nullable=False)
+    valor = Column(Numeric(12, 2), nullable=False)
+    data_vencimento = Column(Date, nullable=True)
+    data_pagamento = Column(Date, nullable=True)
+    status_pagamento = Column(String(20), nullable=False, default="Pago")
     criado_em = Column(DateTime(timezone=True), default=get_utc_now)
 
 
