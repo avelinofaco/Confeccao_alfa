@@ -209,6 +209,25 @@ def test_migracao_precificacao_sobe_e_desce(tmp_path):
     assert "preco_unitario" not in cols_item_apos
 
 
+def test_migracao_producao_pedido_op_sobe_e_desce(tmp_path):
+    url = f"sqlite:///{tmp_path / 'migracao.db'}"
+    rodar_alembic("upgrade", "20261117_011_producao_pedido_op", url=url)
+    engine = sa.create_engine(url)
+    try:
+        cols_op = {c["name"] for c in sa.inspect(engine).get_columns("camisetas_ordens_producao")}
+    finally:
+        engine.dispose()
+    assert "id_pedido" in cols_op
+
+    rodar_alembic("downgrade", "20261116_010_precificacao", url=url)
+    engine = sa.create_engine(url)
+    try:
+        cols_op_apos = {c["name"] for c in sa.inspect(engine).get_columns("camisetas_ordens_producao")}
+    finally:
+        engine.dispose()
+    assert "id_pedido" not in cols_op_apos
+
+
 def test_modelos_e_migracoes_estao_alinhados(tmp_path):
     url = f"sqlite:///{tmp_path / 'migracao.db'}"
     rodar_alembic("upgrade", "head", url=url)

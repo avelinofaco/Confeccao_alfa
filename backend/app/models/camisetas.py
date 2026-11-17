@@ -132,6 +132,7 @@ class CamisetaOrdemProducao(Base):
     codigo_op = Column(String(30), unique=True, nullable=False, index=True) # Ex: OP-CAM-101
     id_modelo = Column(Integer, ForeignKey("camisetas_modelos.id_modelo", ondelete="RESTRICT"), nullable=False)
     id_insumo_tecido = Column(Integer, ForeignKey("camisetas_insumos.id_insumo", ondelete="SET NULL"), nullable=True)
+    id_pedido = Column(Integer, ForeignKey("camisetas_pedidos.id_pedido", ondelete="SET NULL"), nullable=True)
     
     peso_malha_enviado_kg = Column(Numeric(10, 3), nullable=False)
     pecas_planejadas = Column(Integer, nullable=True)
@@ -144,6 +145,7 @@ class CamisetaOrdemProducao(Base):
 
     modelo = relationship("CamisetaModelo", back_populates="ordens")
     tecido = relationship("CamisetaInsumo")
+    pedido = relationship("CamisetaPedido")
     movimentacoes_costura = relationship("CamisetaCosturaFaccao", back_populates="op")
     cores = relationship("CamisetaOpCor", back_populates="op", cascade="all, delete-orphan", order_by="CamisetaOpCor.id_op_cor")
     cortes = relationship("CamisetaOpCorte", back_populates="op", cascade="all, delete-orphan", order_by="CamisetaOpCorte.id_corte")
