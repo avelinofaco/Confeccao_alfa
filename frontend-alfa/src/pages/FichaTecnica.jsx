@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
+import {
   LayoutDashboard, Package, FileText, ShoppingCart, Crop, Scissors, PackageCheck, Users, LogOut,
   Plus, Search, PlusCircle, X, ChevronRight, Menu
 } from 'lucide-react';
@@ -16,7 +16,7 @@ function FichaTecnica() {
   const [insumosDisponiveis, setInsumosDisponiveis] = useState([]);
   const [produtoSelecionado, setProdutoSelecionado] = useState(null);
   const [detalhesProduto, setDetalhesProduto] = useState(null);
-  
+
   const [loading, setLoading] = useState(true);
   const [loadingDetalhes, setLoadingDetalhes] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -30,21 +30,28 @@ function FichaTecnica() {
 
   // Estados dos formulários
   const [nomeModelo, setNomeModelo] = useState('');
+  const [idContextoSelecionado, setIdContextoSelecionado] = useState('');
+  const [contextosDisponiveis, setContextosDisponiveis] = useState([]);
   const [novoConsumo, setNovoConsumo] = useState({
     id_insumo: '',
     gasto_por_unidade: ''
   });
 
+
   // Carregar lista de modelos e insumos do banco
   const carregarDadosIniciais = async () => {
     try {
       setLoading(true);
-      
-      const resProdutos = await api.get('/produtos/'); 
+
+      const resProdutos = await api.get('/produtos/');
       setProdutos(resProdutos.data || []);
 
       const resInsumos = await api.get('/estoque/insumos/').catch(() => api.get('/insumos/'));
       setInsumosDisponiveis(resInsumos.data || []);
+
+      const resContextos = await api.get('/contextos/').catch(() => ({ data: [] }));
+      setContextosDisponiveis(resContextos.data || []);
+
 
     } catch (error) {
       console.error("Erro ao carregar dados iniciais:", error);
@@ -57,13 +64,13 @@ function FichaTecnica() {
   // Buscar detalhes do produto + materiais consumidos
   const carregarDetalhesProduto = async (idProduto) => {
     if (!idProduto || idProduto === '{id}' || idProduto.toString().includes('id')) {
-      return; 
+      return;
     }
 
     try {
       setLoadingDetalhes(true);
       setProdutoSelecionado(idProduto);
-      
+
       const response = await api.get(`/produtos/${idProduto}`);
       setDetalhesProduto(response.data);
 
@@ -85,14 +92,19 @@ function FichaTecnica() {
   const handleCadastrarModelo = async (e) => {
     e.preventDefault();
     try {
-      const payload = { nome_modelo: nomeModelo };
-      
+      const payload = {
+        nome_modelo: nomeModelo,
+        id_contexto: idContextoSelecionado ? parseInt(idContextoSelecionado) : null
+      };
+
       const response = await api.post('/produtos/', payload);
       alert('Modelo/Ficha Técnica criado com sucesso!');
-      
+
       setShowModalModelo(false);
       setNomeModelo('');
-      
+      setIdContextoSelecionado('');
+
+
       await carregarDadosIniciais();
 
       const recemCriado = response.data;
@@ -197,13 +209,32 @@ function FichaTecnica() {
     );
   };
 
-  const produtosFiltrados = produtos.filter(p => 
+  const produtosFiltrados = produtos.filter(p =>
     (p.nome_modelo || p.nome || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const abrirModalNovoModelo = () => {
+    const userStorage = localStorage.getItem('usuario_confeccao');
+    if (userStorage) {
+      try {
+        const u = JSON.parse(userStorage);
+        if (u.contexto_preferido) {
+          const match = contextosDisponiveis.find(c => c.codigo === u.contexto_preferido);
+          if (match) {
+            setIdContextoSelecionado(match.id_contexto);
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    setShowModalModelo(true);
+  };
+
   return (
+
     <div className="dashboard-container">
-      
+
       {/* CABEÇALHO MOBILE */}
       <div className="mobile-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -236,123 +267,129 @@ function FichaTecnica() {
           </div>
         </header>
 
-        {/* SEÇÃO SUPERIOR HORIZONTAL: MODELOS DE PRODUTOS */}
-        <section className="modelos-horizontal-container">
-          <div className="modelos-horizontal-header">
-            <div className="search-box modelos-search">
-              <Search size={18} color="#9ca3af" />
-              <input 
-                type="text" 
-                placeholder="Buscar modelo..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+        {/* Layout Mestre-Detalhe (Duas Colunas) */}
+        <div className="ficha-grid">
+
+          {/* Coluna 1: Lista de Modelos */}
+          <div className="modelos-column">
+            <div className="action-bar-card" style={{ marginBottom: '16px' }}>
+              <div className="search-box" style={{ width: '100%' }}>
+                <Search size={18} color="#9ca3af" />
+                <input
+                  type="text"
+                  placeholder="Buscar modelo..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
             </div>
-            <button className="primary-btn" onClick={() => setShowModalModelo(true)}>
+
+            <button className="primary-btn full-width mb-16" onClick={() => setShowModalModelo(true)}>
               <Plus size={18} />
               <span>Novo Modelo</span>
             </button>
+
+            <div className="modelos-list">
+              {loading ? (
+                <div className="loading-card">Carregando modelos...</div>
+              ) : produtosFiltrados.length === 0 ? (
+                <div className="empty-card">Nenhum modelo cadastrado.</div>
+              ) : (
+                produtosFiltrados.map((item) => {
+                  const produtoId = item.id_produto || item.id;
+                  const isSelected = produtoSelecionado === produtoId;
+                  return (
+                    <div
+                      key={produtoId}
+                      className={`modelo-card ${isSelected ? 'active' : ''}`}
+                      onClick={() => carregarDetalhesProduto(produtoId)}
+                    >
+                      <div className="modelo-card-info">
+                        <span className="modelo-tag">Calcinha</span>
+                        <h3>{item.nome_modelo || item.nome}</h3>
+                      </div>
+                      <ChevronRight size={18} color={isSelected ? "#00c875" : "#9ca3af"} />
+                    </div>
+                  );
+                })
+              )}
+            </div>
           </div>
 
-          <div className="modelos-horizontal-strip">
-            {loading ? (
-              <div className="loading-card">Carregando modelos...</div>
-            ) : produtosFiltrados.length === 0 ? (
-              <div className="empty-card">Nenhum modelo cadastrado.</div>
+          {/* Coluna 2: Detalhes do Consumo / Ficha Selecionada */}
+          <div className="detalhes-column">
+            {!produtoSelecionado ? (
+              <div className="empty-details-card">
+                <FileText size={48} color="#9ca3af" strokeWidth={1} />
+                <h3>Selecione um modelo à esquerda</h3>
+                <p>Veja os insumos associados e defina o consumo por unidade produzida.</p>
+              </div>
+            ) : loadingDetalhes ? (
+              <div className="loading-card">Carregando ficha técnica do produto...</div>
             ) : (
-              produtosFiltrados.map((item) => {
-                const produtoId = item.id_produto || item.id;
-                const isSelected = produtoSelecionado === produtoId;
-                return (
-                  <button 
-                    key={produtoId}
-                    type="button"
-                    className={`modelo-chip ${isSelected ? 'active' : ''}`}
-                    onClick={() => carregarDetalhesProduto(produtoId)}
-                  >
-                    <span className="modelo-chip-tag">Calcinha</span>
-                    <span className="modelo-chip-title">{item.nome_modelo || item.nome}</span>
+              <div className="ficha-detalhes-card">
+                <div className="ficha-header">
+                  <div>
+                    <span className="category-badge">Ficha Técnica # {detalhesProduto?.id_produto || detalhesProduto?.id}</span>
+                    <h2>{detalhesProduto?.nome_modelo || detalhesProduto?.nome}</h2>
+                  </div>
+                  <button className="primary-btn-outline" onClick={() => setShowModalInsumo(true)}>
+                    <PlusCircle size={18} />
+                    <span>Adicionar Insumo</span>
                   </button>
-                );
-              })
+                </div>
+
+                <div className="table-responsive">
+                  <table className="custom-table">
+                    <thead>
+                      <tr>
+                        <th>Código Insumo</th>
+                        <th>Material / Tipo</th>
+                        <th>Consumo por Peça</th>
+                        <th>Unidade</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(() => {
+                        const listaInsumos = detalhesProduto?.composicao ||
+                          detalhesProduto?.materiais ||
+                          detalhesProduto?.insumos ||
+                          detalhesProduto?.ficha_tecnica_insumos ||
+                          [];
+
+                        if (listaInsumos.length === 0) {
+                          return (
+                            <tr>
+                              <td colSpan="5" style={{ textAlign: 'center', padding: '30px', color: '#9ca3af' }}>
+                                Nenhum insumo vinculado a esta ficha técnica ainda.
+                              </td>
+                            </tr>
+                          );
+                        }
+
+                        return listaInsumos.map((comp, index) => {
+                          const info = insumosDisponiveis.find(i => (i.id_insumo || i.id) === (comp.id_insumo || comp.id)) || {};
+
+                          return (
+                            <tr key={comp.id_ficha_tecnica || index}>
+                              <td className="font-semibold text-gray-500">{info.codigo || `-`}</td>
+                              <td className="font-semibold text-gray-800">{info.tipo || info.nome_insumo || 'Desconhecido'}</td>
+                              <td className="font-bold text-green-600">
+                                {comp.gasto_por_unidade}
+                              </td>
+                              <td className="text-gray-500">{info.unidade_medida || 'kg'}</td>
+                            </tr>
+                          );
+                        });
+                      })()}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             )}
           </div>
-        </section>
 
-        {/* DETALHES DA FICHA TÉCNICA (LARGURA TOTAL) */}
-        <section className="detalhes-full-container">
-          {!produtoSelecionado ? (
-            <div className="empty-details-card">
-              <FileText size={48} color="#9ca3af" strokeWidth={1} />
-              <h3>Selecione um modelo acima</h3>
-              <p>Clique em um dos modelos na barra horizontal acima para visualizar e gerenciar o consumo de insumos.</p>
-            </div>
-          ) : loadingDetalhes ? (
-            <div className="loading-card">Carregando ficha técnica do produto...</div>
-          ) : (
-            <div className="ficha-detalhes-card">
-              <div className="ficha-header">
-                <div>
-                  <span className="category-badge">Ficha Técnica #{detalhesProduto?.id_produto || detalhesProduto?.id}</span>
-                  <h2>{detalhesProduto?.nome_modelo || detalhesProduto?.nome}</h2>
-                </div>
-                <button className="primary-btn-outline" onClick={() => setShowModalInsumo(true)}>
-                  <PlusCircle size={18} />
-                  <span>Adicionar Insumo</span>
-                </button>
-              </div>
-
-              <div className="table-responsive">
-                <table className="custom-table">
-                  <thead>
-                    <tr>
-                      <th>Código Insumo</th>
-                      <th>Material / Tipo</th>
-                      <th>Consumo por Peça</th>
-                      <th>Unidade</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(() => {
-                      const listaInsumos = detalhesProduto?.composicao || 
-                                           detalhesProduto?.materiais || 
-                                           detalhesProduto?.insumos || 
-                                           detalhesProduto?.ficha_tecnica_insumos || 
-                                           [];
-
-                      if (listaInsumos.length === 0) {
-                        return (
-                          <tr>
-                            <td colSpan="4" style={{ textAlign: 'center', padding: '30px', color: '#9ca3af' }}>
-                              Nenhum insumo vinculado a esta ficha técnica ainda.
-                            </td>
-                          </tr>
-                        );
-                      }
-
-                      return listaInsumos.map((comp, index) => {
-                        const info = insumosDisponiveis.find(i => (i.id_insumo || i.id) === (comp.id_insumo || comp.id)) || {};
-                        const unidadeReal = info.unidade_medida || comp.unidade_medida || 'kg';
-                        const nomeReal = info.tipo || info.nome_insumo || 'Material';
-
-                        return (
-                          <tr key={comp.id_ficha_tecnica || index}>
-                            <td className="font-semibold text-gray-500">{info.codigo || `-`}</td>
-                            <td className="font-semibold text-gray-800">{nomeReal}</td>
-                            <td>
-                              {formatarConsumoExplicativo(comp.gasto_por_unidade, unidadeReal, nomeReal)}
-                            </td>
-                            <td className="text-gray-500">{unidadeReal}</td>
-                          </tr>
-                        );
-                      });
-                    })()}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-        </section>
+        </div>
       </main>
 
       {/* MODAL 1: CADASTRAR NOVO MODELO */}
@@ -366,13 +403,38 @@ function FichaTecnica() {
             <form onSubmit={handleCadastrarModelo} className="modal-form">
               <div className="input-group">
                 <label>Nome do Modelo / Produto</label>
-                <input 
-                  type="text" 
-                  placeholder="Ex: Calcinha Rendada Fio Dental M" 
+                <input
+                  type="text"
+                  placeholder="Ex: Camiseta Algodão 30.1 ou Calcinha Fio Duplo"
                   value={nomeModelo}
                   onChange={(e) => setNomeModelo(e.target.value)}
-                  required 
+                  required
                 />
+              </div>
+
+              <div className="input-group">
+                <label>Família da Peça / Fluxo de Produção</label>
+                <select
+                  value={idContextoSelecionado}
+                  onChange={(e) => setIdContextoSelecionado(e.target.value)}
+                  style={{
+                    padding: '10px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid #d1d5db',
+                    fontSize: '14px',
+                    outline: 'none'
+                  }}
+                >
+                  <option value="">Sem Contexto Específico (Padrão Geral)</option>
+                  {contextosDisponiveis.map(ctx => (
+                    <option key={ctx.id_contexto} value={ctx.id_contexto}>
+                      {ctx.nome} ({ctx.codigo})
+                    </option>
+                  ))}
+                </select>
+                <small style={{ fontSize: '11px', color: '#6b7280', marginTop: '2px' }}>
+                  Define a esteira produtiva (Corte, Estamparia, Costura, etc.) e campos de controle.
+                </small>
               </div>
 
               <div className="modal-actions">
@@ -380,6 +442,7 @@ function FichaTecnica() {
                 <button type="submit" className="primary-btn">Salvar Modelo</button>
               </div>
             </form>
+
           </div>
         </div>
       )}
@@ -395,9 +458,9 @@ function FichaTecnica() {
             <form onSubmit={handleAdicionarInsumoFicha} className="modal-form">
               <div className="input-group">
                 <label>Selecione a Matéria-Prima / Insumo</label>
-                <select 
+                <select
                   value={novoConsumo.id_insumo}
-                  onChange={(e) => setNovoConsumo({...novoConsumo, id_insumo: e.target.value})}
+                  onChange={(e) => setNovoConsumo({ ...novoConsumo, id_insumo: e.target.value })}
                   required
                 >
                   <option value="">Selecione um insumo do estoque...</option>
@@ -422,21 +485,21 @@ function FichaTecnica() {
                       )}
                     </label>
                     <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                      <input 
-                        type="number" 
-                        step="0.0001" 
-                        placeholder={insumoSel?.unidade_medida ? `Ex: 0.0450 (${insumoSel.unidade_medida} por peça)` : "Ex: 0.0450"} 
+                      <input
+                        type="number"
+                        step="0.0001"
+                        placeholder={insumoSel?.unidade_medida ? `Ex: 0.0450 (${insumoSel.unidade_medida} por peça)` : "Ex: 0.0450"}
                         value={novoConsumo.gasto_por_unidade}
-                        onChange={(e) => setNovoConsumo({...novoConsumo, gasto_por_unidade: e.target.value})}
-                        required 
+                        onChange={(e) => setNovoConsumo({ ...novoConsumo, gasto_por_unidade: e.target.value })}
+                        required
                         style={{ paddingRight: insumoSel?.unidade_medida ? '55px' : '12px' }}
                       />
                       {insumoSel?.unidade_medida && (
-                        <span style={{ 
-                          position: 'absolute', 
-                          right: '12px', 
-                          color: '#6b7280', 
-                          fontSize: '13px', 
+                        <span style={{
+                          position: 'absolute',
+                          right: '12px',
+                          color: '#6b7280',
+                          fontSize: '13px',
                           fontWeight: '600',
                           backgroundColor: '#f3f4f6',
                           padding: '2px 8px',

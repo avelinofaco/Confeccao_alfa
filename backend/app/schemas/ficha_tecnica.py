@@ -19,6 +19,13 @@ class ComposicaoResponse(ComposicaoBase):
 # Schemas para o Produto (Modelo)
 class ProdutoBase(BaseModel):
     nome_modelo: str = Field(..., max_length=150, description="Nome do produto (Ex: Calcinha Modelo X)")
+    id_contexto: Optional[int] = Field(None, description="ID do contexto/família da peça (ex: Camisetas, Calcinhas, etc.)")
+    referencia_codigo: Optional[str] = Field(None, max_length=50, description="Código de referência interna/SKU")
+    descricao_detalhada: Optional[str] = Field(None, max_length=255, description="Descrição detalhada do modelo")
+    grade_tamanhos_disponiveis: Optional[List[str]] = Field(default_factory=list, description="Lista de tamanhos da grade")
+    cores_disponiveis: Optional[List[str]] = Field(default_factory=list, description="Lista de cores disponíveis")
+    tempo_padrao_total_minutos: Optional[Decimal] = Field(default=Decimal("0.00"), description="Tempo padrão cronometrado em minutos")
+    custo_estimado_total: Optional[Decimal] = Field(default=Decimal("0.00"), description="Custo unitário estimado")
 
 class ProdutoCreate(ProdutoBase):
     pass
@@ -26,9 +33,12 @@ class ProdutoCreate(ProdutoBase):
 # Resposta do Produto SIMPLES (só o nome e ID)
 class ProdutoResponse(ProdutoBase):
     id_produto: int
+    nome_contexto: Optional[str] = None
+    codigo_contexto: Optional[str] = None
     criado_em: datetime
     
     model_config = ConfigDict(from_attributes=True)
+
 
 # Resposta do Produto COMPLETA (traz o modelo e toda a ficha técnica atrelada)
 class ProdutoFichaCompletaResponse(ProdutoResponse):

@@ -89,9 +89,3 @@ def obter_perfil_usuario(id_usuario: int, db: Session = Depends(get_db),
         raise HTTPException(status_code=404, detail="Usuário não encontrado.")
         
     return usuario
-
-
-@router.put("/{id_usuario}/segmento")
-def atualizar_segmento_usuario(id_usuario: int, payload: dict, db: Session = Depends(get_db)):
-    """Persiste a preferência de segmento do usuário."""
-    return {"status": "sucesso", "segmento": payload.get("segmento", "Camisetas")}

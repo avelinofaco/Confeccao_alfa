@@ -9,7 +9,7 @@ from datetime import date, datetime
 # ==========================================
 class ColaboradorBase(BaseModel):
     nome_completo: str = Field(..., max_length=150, description="Nome do funcionário")
-    telefone_whatsapp: Optional[str] = Field( None, pattern=r"^\(\d{2}\)9 ?\d{8}$", description="Obrigatório seguir o formato: (85)9 84657234")
+    telefone_whatsapp: Optional[str] = Field(None, max_length=30, description="Telefone/WhatsApp: (85) 99884-2031")
     ativo: Optional[bool] = Field(True, description="Se o funcionário está ativo na empresa")
 
 class ColaboradorCreate(ColaboradorBase):

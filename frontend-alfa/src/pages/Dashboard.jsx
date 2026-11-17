@@ -1,22 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Package, 
-  FileText, 
-  ShoppingCart, 
-  Crop, 
-  Scissors, 
-  PackageCheck, 
-  Users, 
+import {
+  LayoutDashboard,
+  Package,
+  FileText,
+  ShoppingCart,
+  Crop,
+  Scissors,
+  Users,
   LogOut,
-  TrendingUp,
   AlertTriangle,
   Boxes,
   Award,
   Menu, X
 } from 'lucide-react';
-import { 
+import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   AreaChart, Area
 } from 'recharts';
@@ -26,33 +24,25 @@ import './Dashboard.css';
 
 function Dashboard() {
   const navigate = useNavigate();
-  const [userName, setUserName] = useState('Gestor Alfa');
+  const userName = 'Gestor Alfa';
   const [menuMobileAberto, setMenuMobileAberto] = useState(false);
-  
+
   // Estados dinâmicos para o estoque e rendimento vindo diretamente do banco
   const [dadosNivelEstoque, setDadosNivelEstoque] = useState([]);
   const [qtdEstoqueCritico, setQtdEstoqueCritico] = useState(0);
   const [loadingEstoque, setLoadingEstoque] = useState(true);
   const [totalPecasProntas, setTotalPecasProntas] = useState(0);
-  
+
   // Novos estados para o Rendimento e Produção Mensal
   const [dadosRendimentoMalha, setDadosRendimentoMalha] = useState([]);
   const [loadingRendimento, setLoadingRendimento] = useState(true);
-  const [dadosProducaoMensal, setDadosProducaoMensal] = useState([]); // 🔥 NOVO ESTADO AQUI
+  const [dadosProducaoMensal, setDadosProducaoMensal] = useState([]);
 
-  useEffect(() => {
-    const token = localStorage.getItem('token_confeccao');
-    if (!token) {
-      navigate('/');
-    } else {
-      carregarEstoqueDashboard();
-      carregarRendimentoDashboard();
-      carregarTotalEProducao(); // 🔥 FUNÇÃO UNIFICADA AQUI
-    }
-  }, [navigate]);
+  // Contexto e personalização da confecção
+  const [perfilUsuario, setPerfilUsuario] = useState(null);
 
   // 1. Busca insumos no banco de dados e formata para o gráfico de Estoque
-  const carregarEstoqueDashboard = async () => {
+  const carregarEstoqueDashboard = useCallback(async () => {
     try {
       setLoadingEstoque(true);
       const response = await api.get('/estoque/insumos/');
@@ -66,7 +56,6 @@ function Dashboard() {
 
       setDadosNivelEstoque(estoqueFormatado);
 
-      // Calculando com parseFloat para garantir que a matemática seja exata
       const criticos = insumos.filter(
         i => (parseFloat(i.quantidade_atual) || 0) <= (parseFloat(i.estoque_minimo_seguranca) || 0)
       ).length;
@@ -78,13 +67,13 @@ function Dashboard() {
     } finally {
       setLoadingEstoque(false);
     }
-  };
+  }, []);
 
   // 2. Busca OPs de corte e cruza com a Ficha Técnica para agrupar por TECIDO (Malha)
-  const carregarRendimentoDashboard = async () => {
+  const carregarRendimentoDashboard = useCallback(async () => {
     try {
       setLoadingRendimento(true);
-      
+
       const resOrdens = await api.get('/producao/ordens').catch(() => ({ data: [] }));
       const resInsumos = await api.get('/estoque/insumos/').catch(() => ({ data: [] }));
 
@@ -103,29 +92,29 @@ function Dashboard() {
         try {
           const resFicha = await api.get(`/produtos/${idProduto}`);
           const ficha = resFicha.data;
-          
+
           const composicao = ficha.composicao || ficha.materiais || ficha.insumos || [];
           let tecidoEncontrado = 'Outros/Misto';
 
           if (composicao.length > 0) {
             for (const item of composicao) {
               const insumoDetalhe = insumos.find(i => (i.id_insumo || i.id) === (item.id_insumo || item.id));
-              
+
               if (insumoDetalhe) {
                 const categoriaStr = (insumoDetalhe.categoria || '').toLowerCase();
-                
+
                 if (categoriaStr.includes('tecido') || categoriaStr.includes('malha')) {
                   tecidoEncontrado = insumoDetalhe.tipo || insumoDetalhe.nome_insumo || insumoDetalhe.codigo;
-                  break; 
+                  break;
                 }
-                
+
                 if (tecidoEncontrado === 'Outros/Misto') {
                   tecidoEncontrado = insumoDetalhe.tipo || insumoDetalhe.nome_insumo || insumoDetalhe.codigo;
                 }
               }
             }
           }
-          
+
           mapaTecidosPorProduto[idProduto] = tecidoEncontrado;
         } catch (err) {
           console.error(`Erro ao buscar ficha do produto ${idProduto}:`, err);
@@ -136,9 +125,9 @@ function Dashboard() {
       const mapaRendimento = {};
       opsCortadas.forEach(op => {
         const tecido = mapaTecidosPorProduto[op.id_produto] || 'Desconhecido';
-        
+
         if (!mapaRendimento[tecido]) {
-            mapaRendimento[tecido] = { total: 0, count: 0 };
+          mapaRendimento[tecido] = { total: 0, count: 0 };
         }
         mapaRendimento[tecido].total += parseFloat(op.rendimento_real);
         mapaRendimento[tecido].count += 1;
@@ -149,7 +138,7 @@ function Dashboard() {
           malha: tecido,
           rendimento: parseFloat((mapaRendimento[tecido].total / mapaRendimento[tecido].count).toFixed(2))
         }))
-        .filter(item => item.malha !== 'Outros/Misto' && item.malha !== 'Desconhecido'); 
+        .filter(item => item.malha !== 'Outros/Misto' && item.malha !== 'Desconhecido');
 
       setDadosRendimentoMalha(graficoFormatado);
     } catch (error) {
@@ -157,12 +146,11 @@ function Dashboard() {
     } finally {
       setLoadingRendimento(false);
     }
-  };
+  }, []);
 
-  // 🔥 3. FUNÇÃO ATUALIZADA: Calcula o Total e o Gráfico de Evolução (Últimos 5 meses)
-  const carregarTotalEProducao = async () => {
+  // 3. Calcula o Total e o Gráfico de Evolução (Últimos 5 meses)
+  const carregarTotalEProducao = useCallback(async () => {
     try {
-      // 1. Cria a base dos últimos 5 meses dinamicamente
       const mesesNomes = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
       const ultimos5Meses = [];
       const hoje = new Date();
@@ -177,25 +165,20 @@ function Dashboard() {
         });
       }
 
-      // 2. Busca os dados no Back-end: retornos de costura e pedidos comerciais
-      const [resCostura, resPedidos] = await Promise.all([
-        api.get('/costura/movimentacoes').catch(() => ({ data: [] })),
-        api.get('/comercial/pedidos').catch(() => ({ data: [] }))
-      ]);
+      // 2. Busca os dados no Back-end
+      const res = await api.get('/costura/movimentacoes').catch(() => ({ data: [] }));
+      const movimentacoes = res.data || [];
 
-      const movimentacoes = resCostura.data || [];
-      const pedidos = resPedidos.data || [];
-      
       let totalPecasProduzidas = 0;
 
-      // 3. Percorre os retornos da costura (peças finalizadas que deram entrada no estoque pronto)
+      // 3. Percorre os retornos da costura
       movimentacoes.forEach(mov => {
         if (mov.status_movimentacao === 'Retornado' || mov.quantidade_recebida > 0) {
           const qtd = parseInt(mov.quantidade_recebida || 0);
-          totalPecasProduzidas += qtd; 
+          totalPecasProduzidas += qtd;
 
           const dataString = mov.data_retorno || mov.atualizado_em || mov.criado_em || mov.data_envio;
-          
+
           if (dataString) {
             const dataRetorno = new Date(dataString);
             const mesIndex = ultimos5Meses.findIndex(
@@ -226,15 +209,37 @@ function Dashboard() {
     } catch (error) {
       console.error("Erro ao buscar histórico de produção e pedidos:", error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token_confeccao');
+    if (!token) {
+      navigate('/');
+      return;
+    }
+
+    const userStorage = localStorage.getItem('usuario_confeccao');
+    if (userStorage) {
+      const u = JSON.parse(userStorage);
+      setPerfilUsuario(u);
+      if (u.onboarding_concluido === false) {
+        navigate('/onboarding');
+        return;
+      }
+    }
+
+    carregarEstoqueDashboard();
+    carregarRendimentoDashboard();
+    carregarTotalEProducao();
+  }, [navigate, carregarEstoqueDashboard, carregarRendimentoDashboard, carregarTotalEProducao]);
 
   const handleLogout = () => {
     localStorage.removeItem('token_confeccao');
     navigate('/');
   };
 
-  const malhaCampeao = dadosRendimentoMalha.length > 0 
-    ? dadosRendimentoMalha.reduce((prev, current) => (prev.rendimento > current.rendimento) ? prev : current) 
+  const malhaCampeao = dadosRendimentoMalha.length > 0
+    ? dadosRendimentoMalha.reduce((prev, current) => (prev.rendimento > current.rendimento) ? prev : current)
     : { malha: 'Aguardando cortes...', rendimento: 0 };
 
   return (
@@ -253,24 +258,98 @@ function Dashboard() {
         </button>
       </div>
 
-      {/* SIDEBAR UNIFICADA (Com switcher dinâmico de segmento e menus especializados) */}
-      <Sidebar menuMobileAberto={menuMobileAberto} setMenuMobileAberto={setMenuMobileAberto} />
+      {/* SIDEBAR UNIFICADA (Dinâmica para Desktop e Mobile) */}
+      <aside className={`sidebar ${menuMobileAberto ? 'open' : ''}`}>
+        <div className="sidebar-header">
+          <div className="logo-box-sm">
+            <Scissors size={22} color="#00c875" strokeWidth={2} />
+          </div>
+          <h2>Confecção Alfa</h2>
+        </div>
+
+        <nav className="sidebar-nav">
+          <button className="nav-item active" onClick={() => { navigate('/dashboard'); setMenuMobileAberto(false); }}>
+            <LayoutDashboard size={19} />
+            <span>Dashboard</span>
+          </button>
+          <button className="nav-item" onClick={() => { navigate('/estoque'); setMenuMobileAberto(false); }}>
+            <Package size={19} />
+            <span>Estoque</span>
+          </button>
+          <button className="nav-item" onClick={() => { navigate('/ficha-tecnica'); setMenuMobileAberto(false); }}>
+            <FileText size={19} />
+            <span>Ficha Técnica</span>
+          </button>
+          <button className="nav-item" onClick={() => { navigate('/comercial'); setMenuMobileAberto(false); }}>
+            <ShoppingCart size={19} />
+            <span>Comercial</span>
+          </button>
+          <button className="nav-item" onClick={() => { navigate('/corte-rendimento'); setMenuMobileAberto(false); }}>
+            <Crop size={19} />
+            <span>Corte/Rendimento</span>
+          </button>
+          <button className="nav-item" onClick={() => { navigate('/costura'); setMenuMobileAberto(false); }}>
+            <Scissors size={19} />
+            <span>Costura</span>
+          </button>
+          <button className="nav-item" onClick={() => { navigate('/equipe'); setMenuMobileAberto(false); }}>
+            <Users size={19} />
+            <span>Equipe</span>
+          </button>
+          <button className="nav-item" onClick={() => { navigate('/configuracoes'); setMenuMobileAberto(false); }}>
+            <Users size={19} />
+            <span>Configurações</span>
+          </button>
+        </nav>
+
+        <div className="sidebar-footer">
+          <button className="nav-item logout" onClick={handleLogout}>
+            <LogOut size={19} />
+            <span>Sair</span>
+          </button>
+        </div>
+      </aside>
 
       {/* CONTEÚDO PRINCIPAL */}
       <main className="main-content">
         <header className="top-header">
           <div>
-            <h1>Painel de Controle</h1>
-            <p className="subtitle">Acompanhamento em tempo real do estoque, produção e rendimento de calcinhas</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <h1>Painel de Controle</h1>
+              {perfilUsuario?.contexto_preferido && (
+                <span style={{
+                  fontSize: '12px',
+                  fontWeight: '700',
+                  padding: '3px 10px',
+                  borderRadius: '12px',
+                  backgroundColor: '#dcfce7',
+                  color: '#15803d',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}>
+                  {perfilUsuario.contexto_preferido === 'CALCINHA' ? '👙 Moda Íntima / Calcinhas' :
+                    perfilUsuario.contexto_preferido === 'CAMISETA' ? '👕 Camisetas & Básicos' :
+                      perfilUsuario.contexto_preferido === 'JEANS' ? '👖 Jeanswear & Sarja' : '✂️ Confecção Mista'}
+                </span>
+              )}
+            </div>
+            <p className="subtitle">
+              {perfilUsuario?.contexto_preferido === 'CALCINHA' ? 'Acompanhamento do estoque, consumo de microfibra/elásticos e costura de moda íntima' :
+                perfilUsuario?.contexto_preferido === 'CAMISETA' ? 'Acompanhamento do estoque de malha, rendimento em kg e estamparia' :
+                  perfilUsuario?.contexto_preferido === 'JEANS' ? 'Acompanhamento do denim, costura pesada e lavanderia industrial' :
+                    'Acompanhamento em tempo real do estoque, produção e esteiras de confecção'}
+            </p>
           </div>
           <div className="user-profile">
             <div className="user-info">
-              <span className="user-name">{userName}</span>
-              <span className="user-role">Administração</span>
+              <span className="user-name">{perfilUsuario?.nome_usuario || userName}</span>
+              <span className="user-role">{perfilUsuario?.nome_confeccao || 'Confecção Alfa'}</span>
             </div>
             <div className="avatar">A</div>
           </div>
         </header>
+
 
         {/* Indicadores (KPIs)*/}
         <section className="kpi-grid">
@@ -318,7 +397,7 @@ function Dashboard() {
 
         {/* Gráficos */}
         <section className="charts-grid">
-          
+
           <div className="chart-card">
             <div className="chart-header">
               <h3>Rendimento Médio de Malhas (peças/kg)</h3>
@@ -339,10 +418,10 @@ function Dashboard() {
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                     <XAxis dataKey="malha" axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 13 }} />
                     <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 13 }} unit=" p/kg" />
-                    <Tooltip 
-                      cursor={{fill: '#f9fafb'}}
+                    <Tooltip
+                      cursor={{ fill: '#f9fafb' }}
                       formatter={(value) => [`${value} peças/kg`, 'Rendimento']}
-                      contentStyle={{ backgroundColor: '#ffffff', borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} 
+                      contentStyle={{ backgroundColor: '#ffffff', borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                     />
                     <Bar dataKey="rendimento" name="Rendimento (peças/kg)" fill="#3b82f6" radius={[6, 6, 0, 0]} barSize={36} />
                   </BarChart>
@@ -361,25 +440,25 @@ function Dashboard() {
                 <AreaChart data={dadosProducaoMensal} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorProducao" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#00c875" stopOpacity={0.4}/>
-                      <stop offset="95%" stopColor="#00c875" stopOpacity={0.0}/>
+                      <stop offset="5%" stopColor="#00c875" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="#00c875" stopOpacity={0.0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                   <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 13 }} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 13 }} />
-                  <Tooltip 
+                  <Tooltip
                     formatter={(value) => [`${value} peças`, 'Produção']}
                     contentStyle={{ backgroundColor: '#ffffff', borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                   />
-                  <Area 
-                    type="monotone" 
-                    dataKey="quantidade" 
-                    name="Peças Produzidas" 
-                    stroke="#00c875" 
+                  <Area
+                    type="monotone"
+                    dataKey="quantidade"
+                    name="Peças Produzidas"
+                    stroke="#00c875"
                     strokeWidth={3}
-                    fillOpacity={1} 
-                    fill="url(#colorProducao)" 
+                    fillOpacity={1}
+                    fill="url(#colorProducao)"
                     dot={{ r: 5, fill: '#00c875', stroke: '#ffffff', strokeWidth: 2 }}
                   />
                 </AreaChart>

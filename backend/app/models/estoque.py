@@ -20,6 +20,12 @@ class Insumo(Base):
     unidade_medida = Column(String(10), nullable=False) # 'kg' ou 'metros'
     estoque_minimo_seguranca = Column(Numeric(10, 3), default=0.000)
     
+    # Atributos Industriais e de Custos
+    cor = Column(String(50), nullable=True)
+    custo_unitario = Column(Numeric(10, 2), default=0.00)
+    fornecedor = Column(String(100), nullable=True)
+    lote_fornecedor = Column(String(50), nullable=True)
+
     # Atualizado para timezone-aware
     criado_em = Column(DateTime(timezone=True), default=get_utc_now)
     atualizado_em = Column(DateTime(timezone=True), default=get_utc_now, onupdate=get_utc_now)

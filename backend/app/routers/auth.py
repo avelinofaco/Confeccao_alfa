@@ -29,5 +29,17 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     # 3. Gera o token JWT
     token_acesso = security.criar_token_acesso(dados={"sub": usuario.login})
     
-    # Retorna o token no formato padrão OAuth2
-    return {"access_token": token_acesso, "token_type": "bearer"}
+    # Retorna o token e o perfil do usuário (incluindo status do onboarding)
+    return {
+        "access_token": token_acesso, 
+        "token_type": "bearer",
+        "usuario": {
+            "id_usuario": usuario.id_usuario,
+            "nome_usuario": usuario.nome_usuario,
+            "login": usuario.login,
+            "perfil": usuario.perfil,
+            "onboarding_concluido": bool(usuario.onboarding_concluido),
+            "contexto_preferido": usuario.contexto_preferido,
+            "preferencias_modulos": usuario.preferencias_modulos or {}
+        }
+    }

@@ -50,7 +50,7 @@ def enviar_para_costura(envio: schemas.EnvioCosturaCreate, db: Session = Depends
             consumo_total += envio.margem_seguranca_insumos
 
         if insumo.quantidade_atual < consumo_total:
-            raise HTTPException(status_code=400, detail=f"Estoque insuficiente para {insumo.nome}.")
+            raise HTTPException(status_code=400, detail=f"Estoque insuficiente para o insumo {insumo.tipo} ({insumo.codigo}).")
             
         insumo.quantidade_atual -= consumo_total # Dá a baixa no banco
 

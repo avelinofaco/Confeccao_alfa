@@ -1,6 +1,4 @@
-# app/models/usuarios.py
-
-from sqlalchemy import Column, Integer, String, Boolean, DateTime
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, JSON
 from app.database import Base
 from app.models.estoque import get_utc_now # Reutilizando a função de data
 
@@ -13,6 +11,11 @@ class Usuario(Base):
     nome_usuario = Column(String(150), nullable=False)
     perfil = Column(String(50), default="Gestor") # 'Gestor' ou 'Operador'
     ativo = Column(Boolean, default=True)
+    
+    # Controle de primeiro acesso e contexto do negócio
+    onboarding_concluido = Column(Boolean, default=False)
+    contexto_preferido = Column(String(50), nullable=True) # 'CAMISETA', 'CALCINHA', 'JEANS', 'MISTO'
+    preferencias_modulos = Column(JSON, default=dict) # Flags de módulos ativos
     
     criado_em = Column(DateTime(timezone=True), default=get_utc_now)
     atualizado_em = Column(DateTime(timezone=True), default=get_utc_now, onupdate=get_utc_now)
