@@ -1,0 +1,63 @@
+# Fase 6: Produção (Reserva por Pedido e Ligação Pedido → OP) — Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Calcular a reserva de peças por SKU a partir dos pedidos em aberto (`reservado`, `disponivel`, `falta_produzir`) em Produtos Prontos e permitir vincular Ordens de Produção a pedidos comerciais (`id_pedido`).
+
+**Architecture:** Migração aditiva `20261117_011_producao_pedido_op` acrescenta `id_pedido` em `camisetas_ordens_producao`. `app/services/camisetas/produtos_prontos.py` agrega as quantidades dos pedidos não entregues por SKU e enriquece `CelulaSku` e `LinhaProdutoPronto`. `app/services/camisetas/ordens.py` valida o pedido vinculado ao abrir a OP e avança o status do pedido para `"Em Produção"`. No frontend, `FormNovaOp.jsx`, `CorteRendimentoCamisetas.jsx` e `ProdutosProntosCamisetas.jsx` passam a mostrar o vínculo e a reserva.
+
+**Tech Stack:** Python 3.14, FastAPI 0.143, SQLAlchemy 2.1, Alembic, pytest; React 19 + Vite 8, axios, oxlint.
+
+**Spec:** `docs/superpowers/specs/2026-11-17-fase6-producao-design.md`
+
+---
+
+### Task 1: Modelo `CamisetaOrdemProducao` e migração `20261117_011_producao_pedido_op`
+
+**Files:**
+- Modify: `backend/app/models/camisetas.py`
+- Create: `backend/alembic/versions/20261117_011_producao_pedido_op.py`
+- Test: `backend/tests/test_migracoes.py`
+
+- [ ] **Step 1: Escrever o teste de migração que falha**
+- [ ] **Step 2: Rodar e ver falhar**
+- [ ] **Step 3: Atualizar `CamisetaOrdemProducao` e criar `20261117_011_producao_pedido_op.py`**
+- [ ] **Step 4: Rodar os testes de migração e `alembic check`**
+- [ ] **Step 5: Commit**
+
+---
+
+### Task 2: Serviços e schemas — reserva por SKU e vínculo Pedido → OP
+
+**Files:**
+- Modify: `backend/app/schemas/camisetas.py`, `backend/app/schemas/camisetas_sku.py`, `backend/app/services/camisetas/ordens.py`, `backend/app/services/camisetas/produtos_prontos.py`
+- Test: `backend/tests/test_producao_fase6.py`
+
+- [ ] **Step 1: Escrever os testes que falham em `tests/test_producao_fase6.py`**
+- [ ] **Step 2: Rodar e ver falhar**
+- [ ] **Step 3: Implementar o cálculo de reserva em `produtos_prontos.py` e o vínculo `id_pedido` em `ordens.py`**
+- [ ] **Step 4: Rodar toda a suíte do backend e ver passar**
+- [ ] **Step 5: Commit**
+
+---
+
+### Task 3: Frontend — `FormNovaOp.jsx`, `CorteRendimentoCamisetas.jsx` e `ProdutosProntosCamisetas.jsx`
+
+**Files:**
+- Modify: `frontend-alfa/src/components/producao/FormNovaOp.jsx`, `frontend-alfa/src/pages/CorteRendimentoCamisetas.jsx`, `frontend-alfa/src/pages/ProdutosProntosCamisetas.jsx`
+
+- [ ] **Step 1: Adicionar seletor de pedido em aberto em `FormNovaOp.jsx` e coluna/etiqueta de pedido em `CorteRendimentoCamisetas.jsx`**
+- [ ] **Step 2: Exibir reservado/disponível/falta produzir em `ProdutosProntosCamisetas.jsx`**
+- [ ] **Step 3: Rodar `npm run build` e `npx oxlint`**
+- [ ] **Step 4: Commit**
+
+---
+
+### Task 4: Verificação no navegador, cobertura e notas de execução
+
+**Files:**
+- Modify: `docs/superpowers/plans/2026-11-17-fase6-producao.md`
+
+- [ ] **Step 1: Conferir cobertura `≥ 80%` e `alembic check`**
+- [ ] **Step 2: Verificar telas no navegador automatizado**
+- [ ] **Step 3: Registrar notas de execução e commitar**
