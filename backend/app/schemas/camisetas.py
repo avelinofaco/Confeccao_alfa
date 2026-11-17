@@ -175,6 +175,8 @@ class CamisetaPedidoResponse(BaseModel):
     status_aprovacao_cliente: str = "Pendente"
     observacao_cliente: Optional[str] = None
     aprovado_pelo_cliente_em: Optional[datetime] = None
+    status_pagamento: str = "Pendente"
+    data_pagamento: Optional[date] = None
     criado_em: Optional[datetime] = None
     itens: List[PedidoItemResponse] = Field(default_factory=list)
     model_config = ConfigDict(from_attributes=True)
@@ -280,6 +282,12 @@ class CamisetaRegistroFinanceiroResponse(BaseModel):
     criado_em: Optional[datetime] = None
     qtd_pedidos_entregues: int = 0
     qtd_entradas: int = 0
+    qtd_despesas: int = 0
+    total_despesas_lancadas: Decimal = Decimal("0.00")
+    despesas_pagas: Decimal = Decimal("0.00")
+    despesas_pendentes: Decimal = Decimal("0.00")
+    receita_recebida: Decimal = Decimal("0.00")
+    receita_a_receber: Decimal = Decimal("0.00")
     model_config = ConfigDict(from_attributes=True)
 
 class CamisetaApuracaoMensalResponse(BaseModel):
@@ -291,6 +299,67 @@ class CamisetaApuracaoMensalResponse(BaseModel):
     lucro_apurado: Decimal
     qtd_entradas_estoque: int
     qtd_pedidos_vendas: int
+
+
+class CamisetaDespesaCreate(BaseModel):
+    mes_ano: str
+    categoria: str
+    descricao: str
+    valor: Decimal = Field(..., gt=0)
+    data_vencimento: Optional[date] = None
+    data_pagamento: Optional[date] = None
+    status_pagamento: str = "Pago"
+
+
+class CamisetaDespesaPagar(BaseModel):
+    data_pagamento: Optional[date] = None
+
+
+class CamisetaDespesaResponse(BaseModel):
+    id_despesa: int
+    mes_ano: str
+    categoria: str
+    descricao: str
+    valor: Decimal
+    data_vencimento: Optional[date] = None
+    data_pagamento: Optional[date] = None
+    status_pagamento: str
+    criado_em: Optional[datetime] = None
+    model_config = ConfigDict(from_attributes=True)
+
+
+class CamisetaPedidoPagamentoUpdate(BaseModel):
+    status_pagamento: str
+    data_pagamento: Optional[date] = None
+
+
+class CamisetaPedidoFinanceiroItem(BaseModel):
+    id_pedido: int
+    codigo_pedido: str
+    nome_cliente: str
+    valor_total: Decimal
+    data_entrega_realizada: Optional[date] = None
+    status_pagamento: str
+    data_pagamento: Optional[date] = None
+
+
+class CamisetaDreMensalResponse(BaseModel):
+    mes_ano: str
+    faturamento_entregas: Decimal
+    receita_recebida: Decimal
+    receita_a_receber: Decimal
+    gasto_materiais: Decimal
+    margem_bruta: Decimal
+    total_despesas_lancadas: Decimal
+    despesas_pagas: Decimal
+    despesas_pendentes: Decimal
+    outros_custos_avulsos: Decimal
+    total_despesas_operacionais: Decimal
+    lucro_liquido: Decimal
+    margem_liquida_percentual: Decimal
+    despesas_por_categoria: dict[str, Decimal] = Field(default_factory=dict)
+    despesas: List[CamisetaDespesaResponse] = Field(default_factory=list)
+    pedidos_do_mes: List[CamisetaPedidoFinanceiroItem] = Field(default_factory=list)
 
 # ----------------- DASHBOARD -----------------
 class CamisetaCardDestaque(BaseModel):

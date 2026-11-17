@@ -1,9 +1,9 @@
 # app/routers/camisetas/financeiro.py
-"""Financeiro do segmento Camisetas: valores calculados a partir das movimentações reais."""
+"""Financeiro do segmento Camisetas: valores calculados, despesas categorizadas, recebimentos e DRE."""
 from datetime import datetime
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
 from app.core.config import FUSO_HORARIO
@@ -11,6 +11,12 @@ from app.database import get_db
 from app.models.camisetas import CamisetaRegistroFinanceiro
 from app.schemas.camisetas import (
     CamisetaApuracaoMensalResponse,
+    CamisetaDespesaCreate,
+    CamisetaDespesaPagar,
+    CamisetaDespesaResponse,
+    CamisetaDreMensalResponse,
+    CamisetaPedidoFinanceiroItem,
+    CamisetaPedidoPagamentoUpdate,
     CamisetaRegistroFinanceiroCreate,
     CamisetaRegistroFinanceiroResponse,
 )
@@ -18,7 +24,13 @@ from app.services.camisetas.financeiro import (
     ApuracaoMensal,
     MesAnoInvalido,
     apurar_ano,
+    apurar_dre_mensal,
     apurar_mes,
+    atualizar_pagamento_pedido,
+    criar_despesa,
+    excluir_despesa,
+    listar_despesas,
+    quitar_despesa,
     validar_mes_ano,
 )
 
@@ -37,6 +49,12 @@ def para_resposta_registro(apuracao: ApuracaoMensal) -> CamisetaRegistroFinancei
         criado_em=apuracao.criado_em,
         qtd_pedidos_entregues=apuracao.qtd_pedidos_entregues,
         qtd_entradas=apuracao.qtd_entradas,
+        qtd_despesas=apuracao.qtd_despesas,
+        total_despesas_lancadas=apuracao.total_despesas_lancadas,
+        despesas_pagas=apuracao.despesas_pagas,
+        despesas_pendentes=apuracao.despesas_pendentes,
+        receita_recebida=apuracao.receita_recebida,
+        receita_a_receber=apuracao.receita_a_receber,
     )
 
 
@@ -75,7 +93,7 @@ def apurar_financeiro_mensal(
 
 @router.post("/financeiro/", response_model=CamisetaRegistroFinanceiroResponse, status_code=status.HTTP_201_CREATED)
 def lancar_outros_custos(reg_in: CamisetaRegistroFinanceiroCreate, db: Session = Depends(get_db)):
-    """Grava só os outros custos e as observações do mês; o resto é calculado."""
+    """Grava só os outros custos avulsos e as observações do mês; o resto é calculado."""
     _validar_ou_422(reg_in.mes_ano)
     if reg_in.outros_custos_operacionais < 0:
         raise HTTPException(status_code=400, detail="Outros custos não pode ser negativo.")
@@ -88,3 +106,54 @@ def lancar_outros_custos(reg_in: CamisetaRegistroFinanceiroCreate, db: Session =
     registro.observacoes = reg_in.observacoes
     db.commit()
     return para_resposta_registro(apurar_mes(db, reg_in.mes_ano))
+
+
+@router.get("/financeiro/dre/", response_model=CamisetaDreMensalResponse)
+def obter_dre_mensal(
+    mes_ano: str = Query(..., description="Mês no formato AAAA-MM, ex.: 2026-10"),
+    db: Session = Depends(get_db),
+):
+    _validar_ou_422(mes_ano)
+    return apurar_dre_mensal(db, mes_ano)
+
+
+@router.get("/financeiro/despesas/", response_model=List[CamisetaDespesaResponse])
+def listar_despesas_do_mes(
+    mes_ano: str = Query(..., description="Mês no formato AAAA-MM, ex.: 2026-10"),
+    db: Session = Depends(get_db),
+):
+    _validar_ou_422(mes_ano)
+    return listar_despesas(db, mes_ano)
+
+
+@router.post(
+    "/financeiro/despesas/",
+    response_model=CamisetaDespesaResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def lancar_despesa(dados: CamisetaDespesaCreate, db: Session = Depends(get_db)):
+    _validar_ou_422(dados.mes_ano)
+    return criar_despesa(db, dados)
+
+
+@router.put("/financeiro/despesas/{id_despesa}/pagar", response_model=CamisetaDespesaResponse)
+def pagar_despesa(id_despesa: int, dados: CamisetaDespesaPagar, db: Session = Depends(get_db)):
+    return quitar_despesa(db, id_despesa, dados)
+
+
+@router.delete("/financeiro/despesas/{id_despesa}", status_code=status.HTTP_204_NO_CONTENT)
+def remover_despesa(id_despesa: int, db: Session = Depends(get_db)):
+    excluir_despesa(db, id_despesa)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.put(
+    "/financeiro/pedidos/{id_pedido}/pagamento",
+    response_model=CamisetaPedidoFinanceiroItem,
+)
+def alterar_pagamento_pedido(
+    id_pedido: int,
+    dados: CamisetaPedidoPagamentoUpdate,
+    db: Session = Depends(get_db),
+):
+    return atualizar_pagamento_pedido(db, id_pedido, dados)
