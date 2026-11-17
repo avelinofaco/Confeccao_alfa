@@ -53,7 +53,10 @@ export function PainelSku({ sku, onFechar, onAlterado }) {
   return (
     <ModalProducao titulo={sku.nome} idTitulo="titulo-painel-sku" onFechar={onFechar}>
       <p className="producao-resumo">
-        Saldo atual: <strong>{sku.saldo} peças</strong>{sku.estoque_minimo > 0 && ` · mínimo ${sku.estoque_minimo}`}
+        Saldo atual: <strong>{sku.saldo} peças</strong>
+        {sku.estoque_minimo > 0 && ` · mínimo ${sku.estoque_minimo}`}
+        {` · reservado em pedidos: ${sku.reservado || 0} · livre: ${sku.disponivel ?? sku.saldo}`}
+        {sku.falta_produzir > 0 && ` · falta produzir: ${sku.falta_produzir}`}
       </p>
       <form className="painel-sku-bloco" onSubmit={salvarAjuste}>
         <h3>Ajustar estoque</h3>

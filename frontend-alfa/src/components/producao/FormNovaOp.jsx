@@ -10,10 +10,11 @@ import './producao.css';
 const linhaVazia = (chave) => ({ chave, id_cor: '', id_insumo_tecido: '', peso_kg: '' });
 const rotuloRolo = (t) => `[${t.codigo}] ${t.tipo_malha_ou_aviamento}${t.nome_cor ? ` · ${t.nome_cor}` : ''} — ${parseFloat(t.saldo_atual || 0).toFixed(3)} kg`;
 
-/** Abertura de OP: modelo + uma linha por cor do enfesto (cor, rolo de malha e peso). */
-export function FormNovaOp({ modelos, tecidos, cores, onCriada }) {
+/** Abertura de OP: modelo + vínculo opcional a pedido + uma linha por cor do enfesto (cor, rolo de malha e peso). */
+export function FormNovaOp({ modelos, tecidos, cores, pedidos = [], onCriada }) {
   const toast = useToast();
   const proximaChave = useRef(1);
+  const [idPedido, setIdPedido] = useState('');
   const [idModelo, setIdModelo] = useState('');
   const [linhas, setLinhas] = useState(() => [linhaVazia(0)]);
   const [salvando, setSalvando] = useState(false);
@@ -30,6 +31,31 @@ export function FormNovaOp({ modelos, tecidos, cores, onCriada }) {
     const linha = linhaVazia(proximaChave.current);
     proximaChave.current += 1;
     return linha;
+  };
+
+  const selecionarPedido = (valorPedido) => {
+    setIdPedido(valorPedido);
+    if (!valorPedido) return;
+    const ped = pedidos.find((p) => String(p.id_pedido) === String(valorPedido));
+    if (!ped) return;
+    if (ped.id_modelo) {
+      setIdModelo(String(ped.id_modelo));
+    }
+    const coresUnicas = [...new Set((ped.itens || []).map((it) => it.id_cor).filter(Boolean))];
+    if (coresUnicas.length > 0) {
+      const novasLinhas = coresUnicas.map((idCor) => {
+        const roloSugerido = tecidos.find((t) => String(t.id_cor) === String(idCor));
+        const chave = proximaChave.current;
+        proximaChave.current += 1;
+        return {
+          chave,
+          id_cor: String(idCor),
+          id_insumo_tecido: roloSugerido ? String(roloSugerido.id_insumo) : '',
+          peso_kg: '',
+        };
+      });
+      setLinhas(novasLinhas);
+    }
   };
 
   const acrescentarCor = () => {
@@ -61,9 +87,11 @@ export function FormNovaOp({ modelos, tecidos, cores, onCriada }) {
       setSalvando(true);
       const { data } = await api.post('/camisetas/ordens/', {
         id_modelo: Number(idModelo),
+        id_pedido: idPedido ? Number(idPedido) : null,
         cores: linhas.map((l) => ({ id_cor: Number(l.id_cor), id_insumo_tecido: Number(l.id_insumo_tecido), peso_kg: parseFloat(l.peso_kg) })),
       });
       toast.sucesso(`OP ${data.codigo_op} aberta: ${pesoTotal.toFixed(3)} kg de malha baixados do estoque.`);
+      setIdPedido('');
       setLinhas([novaLinha()]);
       onCriada();
     } catch (err) {
@@ -75,12 +103,25 @@ export function FormNovaOp({ modelos, tecidos, cores, onCriada }) {
 
   return (
     <form onSubmit={enviar} noValidate>
-      <div className="cadastro-campo producao-campo-modelo">
-        <label htmlFor="op-modelo">Modelo de camiseta *</label>
-        <select id="op-modelo" value={idModelo} onChange={(e) => setIdModelo(e.target.value)}>
-          <option value="">Selecione o modelo…</option>
-          {modelos.map((m) => <option key={m.id_modelo} value={m.id_modelo}>{m.nome_modelo} ({m.consumo_tecido_kg} kg/peça)</option>)}
-        </select>
+      <div className="cadastro-grid">
+        <div className="cadastro-campo producao-campo-modelo">
+          <label htmlFor="op-pedido">Vincular a Pedido em aberto (opcional)</label>
+          <select id="op-pedido" value={idPedido} onChange={(e) => selecionarPedido(e.target.value)}>
+            <option value="">OP avulsa (para estoque)</option>
+            {pedidos.map((p) => (
+              <option key={p.id_pedido} value={p.id_pedido}>
+                {p.codigo_pedido} — {p.nome_cliente} ({p.quantidade_total} pçs · {p.status_pedido})
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="cadastro-campo producao-campo-modelo">
+          <label htmlFor="op-modelo">Modelo de camiseta *</label>
+          <select id="op-modelo" value={idModelo} onChange={(e) => setIdModelo(e.target.value)}>
+            <option value="">Selecione o modelo…</option>
+            {modelos.map((m) => <option key={m.id_modelo} value={m.id_modelo}>{m.nome_modelo} ({m.consumo_tecido_kg} kg/peça)</option>)}
+          </select>
+        </div>
       </div>
 
       <fieldset className="producao-linhas-cor">

@@ -11,8 +11,16 @@
 .produtos-filtros label { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.82rem; font-weight: 600; color: var(--color-text-muted); }
 .produtos-filtros select { min-width: 12rem; padding: 0.45rem 0.6rem; border: 1px solid var(--border-artisan-strong); border-radius: 8px; font: inherit; background: var(--bg-artisan-surface); }
 .produtos-filtros .produtos-filtro-check { flex-direction: row; align-items: center; gap: 0.4rem; padding-bottom: 0.5rem; }
-.produtos-total { margin-left: auto; padding-bottom: 0.45rem; color: var(--color-text-muted); }
+.produtos-kpis { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.6rem 1.2rem; margin-left: auto; padding-bottom: 0.45rem; }
+.produtos-total { color: var(--color-text-muted); }
 .produtos-total strong { font-family: var(--font-serif-editorial); font-size: 1.5rem; color: var(--accent-artisan-indigo); }
+.produtos-kpi { font-size: 0.86rem; color: var(--color-text-muted); padding: 0.25rem 0.65rem; border-radius: 999px; background: var(--bg-artisan-cream); border: 1px solid var(--border-artisan); }
+.produtos-kpi strong { font-weight: 700; color: var(--color-text-main); }
+.produtos-kpi-falta { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
+.produtos-kpi-falta strong { color: #b91c1c; }
+.grade-qtd-detalhe { display: flex; flex-direction: column; gap: 0.1rem; margin-top: 0.18rem; font-size: 0.68rem; font-weight: 600; color: var(--color-text-muted); line-height: 1.15; }
+.grade-qtd-detalhe-falta { color: #b91c1c; font-weight: 700; }
+.grade-qtd-detalhe-livre { color: var(--accent-artisan-sage); }
 .produtos-card {
   margin-bottom: 1.2rem; padding: 1.1rem 1.3rem; border: 1px solid var(--border-artisan); border-radius: 12px;
   background: var(--bg-artisan-surface); box-shadow: 0 1px 2px rgba(44, 37, 35, 0.04);

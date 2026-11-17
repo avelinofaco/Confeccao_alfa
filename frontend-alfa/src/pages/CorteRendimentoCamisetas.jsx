@@ -19,6 +19,7 @@ function CorteRendimentoCamisetas() {
   const [tecidos, setTecidos] = useState([]);
   const [cores, setCores] = useState([]);
   const [ordens, setOrdens] = useState([]);
+  const [pedidosAbertos, setPedidosAbertos] = useState([]);
   const [loading, setLoading] = useState(false);
   const toast = useToast();
 
@@ -32,12 +33,14 @@ function CorteRendimentoCamisetas() {
       '/camisetas/insumos/?categoria=ROLO_TECIDO',
       '/camisetas/ordens/',
       '/camisetas/cores/',
+      '/camisetas/pedidos/',
     ]);
-    const [listaMods, listaTecs, listaOps, listaCores] = dados;
+    const [listaMods, listaTecs, listaOps, listaCores, listaPeds] = dados;
     setModelos(listaMods);
     setTecidos(listaTecs);
     setOrdens(listaOps);
     setCores(listaCores);
+    setPedidosAbertos((listaPeds || []).filter((p) => p.status_pedido !== 'Entregue'));
     setLoading(false);
     if (houveFalha) {
       toast.erro('Não foi possível carregar todos os dados de corte. Verifique a conexão e recarregue a página.');
@@ -114,7 +117,13 @@ function CorteRendimentoCamisetas() {
             </span>
           </div>
 
-          <FormNovaOp modelos={modelos} tecidos={tecidos} cores={cores} onCriada={carregarDados} />
+          <FormNovaOp
+            modelos={modelos}
+            tecidos={tecidos}
+            cores={cores}
+            pedidos={pedidosAbertos}
+            onCriada={carregarDados}
+          />
         </div>
 
         {/* PASSO A PASSO 2: CONTROLE E REGISTRO DE CORTE REAL */}
@@ -126,6 +135,7 @@ function CorteRendimentoCamisetas() {
               <thead>
                 <tr>
                   <th>Código OP</th>
+                  <th>Pedido</th>
                   <th>Modelo</th>
                   <th>Malha Utilizada</th>
                   <th>Peso Malha (kg)</th>
@@ -139,7 +149,7 @@ function CorteRendimentoCamisetas() {
               <tbody>
                 {ordens.length === 0 ? (
                   <tr>
-                    <td colSpan="9" style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+                    <td colSpan="10" style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
                       {loading ? 'Carregando…' : 'Nenhuma Ordem de Produção registrada.'}
                     </td>
                   </tr>
@@ -147,6 +157,16 @@ function CorteRendimentoCamisetas() {
                   ordens.map((op) => (
                     <tr key={op.id_op}>
                       <td><strong>{op.codigo_op}</strong></td>
+                      <td>
+                        {op.codigo_pedido ? (
+                          <span className="op-cor-etiqueta" title={op.nome_cliente_pedido || ''}>
+                            <strong>{op.codigo_pedido}</strong>
+                            {op.nome_cliente_pedido ? ` · ${op.nome_cliente_pedido}` : ''}
+                          </span>
+                        ) : (
+                          <span style={{ color: '#94a3b8', fontSize: '0.82rem' }}>Avulsa</span>
+                        )}
+                      </td>
                       <td>{op.nome_modelo}</td>
                       <td>
                         {op.cores.length > 0 ? op.cores.map((c) => (

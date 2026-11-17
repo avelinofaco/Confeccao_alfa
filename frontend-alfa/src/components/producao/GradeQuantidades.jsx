@@ -25,15 +25,43 @@ function CelulaEditavel({ id, rotulo, valor, maximo, onAlterar }) {
   );
 }
 
-function CelulaLeitura({ rotulo, valor, alerta, onClick }) {
+function CelulaLeitura({ rotulo, valor, alerta, detalhe, onClick }) {
   const quantidade = numero(valor);
+  const reservado = detalhe?.reservado || 0;
+  const disponivel = detalhe?.disponivel ?? quantidade;
+  const falta = detalhe?.falta_produzir || 0;
+  const temReserva = reservado > 0;
   return (
-    <td className={alerta ? 'grade-qtd-alerta' : undefined}>
+    <td className={`${alerta ? 'grade-qtd-alerta' : ''}${falta > 0 ? ' grade-qtd-falta' : ''}`.trim() || undefined}>
       {onClick ? (
         <button type="button" className="grade-qtd-celula" aria-label={`${rotulo}: ${quantidade} peças`} onClick={onClick}>
-          {quantidade}
+          <span>{quantidade}</span>
+          {temReserva && (
+            <small className="grade-qtd-detalhe">
+              <span>Res: {reservado}</span>
+              {falta > 0 ? (
+                <span className="grade-qtd-detalhe-falta">Falta: {falta}</span>
+              ) : (
+                <span className="grade-qtd-detalhe-livre">Livre: {disponivel}</span>
+              )}
+            </small>
+          )}
         </button>
-      ) : quantidade}
+      ) : (
+        <div>
+          <span>{quantidade}</span>
+          {temReserva && (
+            <small className="grade-qtd-detalhe">
+              <span>Res: {reservado}</span>
+              {falta > 0 ? (
+                <span className="grade-qtd-detalhe-falta">Falta: {falta}</span>
+              ) : (
+                <span className="grade-qtd-detalhe-livre">Livre: {disponivel}</span>
+              )}
+            </small>
+          )}
+        </div>
+      )}
     </td>
   );
 }
@@ -53,7 +81,18 @@ function CelulaLeitura({ rotulo, valor, alerta, onClick }) {
  *   idPrefixo: string,
  * }} props
  */
-export function GradeQuantidades({ linhas, colunas, valores, onChange, maximos = {}, alertas = {}, onCelulaClick, legenda, idPrefixo }) {
+export function GradeQuantidades({
+  linhas,
+  colunas,
+  valores,
+  onChange,
+  maximos = {},
+  alertas = {},
+  detalhes = {},
+  onCelulaClick,
+  legenda,
+  idPrefixo,
+}) {
   const valorDe = (linha, coluna) => valores[chaveCelula(linha.id, coluna.id)];
   const totalLinha = (linha) => colunas.reduce((total, coluna) => total + numero(valorDe(linha, coluna)), 0);
   const totalColuna = (coluna) => linhas.reduce((total, linha) => total + numero(valorDe(linha, coluna)), 0);
@@ -85,6 +124,7 @@ export function GradeQuantidades({ linhas, colunas, valores, onChange, maximos =
                     maximo={maximos[chave]} onAlterar={(valor) => alterar(linha, coluna, valor)} />
                 ) : (
                   <CelulaLeitura key={coluna.id} rotulo={rotulo} valor={valores[chave]} alerta={alertas[chave]}
+                    detalhe={detalhes[chave]}
                     onClick={onCelulaClick ? () => onCelulaClick(linha.id, coluna.id) : undefined} />
                 );
               })}

@@ -15,6 +15,7 @@ import {
   alertasDoGrupo,
   celulaDoGrupo,
   contagensDoInventario,
+  detalhesDoGrupo,
   valoresDoGrupo,
   valoresIniciaisInventario,
 } from '../utils/produtosProntos';
@@ -83,6 +84,9 @@ function ProdutosProntosCamisetas() {
 
   const grupos = useMemo(() => agruparPorModelo(linhas), [linhas]);
   const totalPecas = linhas.reduce((total, linha) => total + linha.total, 0);
+  const totalReservado = linhas.reduce((total, linha) => total + (linha.total_reservado || 0), 0);
+  const totalDisponivel = linhas.reduce((total, linha) => total + (linha.total_disponivel ?? linha.total), 0);
+  const totalFaltaProduzir = linhas.reduce((total, linha) => total + (linha.total_falta_produzir || 0), 0);
   const gruposExibidos = inventario ? inventario.grupos : grupos;
 
   const recarregarTudo = () => {
@@ -131,7 +135,14 @@ function ProdutosProntosCamisetas() {
 
         <div className="produtos-barra">
           <FiltrosProdutos filtros={filtros} onChange={setFiltros} modelos={modelos} cores={cores} desativado={Boolean(inventario)} />
-          <span className="produtos-total" aria-live="polite"><strong>{totalPecas}</strong> peças prontas</span>
+          <div className="produtos-kpis" aria-live="polite">
+            <span className="produtos-total"><strong>{totalPecas}</strong> peças prontas</span>
+            <span className="produtos-kpi"><strong>{totalReservado}</strong> reservadas em pedidos</span>
+            <span className="produtos-kpi"><strong>{totalDisponivel}</strong> livres</span>
+            {totalFaltaProduzir > 0 && (
+              <span className="produtos-kpi produtos-kpi-falta"><strong>{totalFaltaProduzir}</strong> faltam produzir</span>
+            )}
+          </div>
           {!inventario && (
             <button type="button" className="cadastro-btn primario"
               onClick={() => setInventario({ grupos, valores: valoresIniciaisInventario(grupos), motivo: '' })}>
@@ -181,6 +192,7 @@ function ProdutosProntosCamisetas() {
                 colunas={grupo.colunas}
                 valores={valoresDoGrupo(grupo)}
                 alertas={alertasDoGrupo(grupo)}
+                detalhes={detalhesDoGrupo(grupo)}
                 onCelulaClick={(idCor, idTamanho) => abrirSku(grupo, idCor, idTamanho)}
               />
             )}

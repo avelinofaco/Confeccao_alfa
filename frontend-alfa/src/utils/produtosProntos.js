@@ -22,6 +22,16 @@ export function agruparPorModelo(linhas) {
 
 export const valoresDoGrupo = (grupo) => Object.fromEntries(grupo.celulas.map((c) => [c.chave, c.saldo]));
 export const alertasDoGrupo = (grupo) => Object.fromEntries(grupo.celulas.map((c) => [c.chave, c.abaixo_minimo]));
+export const detalhesDoGrupo = (grupo) => Object.fromEntries(
+  grupo.celulas.map((c) => [
+    c.chave,
+    {
+      reservado: c.reservado || 0,
+      disponivel: c.disponivel ?? c.saldo,
+      falta_produzir: c.falta_produzir || 0,
+    },
+  ]),
+);
 export const celulaDoGrupo = (grupo, idCor, idTamanho) => grupo.celulas.find((c) => c.chave === chaveCelula(idCor, idTamanho));
 
 /** Valores iniciais da contagem: o saldo atual de cada célula, separados por modelo. */
