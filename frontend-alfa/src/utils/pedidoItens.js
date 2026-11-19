@@ -25,7 +25,22 @@ export const itemVazio = (chave, idModelo = '', idCor = '') => ({
   valores: {},
 });
 
-export const colunasDoModelo = (modelo) => (modelo?.grade_tamanhos || []).map((t) => ({ id: t.id_tamanho, rotulo: t.rotulo }));
+export const colunasDoModelo = (modelo) => {
+  if (Array.isArray(modelo?.grade_tamanhos) && modelo.grade_tamanhos.length > 0) {
+    return modelo.grade_tamanhos.map((t) => ({ id: t.id_tamanho, rotulo: t.rotulo }));
+  }
+  if (Array.isArray(modelo?.tamanhos) && modelo.tamanhos.length > 0) {
+    return modelo.tamanhos.map((rotulo, idx) => ({ id: idx + 1, rotulo }));
+  }
+  if (typeof modelo?.grade_disponivel === 'string' && modelo.grade_disponivel.trim()) {
+    return modelo.grade_disponivel
+      .split(',')
+      .map((r) => r.trim())
+      .filter(Boolean)
+      .map((rotulo, idx) => ({ id: idx + 1, rotulo }));
+  }
+  return [];
+};
 
 export const totalDoItem = (item) => Object.values(item.valores).reduce((total, valor) => total + (Number(valor) || 0), 0);
 

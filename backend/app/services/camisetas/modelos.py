@@ -5,8 +5,14 @@ from typing import Optional
 from sqlalchemy.orm import Session
 
 from app.core.erros import ErroNegocio
-from app.models.camisetas import CamisetaModelo
-from app.models.camisetas_sku import CamisetaPedidoItem, CamisetaVariacao
+from app.models.camisetas import (
+    CamisetaModelo,
+    CamisetaPedido,
+    CamisetaOrdemProducao,
+    CamisetaFichaTecnica,
+    CamisetaProdutoAcabado,
+)
+from app.models.camisetas_sku import CamisetaPedidoItem, CamisetaVariacao, CamisetaMovimentoEstoque
 from app.schemas.camisetas import CamisetaModeloCreate, CamisetaModeloResponse, CamisetaModeloUpdate
 from app.schemas.camisetas_sku import TamanhoResponse
 from app.services.camisetas.grades import obter_grade, obter_grade_padrao, rotulos_da_grade, texto_grade
@@ -96,3 +102,61 @@ def atualizar_modelo(db: Session, id_modelo: int, dados: CamisetaModeloUpdate) -
     db.commit()
     db.refresh(modelo)
     return modelo
+
+
+def excluir_modelo(db: Session, id_modelo: int) -> None:
+    modelo = db.get(CamisetaModelo, id_modelo)
+    if modelo is None:
+        raise ErroNegocio(404, "Modelo não encontrado.")
+
+    # 1. Verifica pedidos vinculados (legado ou por item)
+    if (
+        db.query(CamisetaPedido.id_pedido).filter_by(id_modelo=id_modelo).first() is not None
+        or db.query(CamisetaPedidoItem.id_item).filter_by(id_modelo=id_modelo).first() is not None
+    ):
+        raise ErroNegocio(
+            409,
+            f"O modelo '{modelo.nome_modelo}' possui pedidos vinculados e não pode ser excluído.",
+        )
+
+    # 2. Verifica ordens de produção
+    if db.query(CamisetaOrdemProducao.id_op).filter_by(id_modelo=id_modelo).first() is not None:
+        raise ErroNegocio(
+            409,
+            f"O modelo '{modelo.nome_modelo}' possui ordens de produção vinculadas e não pode ser excluído.",
+        )
+
+    # 3. Verifica variações de estoque
+    variacoes = db.query(CamisetaVariacao).filter_by(id_modelo=id_modelo).all()
+    for v in variacoes:
+        if v.saldo > 0:
+            raise ErroNegocio(
+                409,
+                f"O modelo '{modelo.nome_modelo}' possui peças em estoque e não pode ser excluído.",
+            )
+        tem_movimento = db.query(CamisetaMovimentoEstoque.id_movimento).filter_by(id_variacao=v.id_variacao).first()
+        if tem_movimento:
+            raise ErroNegocio(
+                409,
+                f"O modelo '{modelo.nome_modelo}' possui histórico de movimentação de estoque e não pode ser excluído.",
+            )
+
+    # 4. Verifica produto acabado legado
+    prod_acabado = db.query(CamisetaProdutoAcabado).filter_by(id_modelo=id_modelo).first()
+    if prod_acabado:
+        if (prod_acabado.quantidade_total or 0) > 0:
+            raise ErroNegocio(
+                409,
+                f"O modelo '{modelo.nome_modelo}' possui produtos acabados em estoque e não pode ser excluído.",
+            )
+        db.delete(prod_acabado)
+
+    # Deleta variações de estoque zeradas sem histórico
+    for v in variacoes:
+        db.delete(v)
+
+    # Deleta itens da ficha técnica
+    db.query(CamisetaFichaTecnica).filter_by(id_modelo=id_modelo).delete()
+
+    db.delete(modelo)
+    db.commit()

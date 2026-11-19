@@ -12,7 +12,12 @@ from app.schemas.camisetas import (
     CamisetaCosturaFaccaoResponse,
     CamisetaCosturaFaccaoRetornar,
 )
-from app.services.camisetas.costura import enviar_remessa, montar_resposta_remessa, registrar_retorno
+from app.services.camisetas.costura import (
+    enviar_remessa,
+    excluir_remessa,
+    montar_resposta_remessa,
+    registrar_retorno,
+)
 
 router = APIRouter()
 
@@ -34,3 +39,10 @@ def enviar_para_faccao(envio_in: CamisetaCosturaFaccaoEnviar, db: Session = Depe
 def registrar_retorno_faccao(id_costura: int, retorno_in: CamisetaCosturaFaccaoRetornar, db: Session = Depends(get_db)):
     """Registra o retorno por cor e tamanho, apura perdas e lança as peças no estoque de Produtos Prontos."""
     return montar_resposta_remessa(registrar_retorno(db, id_costura, retorno_in))
+
+
+@router.delete("/costura/{id_costura}", status_code=status.HTTP_204_NO_CONTENT)
+def excluir_remessa_costura(id_costura: int, db: Session = Depends(get_db)):
+    """Exclui uma remessa em costura externa e estorna os aviamentos baixados de volta ao estoque."""
+    excluir_remessa(db, id_costura)
+

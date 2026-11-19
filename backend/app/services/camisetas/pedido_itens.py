@@ -1,5 +1,6 @@
 # app/services/camisetas/pedido_itens.py
 """Itens do pedido (modelo + cor + quantidade por tamanho): validação, conversão do corpo antigo e resposta."""
+from decimal import Decimal
 from sqlalchemy.orm import Session
 
 from app.core.erros import ErroNegocio

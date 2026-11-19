@@ -33,7 +33,7 @@ from app.schemas.camisetas import (
     CamisetaDashboardCompletoResponse, CamisetaCardDestaque, CamisetaItemFinanceiroMensal
 )
 from app.schemas.camisetas import CamisetaModeloUpdate
-from app.services.camisetas.modelos import atualizar_modelo, criar_modelo, montar_resposta_modelo
+from app.services.camisetas.modelos import atualizar_modelo, criar_modelo, excluir_modelo, montar_resposta_modelo
 
 router = APIRouter()
 
@@ -52,6 +52,12 @@ def cadastrar_modelo(modelo_in: CamisetaModeloCreate, db: Session = Depends(get_
 @router.put("/modelos/{id_modelo}", response_model=CamisetaModeloResponse)
 def editar_modelo(id_modelo: int, dados: CamisetaModeloUpdate, db: Session = Depends(get_db)):
     return montar_resposta_modelo(atualizar_modelo(db, id_modelo, dados))
+
+
+@router.delete("/modelos/{id_modelo}", status_code=status.HTTP_204_NO_CONTENT)
+def deletar_modelo(id_modelo: int, db: Session = Depends(get_db)):
+    excluir_modelo(db, id_modelo)
+    return None
 
 
 @router.get("/fichas/", response_model=List[CamisetaFichaTecnicaResponse])

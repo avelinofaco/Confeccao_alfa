@@ -4,10 +4,13 @@ import {
   Scissors,
   PlusCircle,
   AlertCircle,
-  Sparkles
+  Sparkles,
+  Trash2
 } from 'lucide-react';
 import { useToast } from '../components/feedback/useToast';
+import { useConfirm } from '../components/feedback/useConfirm';
 import { buscarEmParalelo } from '../services/buscarEmParalelo';
+import api from '../services/api';
 import Sidebar from '../components/Sidebar';
 import { FormNovaOp } from '../components/producao/FormNovaOp';
 import { ModalCorteOp } from '../components/producao/ModalCorteOp';
@@ -22,6 +25,7 @@ function CorteRendimentoCamisetas() {
   const [pedidosAbertos, setPedidosAbertos] = useState([]);
   const [loading, setLoading] = useState(false);
   const toast = useToast();
+  const confirmar = useConfirm();
 
   // OP cujo corte está sendo registrado (null = nenhum modal aberto)
   const [opSelecionada, setOpSelecionada] = useState(null);
@@ -60,6 +64,28 @@ function CorteRendimentoCamisetas() {
       return 'Em Costura';
     }
     return s || 'Corte Finalizado';
+  };
+
+  // Exclusão de Ordem de Produção (com confirmação e estorno de malha)
+  const handleExcluirOp = async (op) => {
+    const confirmou = await confirmar({
+      titulo: `Excluir ordem de produção ${op.codigo_op}?`,
+      mensagem: `Deseja realmente excluir a OP ${op.codigo_op} (${op.nome_modelo})? O peso de ${parseFloat(op.peso_malha_enviado_kg || 0).toFixed(3)} kg de malha será estornado de volta ao estoque.`,
+      textoConfirmar: 'Excluir OP',
+      perigo: true,
+    });
+    if (!confirmou) return;
+
+    try {
+      setLoading(true);
+      await api.delete(`/camisetas/ordens/${op.id_op}`);
+      toast.sucesso(`Ordem de produção ${op.codigo_op} excluída com sucesso.`);
+      await carregarDados();
+    } catch (err) {
+      toast.erro(err.response?.data?.detail || 'Não foi possível excluir a Ordem de Produção.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Métricas do Topo
@@ -131,98 +157,141 @@ function CorteRendimentoCamisetas() {
           <h2>Passo 2: Ordens de Produção & Apuração do Rendimento Real</h2>
 
           <div className="table-responsive">
-            <table className="tabela-ops">
+            <table className="tabela-ops" aria-label="Tabela de Ordens de Produção">
               <thead>
                 <tr>
-                  <th>Código OP</th>
-                  <th>Pedido</th>
-                  <th>Modelo</th>
-                  <th>Malha Utilizada</th>
-                  <th>Peso Malha (kg)</th>
-                  <th>Previsão Teórica</th>
-                  <th>Corte Real (Peças)</th>
-                  <th>Rendimento Real</th>
-                  <th>Status</th>
-                  <th>Ações</th>
+                  <th scope="col" className="th-codigo">Código OP</th>
+                  <th scope="col" className="th-pedido">Pedido</th>
+                  <th scope="col" className="th-modelo">Modelo</th>
+                  <th scope="col" className="th-cor">Cor</th>
+                  <th scope="col" className="th-malha">Malha Utilizada</th>
+                  <th scope="col" className="th-num">Peso Malha</th>
+                  <th scope="col" className="th-num">Previsão Teórica</th>
+                  <th scope="col" className="th-num">Corte Real</th>
+                  <th scope="col" className="th-num">Rendimento Real</th>
+                  <th scope="col" className="th-status">Status</th>
+                  <th scope="col" className="th-acoes">Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {ordens.length === 0 ? (
                   <tr>
-                    <td colSpan="10" style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+                    <td colSpan="11" style={{ textAlign: 'center', padding: '2.5rem', color: '#64748b' }}>
                       {loading ? 'Carregando…' : 'Nenhuma Ordem de Produção registrada.'}
                     </td>
                   </tr>
                 ) : (
                   ordens.map((op) => (
                     <tr key={op.id_op}>
-                      <td><strong>{op.codigo_op}</strong></td>
+                      <td><strong className="codigo-op-pill">{op.codigo_op}</strong></td>
                       <td>
                         {op.codigo_pedido ? (
-                          <span className="op-cor-etiqueta" title={op.nome_cliente_pedido || ''}>
-                            <strong>{op.codigo_pedido}</strong>
-                            {op.nome_cliente_pedido ? ` · ${op.nome_cliente_pedido}` : ''}
-                          </span>
+                          <div className="op-pedido-etiqueta" title={op.nome_cliente_pedido || ''}>
+                            <strong className="op-pedido-cod">{op.codigo_pedido}</strong>
+                            {op.nome_cliente_pedido && (
+                              <span className="op-pedido-cliente">{op.nome_cliente_pedido}</span>
+                            )}
+                          </div>
                         ) : (
-                          <span style={{ color: '#94a3b8', fontSize: '0.82rem' }}>Avulsa</span>
+                          <span className="op-pedido-avulsa">Avulsa</span>
                         )}
                       </td>
-                      <td>{op.nome_modelo}</td>
-                      <td>
-                        {op.cores.length > 0 ? op.cores.map((c) => (
-                          <span key={c.id_cor} className="op-cor-etiqueta">
-                            <span className="cadastro-amostra" style={{ background: c.hex_cor }} aria-hidden="true" />
-                            {c.nome_cor} · {Number(c.peso_kg).toFixed(1)} kg
-                          </span>
-                        )) : op.nome_tecido}
+                      <td><span className="op-modelo-nome">{op.nome_modelo}</span></td>
+
+                      {/* Coluna 1: COR (dedicada com bolinha colorida + nome da cor, lista vertical se mais de uma) */}
+                      <td className="td-cor">
+                        {op.cores && op.cores.length > 0 ? (
+                          <div className="op-cores-lista">
+                            {op.cores.map((c) => (
+                              <div key={c.id_cor} className="op-cor-item">
+                                <span
+                                  className="cadastro-amostra op-amostra-bolinha"
+                                  style={{ background: c.hex_cor || '#cbd5e1' }}
+                                  aria-hidden="true"
+                                />
+                                <span className="op-cor-nome">{c.nome_cor}</span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-slate-400">—</span>
+                        )}
                       </td>
-                      <td><strong>{parseFloat(op.peso_malha_enviado_kg).toFixed(3)} kg</strong></td>
-                      <td>{op.pecas_planejadas || '—'} un.</td>
-                      <td>
+
+                      {/* Coluna 2: MALHA (nome da malha limpo do rolo) */}
+                      <td className="td-malha">
+                        <span className="op-malha-nome" title={op.nome_tecido}>
+                          {op.nome_tecido || 'Malha'}
+                        </span>
+                      </td>
+
+                      <td className="td-num">
+                        <strong>{parseFloat(op.peso_malha_enviado_kg).toFixed(3)} kg</strong>
+                      </td>
+                      <td className="td-num">
+                        {op.pecas_planejadas ? `${op.pecas_planejadas} un.` : '—'}
+                      </td>
+                      <td className="td-num">
                         {op.pecas_reais_cortadas ? (
-                          <strong style={{ color: '#2563eb' }}>{op.pecas_reais_cortadas} un.</strong>
+                          <strong className="corte-real-destaque">{op.pecas_reais_cortadas} un.</strong>
                         ) : (
-                          <span style={{ color: '#94a3b8' }}>Aguardando Corte</span>
+                          <span className="op-aguardando-corte-txt">Aguardando Corte</span>
                         )}
                       </td>
-                      <td>
+                      <td className="td-num">
                         {op.rendimento_real_pecas_kg ? (
                           <span className="badge-rendimento-real">
-                            <Sparkles size={13} />
+                            <Sparkles size={12} />
                             {parseFloat(op.rendimento_real_pecas_kg).toFixed(2)} peças/kg
                           </span>
                         ) : (
-                          <span style={{ color: '#94a3b8' }}>—</span>
+                          <span className="text-slate-400">—</span>
                         )}
                       </td>
                       <td>
-                        <span className={`badge-status-pedido ${op.pecas_reais_cortadas ? 'concluido' : 'producao'}`}>
-                          {formatarStatusOp(op)}
+                        <span className={`badge-status-op ${
+                          op.status_op === 'Em Costura' ? 'costura' :
+                          op.pecas_reais_cortadas ? 'cortado' : 'aguardando'
+                        }`}>
+                          • {formatarStatusOp(op)}
                         </span>
                       </td>
-                      <td>
-                        {!op.pecas_reais_cortadas ? (
+                      <td style={{ textAlign: 'center' }}>
+                        <div className="op-acoes-flex">
+                          {!op.pecas_reais_cortadas ? (
+                            <button
+                              type="button"
+                              className="btn-registrar-corte"
+                              onClick={() => setOpSelecionada(op)}
+                              title="Registrar corte de peças por cor e tamanho"
+                            >
+                              <Scissors size={14} />
+                              <span>Registrar Corte</span>
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              className="btn-ajustar-corte"
+                              disabled={!op.legada && op.quantidade_enviada_costura > 0}
+                              title={!op.legada && op.quantidade_enviada_costura > 0
+                                ? 'Já houve envio à facção: o corte não pode mais mudar'
+                                : 'Ajustar quantidades cortadas'}
+                              onClick={() => setOpSelecionada(op)}
+                            >
+                              Ajustar
+                            </button>
+                          )}
+
                           <button
-                            className="btn-acao-rapida"
-                            style={{ padding: '0.35rem 0.75rem', fontSize: '0.78rem' }}
-                            onClick={() => setOpSelecionada(op)}
+                            type="button"
+                            className="btn-excluir-op"
+                            onClick={() => handleExcluirOp(op)}
+                            title="Excluir OP"
+                            aria-label={`Excluir ordem de produção ${op.codigo_op}`}
                           >
-                            <Scissors size={14} />
-                            Registrar Corte
+                            <Trash2 size={14} />
                           </button>
-                        ) : (
-                          <button
-                            className="btn-acao-rapida secundario"
-                            style={{ padding: '0.35rem 0.75rem', fontSize: '0.78rem' }}
-                            disabled={!op.legada && op.quantidade_enviada_costura > 0}
-                            title={!op.legada && op.quantidade_enviada_costura > 0
-                              ? 'Já houve envio à facção: o corte não pode mais mudar'
-                              : undefined}
-                            onClick={() => setOpSelecionada(op)}
-                          >
-                            Ajustar
-                          </button>
-                        )}
+                        </div>
                       </td>
                     </tr>
                   ))

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   ShoppingCart,
   PlusCircle,
@@ -8,7 +8,9 @@ import {
   RotateCcw,
   AlertTriangle,
   Link2,
-  Printer
+  Printer,
+  Pencil,
+  Trash2,
 } from 'lucide-react';
 import api from '../services/api';
 import Sidebar from '../components/Sidebar';
@@ -67,6 +69,9 @@ function PedidoCamisetas() {
   const [pedidoParaEntrega, setPedidoParaEntrega] = useState(null);
   const [pedidoEmEdicao, setPedidoEmEdicao] = useState(null);
   const [pedidoParaPdf, setPedidoParaPdf] = useState(null);
+
+  // Seleção múltipla para exportar PDF em lote
+  const [selecionados, setSelecionados] = useState(new Set());
 
   const carregarDados = async () => {
     setLoading(true);
@@ -171,6 +176,53 @@ function PedidoCamisetas() {
       setLoading(false);
     }
   };
+
+  // Excluir pedido com confirmação
+  const handleExcluirPedido = async (pedido) => {
+    const confirmou = await confirmar({
+      titulo: `Excluir pedido ${pedido.codigo_pedido}?`,
+      mensagem: `Esta ação removerá permanentemente o pedido de "${pedido.nome_cliente}". Pedidos já entregues não podem ser excluídos.`,
+      textoConfirmar: 'Excluir pedido',
+      perigo: true,
+    });
+    if (!confirmou) return;
+
+    try {
+      setLoading(true);
+      await api.delete(`/camisetas/pedidos/${pedido.id_pedido}`);
+      toast.sucesso(`Pedido ${pedido.codigo_pedido} excluído com sucesso.`);
+      setSelecionados((prev) => { const s = new Set(prev); s.delete(pedido.id_pedido); return s; });
+      await carregarDados();
+    } catch (err) {
+      toast.erro(mensagemDeErro(err, 'Não foi possível excluir o pedido.'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Seleção múltipla
+  const toggleSelecionado = useCallback((id) => {
+    setSelecionados((prev) => {
+      const s = new Set(prev);
+      if (s.has(id)) s.delete(id); else s.add(id);
+      return s;
+    });
+  }, []);
+
+  const toggleTodos = useCallback((pedidosFiltrados) => {
+    setSelecionados((prev) => {
+      const idsFiltrados = pedidosFiltrados.map((p) => p.id_pedido);
+      const todosSelecionados = idsFiltrados.every((id) => prev.has(id));
+      if (todosSelecionados) {
+        const s = new Set(prev);
+        idsFiltrados.forEach((id) => s.delete(id));
+        return s;
+      }
+      const s = new Set(prev);
+      idsFiltrados.forEach((id) => s.add(id));
+      return s;
+    });
+  }, []);
 
   const formatarMoeda = (val) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
@@ -345,21 +397,38 @@ function PedidoCamisetas() {
 
         {/* TABELA DE PEDIDOS SALVOS */}
         <div className="table-card">
+          {/* Cabeçalho: título à esquerda, busca + botão PDF à direita */}
           <div className="table-header-box">
             <h2>Pedidos Comerciais ({pedidosFiltrados.length})</h2>
 
-            <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
-              <div style={{ position: 'relative' }}>
-                <Search size={16} style={{ position: 'absolute', left: 10, top: 10, color: '#94a3b8' }} />
+            <div className="tabela-controles-direita">
+              <div className="busca-pedidos-wrapper">
+                <Search size={15} className="busca-pedidos-icone" />
                 <input
                   type="text"
                   placeholder="Buscar por cliente, modelo ou código..."
                   value={busca}
                   onChange={(e) => setBusca(e.target.value)}
-                  style={{ paddingLeft: '2.1rem', borderRadius: 8, border: '1px solid #cbd5e1', padding: '0.5rem 0.8rem 0.5rem 2rem' }}
+                  className="busca-pedidos-input"
                   aria-label="Buscar pedidos"
                 />
               </div>
+
+              <button
+                type="button"
+                className={`btn-exportar-pdf-global ${selecionados.size === 0 ? 'desabilitado' : ''}`}
+                disabled={selecionados.size === 0}
+                onClick={() => {
+                  // Abre o modal de PDF para o primeiro selecionado
+                  // Para múltiplos, o modal já existe e suportamos a exportação individual
+                  const primeiro = pedidosFiltrados.find((p) => selecionados.has(p.id_pedido));
+                  if (primeiro) setPedidoParaPdf(primeiro);
+                }}
+                title={selecionados.size === 0 ? 'Selecione ao menos um pedido' : `Exportar PDF de ${selecionados.size} pedido(s) selecionado(s)`}
+              >
+                <Printer size={15} />
+                Exportar PDF{selecionados.size > 0 ? ` (${selecionados.size})` : ''}
+              </button>
             </div>
           </div>
 
@@ -367,12 +436,23 @@ function PedidoCamisetas() {
             <table className="pedidos-table" aria-label="Tabela de pedidos comerciais">
               <thead>
                 <tr>
+                  {/* Checkbox selecionar todos */}
+                  <th scope="col" className="col-checkbox">
+                    <input
+                      type="checkbox"
+                      className="checkbox-pedido"
+                      checked={pedidosFiltrados.length > 0 && pedidosFiltrados.every((p) => selecionados.has(p.id_pedido))}
+                      onChange={() => toggleTodos(pedidosFiltrados)}
+                      title="Selecionar / desmarcar todos"
+                      aria-label="Selecionar todos os pedidos visíveis"
+                    />
+                  </th>
                   <th scope="col">Código</th>
                   <th scope="col">Cliente</th>
                   <th scope="col">Itens</th>
-                  <th scope="col">Total Peças</th>
-                  <th scope="col">Prazo Entrega</th>
-                  <th scope="col">Valor Total</th>
+                  <th scope="col" style={{ textAlign: 'center' }}>Total Peças</th>
+                  <th scope="col" style={{ textAlign: 'center' }}>Prazo Entrega</th>
+                  <th scope="col" style={{ textAlign: 'right' }}>Valor Total</th>
                   <th scope="col">Status</th>
                   <th scope="col" style={{ textAlign: 'center' }}>Ação de Entrega</th>
                 </tr>
@@ -380,18 +460,41 @@ function PedidoCamisetas() {
               <tbody>
                 {pedidosFiltrados.length === 0 ? (
                   <tr>
-                    <td colSpan="8" style={{ textAlign: 'center', padding: '2.5rem', color: '#64748b' }}>
+                    <td colSpan="9" style={{ textAlign: 'center', padding: '2.5rem', color: '#64748b' }}>
                       Nenhum pedido de camiseta encontrado.
                     </td>
                   </tr>
                 ) : (
                   pedidosFiltrados.map((ped) => {
                     const isEntregue = ped.status_pedido === 'Entregue';
+                    const isSelecionado = selecionados.has(ped.id_pedido);
                     return (
-                      <tr key={ped.id_pedido} className={isEntregue ? 'linha-entregue' : ''}>
-                        <td><strong>{ped.codigo_pedido}</strong></td>
-                        <td>{ped.nome_cliente}</td>
-                        <td>
+                      <tr
+                        key={ped.id_pedido}
+                        className={[
+                          isEntregue ? 'linha-entregue' : '',
+                          isSelecionado ? 'linha-selecionada' : '',
+                        ].filter(Boolean).join(' ')}
+                      >
+                        {/* Checkbox linha */}
+                        <td className="col-checkbox">
+                          <input
+                            type="checkbox"
+                            className="checkbox-pedido"
+                            checked={isSelecionado}
+                            onChange={() => toggleSelecionado(ped.id_pedido)}
+                            aria-label={`Selecionar pedido ${ped.codigo_pedido}`}
+                          />
+                        </td>
+
+                        {/* Código */}
+                        <td><strong className="codigo-pedido-pill">{ped.codigo_pedido}</strong></td>
+
+                        {/* Cliente */}
+                        <td className="col-cliente">{ped.nome_cliente}</td>
+
+                        {/* Itens */}
+                        <td className="col-itens">
                           <ul className="pedido-itens-resumo">
                             {ped.itens.map((item) => (
                               <li key={item.id_item} className={`pedido-item-linha ${item.id_cor ? '' : 'sem-cor'}`}>
@@ -406,80 +509,120 @@ function PedidoCamisetas() {
                               </li>
                             ))}
                           </ul>
+                          {/* Tamanhos em tags compactas */}
+                          {ped.itens.some((it) => it.quantidades && Object.keys(it.quantidades).length > 0) && (
+                            <div className="tamanhos-tags-linha">
+                              {ped.itens.flatMap((it) =>
+                                Object.entries(it.quantidades || {})
+                                  .filter(([, qty]) => qty > 0)
+                                  .map(([tam, qty]) => (
+                                    <span key={`${it.id_item}-${tam}`} className="tamanho-tag-mini">
+                                      {tam}: {qty}
+                                    </span>
+                                  ))
+                              )}
+                            </div>
+                          )}
                           {!isEntregue && (
-                            <button type="button" className="btn-link-itens" onClick={() => setPedidoEmEdicao(ped)}>
+                            <button
+                              type="button"
+                              className="btn-editar-itens"
+                              onClick={() => setPedidoEmEdicao(ped)}
+                            >
+                              <Pencil size={12} />
                               {ped.itens.some((item) => !item.id_cor) ? 'Definir cor' : 'Editar itens'}
                             </button>
                           )}
                         </td>
-                        <td><strong>{ped.quantidade_total} un.</strong></td>
-                        <td>
+
+                        {/* Total Peças */}
+                        <td style={{ textAlign: 'center' }}>
+                          <strong>{ped.quantidade_total} un.</strong>
+                        </td>
+
+                        {/* Prazo Entrega */}
+                        <td style={{ textAlign: 'center' }}>
                           {new Date(ped.prazo_entrega + 'T00:00:00').toLocaleDateString('pt-BR')}
                         </td>
-                        <td><strong>{formatarMoeda(ped.valor_total)}</strong></td>
+
+                        {/* Valor Total */}
+                        <td style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
+                          <strong>{formatarMoeda(ped.valor_total)}</strong>
+                        </td>
+
+                        {/* Status */}
                         <td>
-                          <span className={`badge-status-pedido ${
-                            isEntregue ? 'concluido' :
-                            ped.status_pedido.includes('Produção') ? 'producao' : 'aguardando'
-                          }`}>
-                            {isEntregue ? 'Entregue ao Cliente' : ped.status_pedido}
-                          </span>
-                          <div style={{ marginTop: '0.35rem', fontSize: '0.78rem' }}>
-                            <span className="cadastro-etiqueta">
+                          <div className="status-coluna-bloco">
+                            <span className={`badge-status-pedido ${
+                              isEntregue ? 'concluido' :
+                              ped.status_pedido.includes('Produção') ? 'producao' : 'aguardando'
+                            }`}>
+                              {isEntregue ? 'Entregue ao Cliente' : ped.status_pedido}
+                            </span>
+                            <span className={`badge-status-cliente ${
+                              (ped.status_aprovacao_cliente || '').toLowerCase() === 'aprovado' ? 'aprovado' : 'pendente'
+                            }`}>
                               Cliente: {ped.status_aprovacao_cliente || 'Pendente'}
                             </span>
                             {ped.observacao_cliente && (
-                              <div style={{ color: '#b45309', marginTop: '0.2rem' }}>
+                              <div className="obs-cliente-inline">
                                 "{ped.observacao_cliente}"
                               </div>
                             )}
                           </div>
                         </td>
+
+                        {/* Ação de Entrega */}
                         <td style={{ textAlign: 'center' }}>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', alignItems: 'center' }}>
-                            <button
-                              type="button"
-                              className="btn-link-itens"
-                              onClick={() => setPedidoParaPdf(ped)}
-                              title="Exportar PDF do pedido (Cliente, Produção, Estamparia ou Facção com grade 4×4)"
-                            >
-                              <Printer size={13} style={{ verticalAlign: 'middle', marginRight: 3 }} />
-                              Exportar PDF
-                            </button>
+                          <div className="acoes-coluna-bloco">
+                            {/* Link de aprovação */}
                             {ped.token_aprovacao && (
                               <button
                                 type="button"
-                                className="btn-link-itens"
+                                className="btn-acao-secundaria"
                                 onClick={() => copiarLinkAprovacao(ped)}
                                 title="Copiar link para o cliente ver e aprovar o pedido no celular"
                               >
-                                <Link2 size={13} style={{ verticalAlign: 'middle', marginRight: 3 }} />
+                                <Link2 size={13} />
                                 Link de aprovação
                               </button>
                             )}
-                          {isEntregue ? (
+
+                            {/* Reverter ou Registrar Entrega */}
+                            {isEntregue ? (
+                              <button
+                                type="button"
+                                className="btn-acao-reverter"
+                                onClick={() => handleReverterEntrega(ped)}
+                                title="Reverter status da entrega e devolver as peças a Produtos Prontos"
+                                aria-label={`Reverter entrega do pedido ${ped.codigo_pedido}`}
+                              >
+                                <RotateCcw size={13} />
+                                <span>Reverter</span>
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                className="btn-acao-entregar"
+                                onClick={() => setPedidoParaEntrega(ped)}
+                                title="Registrar entrega ao cliente com baixa no estoque de cada cor e tamanho"
+                                aria-label={`Registrar entrega ao cliente do pedido ${ped.codigo_pedido}`}
+                              >
+                                <Truck size={14} />
+                                <span>Registrar Entrega</span>
+                              </button>
+                            )}
+
+                            {/* Excluir pedido */}
                             <button
                               type="button"
-                              className="btn-acao-reverter"
-                              onClick={() => handleReverterEntrega(ped)}
-                              title="Reverter status da entrega e devolver as peças a Produtos Prontos"
-                              aria-label={`Reverter entrega do pedido ${ped.codigo_pedido}`}
+                              className="btn-excluir-pedido"
+                              onClick={() => handleExcluirPedido(ped)}
+                              title="Excluir pedido"
+                              aria-label={`Excluir pedido ${ped.codigo_pedido}`}
                             >
-                              <RotateCcw size={14} />
-                              <span>Reverter</span>
+                              <Trash2 size={14} />
                             </button>
-                          ) : (
-                            <button
-                              type="button"
-                              className="btn-acao-entregar"
-                              onClick={() => setPedidoParaEntrega(ped)}
-                              title="Registrar entrega ao cliente com baixa no estoque de cada cor e tamanho"
-                              aria-label={`Registrar entrega ao cliente do pedido ${ped.codigo_pedido}`}
-                            >
-                              <Truck size={15} />
-                              <span>Registrar Entrega</span>
-                            </button>
-                          )}
                           </div>
                         </td>
                       </tr>

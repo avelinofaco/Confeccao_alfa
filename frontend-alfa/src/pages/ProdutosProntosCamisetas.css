@@ -1,51 +1,507 @@
-.produtos-container { display: flex; min-height: 100vh; background: var(--bg-artisan-cream); color: var(--color-text-main); font-family: var(--font-sans-humanist); }
-.produtos-main { flex: 1; padding: 2.2rem 2.8rem; overflow-y: auto; }
-.produtos-main .page-header { margin-bottom: 1.4rem; }
+/* ProdutosProntosCamisetas.css - Estilização Moderna de Produtos Prontos e Histórico */
+
+.produtos-container {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg-artisan-cream, #fdfbf7);
+  color: var(--color-text-main, #2c2523);
+  font-family: var(--font-sans-humanist, 'Plus Jakarta Sans', sans-serif);
+}
+
+.produtos-main {
+  flex: 1;
+  padding: 2.2rem 2.8rem;
+  overflow-y: auto;
+}
+
+.produtos-main .page-header {
+  margin-bottom: 1.6rem;
+}
+
 .produtos-main .page-header h1 {
-  display: flex; align-items: center; gap: 0.6rem; margin: 0 0 0.35rem;
-  font-family: var(--font-serif-editorial); font-size: 1.95rem; font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 0 0.35rem;
+  font-family: var(--font-serif-editorial, 'Lora', serif);
+  font-size: 1.95rem;
+  font-weight: 600;
+  color: #0f172a;
 }
-.produtos-main .page-header p { margin: 0; color: var(--color-text-muted); }
-.produtos-barra { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.8rem 1.4rem; margin-bottom: 1.2rem; }
-.produtos-filtros { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.8rem 1rem; }
-.produtos-filtros label { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.82rem; font-weight: 600; color: var(--color-text-muted); }
-.produtos-filtros select { min-width: 12rem; padding: 0.45rem 0.6rem; border: 1px solid var(--border-artisan-strong); border-radius: 8px; font: inherit; background: var(--bg-artisan-surface); }
-.produtos-filtros .produtos-filtro-check { flex-direction: row; align-items: center; gap: 0.4rem; padding-bottom: 0.5rem; }
-.produtos-kpis { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.6rem 1.2rem; margin-left: auto; padding-bottom: 0.45rem; }
-.produtos-total { color: var(--color-text-muted); }
-.produtos-total strong { font-family: var(--font-serif-editorial); font-size: 1.5rem; color: var(--accent-artisan-indigo); }
-.produtos-kpi { font-size: 0.86rem; color: var(--color-text-muted); padding: 0.25rem 0.65rem; border-radius: 999px; background: var(--bg-artisan-cream); border: 1px solid var(--border-artisan); }
-.produtos-kpi strong { font-weight: 700; color: var(--color-text-main); }
-.produtos-kpi-falta { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
-.produtos-kpi-falta strong { color: #b91c1c; }
-.grade-qtd-detalhe { display: flex; flex-direction: column; gap: 0.1rem; margin-top: 0.18rem; font-size: 0.68rem; font-weight: 600; color: var(--color-text-muted); line-height: 1.15; }
-.grade-qtd-detalhe-falta { color: #b91c1c; font-weight: 700; }
-.grade-qtd-detalhe-livre { color: var(--accent-artisan-sage); }
+
+.produtos-main .page-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.94rem;
+}
+
+/* Barra Superior: Filtros e KPIs */
+.produtos-barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.8rem 1.4rem;
+  margin-bottom: 1.5rem;
+}
+
+.produtos-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.8rem 1rem;
+}
+
+.produtos-filtros label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.produtos-filtros select {
+  min-width: 12rem;
+  padding: 0.45rem 0.8rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  background-color: #ffffff;
+  color: #0f172a;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.produtos-filtros select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.produtos-filtros .produtos-filtro-check {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.45rem;
+  padding-bottom: 0.5rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: #334155;
+}
+
+.produtos-kpis {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 1rem;
+  margin-left: auto;
+  padding-bottom: 0.35rem;
+}
+
+.produtos-total {
+  color: #475569;
+  font-size: 0.9rem;
+}
+
+.produtos-total strong {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #1e40af;
+  margin-right: 0.25rem;
+}
+
+.produtos-kpi {
+  font-size: 0.84rem;
+  color: #475569;
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.produtos-kpi strong {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.produtos-kpi-falta {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
+.produtos-kpi-falta strong {
+  color: #b91c1c;
+}
+
+/* Cards de Saldo Atual de Produtos Prontos (bg-white border border-slate-200 rounded-xl shadow-sm) */
 .produtos-card {
-  margin-bottom: 1.2rem; padding: 1.1rem 1.3rem; border: 1px solid var(--border-artisan); border-radius: 12px;
-  background: var(--bg-artisan-surface); box-shadow: 0 1px 2px rgba(44, 37, 35, 0.04);
+  margin-bottom: 1.5rem;
+  padding: 1.4rem 1.6rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
 }
-.produtos-card h2 { display: flex; align-items: center; gap: 0.5rem; margin: 0 0 0.4rem; font-family: var(--font-serif-editorial); font-size: 1.2rem; }
-.produtos-vazio { padding: 2rem; text-align: center; color: var(--color-text-muted); border: var(--border-stitch); border-radius: 12px; }
+
+.produtos-card h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.8rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* Estilo de Badges Limpos para os Tamanhos na Grade */
+.tamanho-grade-badge {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.produtos-card .grade-qtd thead th {
+  background: #f8fafc;
+  color: #475569;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.65rem 0.75rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.produtos-card .grade-qtd td {
+  padding: 0.55rem 0.75rem;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.92rem;
+}
+
+.produtos-vazio {
+  padding: 2.5rem;
+  text-align: center;
+  color: #64748b;
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+/* Inventário */
 .inventario-barra {
-  margin-bottom: 1.2rem; padding: 1rem 1.2rem; border-radius: 12px;
-  border: 1px solid var(--accent-artisan-indigo-border); background: var(--accent-artisan-indigo-bg);
+  margin-bottom: 1.5rem;
+  padding: 1.2rem 1.4rem;
+  border-radius: 12px;
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
 }
-.inventario-barra h2 { margin: 0 0 0.3rem; font-family: var(--font-serif-editorial); font-size: 1.15rem; color: var(--accent-artisan-indigo); }
-.inventario-barra p { margin: 0 0 0.8rem; color: var(--color-text-body); }
-.inventario-campos { display: grid; grid-template-columns: 2fr 1.5fr 1fr auto; gap: 0.7rem; align-items: end; }
-.inventario-acoes { display: flex; justify-content: flex-end; gap: 0.6rem; margin-top: 0.9rem; }
-.historico-filtro { display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 0.6rem; font-weight: 600; }
-.historico-tabela { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
-.historico-tabela th, .historico-tabela td { padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--border-artisan); text-align: left; }
-.historico-tabela th { font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); }
-.historico-entrada { color: var(--accent-artisan-sage); font-weight: 700; }
-.historico-saida { color: var(--accent-artisan-terracotta); font-weight: 700; }
-.painel-sku-bloco { padding: 0.9rem 0; border-top: 1px solid var(--border-artisan); }
-.painel-sku-bloco h3 { margin: 0 0 0.6rem; font-size: 0.95rem; }
+
+.inventario-barra h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1.15rem;
+  color: #1e40af;
+}
+
+.inventario-barra p {
+  margin: 0 0 0.8rem;
+  color: #334155;
+  font-size: 0.9rem;
+}
+
+.inventario-campos {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1fr auto;
+  gap: 0.7rem;
+  align-items: end;
+}
+
+.inventario-acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 0.9rem;
+}
+
+/* ==========================================================================
+   SEÇÃO HISTÓRICO DE MOVIMENTAÇÕES (Layout e Tabela Modernos)
+   ========================================================================== */
+
+.produtos-card-historico {
+  padding: 1.5rem 1.6rem;
+}
+
+/* 1. Cabeçalho e Filtro da Seção */
+.historico-header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-bottom: 1.1rem;
+}
+
+.historico-titulo-area .historico-titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.historico-filtro-area {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.historico-filtro-rotulo {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+/* Seletor dropdown moderno (rounded-lg border-slate-300 px-3 py-1.5 text-sm) */
+.historico-tipo-select {
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  padding: 0.4rem 2rem 0.4rem 0.85rem;
+  font-size: 0.875rem;
+  color: #0f172a;
+  background-color: #ffffff;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.55rem center;
+  background-repeat: no-repeat;
+  background-size: 1.15em 1.15em;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  cursor: pointer;
+}
+
+.historico-tipo-select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+/* 2. Container e Estilização da Tabela */
+.historico-tabela-wrapper {
+  overflow-x: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.historico-tabela {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.88rem;
+  text-align: left;
+}
+
+/* Cabeçalho cinza suave (bg-slate-50), texto em caixa alta discreta (text-xs font-semibold text-slate-600) */
+.historico-tabela thead th {
+  background: #f8fafc;
+  padding: 0.75rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+/* Células com padding px-4 py-3 (0.75rem 1rem) e bordas suaves horizontais */
+.historico-tabela td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+  color: #334155;
+}
+
+/* Efeito hover nas linhas (hover:bg-slate-50/80) */
+.historico-tabela tbody tr:hover td {
+  background-color: rgba(248, 250, 252, 0.8);
+}
+
+/* Coluna QUANDO: Data e hora tabular (tabular-nums text-slate-500 text-xs) */
+.td-quando .data-hora-tabular {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.75rem;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+/* Coluna ITEM: Produto em negrito suave (font-medium text-slate-800) e tamanho em tag cinza discreta */
+.historico-item-col {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.historico-item-nome {
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.historico-tamanho-badge {
+  display: inline-flex;
+  align-items: center;
+  background: #f1f5f9;
+  color: #334155;
+  padding: 0.125rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+/* Coluna TIPO: Badges arredondadas (rounded-full px-2.5 py-0.5 text-xs font-medium) */
+.historico-badge-tipo {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  padding: 0.18rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.badge-tipo-entrada {
+  background-color: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.badge-tipo-saida {
+  background-color: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.badge-tipo-estorno {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.badge-tipo-inventario {
+  background-color: #faf5ff;
+  color: #6b21a8;
+  border: 1px solid #e9d5ff;
+}
+
+.badge-tipo-ajuste {
+  background-color: #f8fafc;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+}
+
+.badge-tipo-padrao {
+  background-color: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+/* Colunas QTD. e SALDO DEPOIS: Números tabulares alinhados ao centro/direita */
+.th-qtd, .th-saldo {
+  text-align: center !important;
+}
+
+.td-qtd {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.td-qtd.qtd-positiva {
+  color: #059669;
+  font-weight: 600;
+}
+
+.td-qtd.qtd-negativa {
+  color: #e11d48;
+  font-weight: 600;
+}
+
+.td-saldo {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.td-saldo .saldo-destaque {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* Coluna MOTIVO / REFERÊNCIA */
+.historico-motivo-texto {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  color: #475569;
+  font-size: 0.84rem;
+  line-height: 1.35;
+}
+
+.historico-codigo-ref {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #1e40af;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  padding: 0.12rem 0.45rem;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+}
+
+.historico-separador {
+  color: #94a3b8;
+  font-weight: 700;
+}
+
+.historico-vazio {
+  color: #94a3b8;
+}
+
+/* Modal SKU */
+.painel-sku-bloco {
+  padding: 1.1rem 0;
+  border-top: 1px solid #e2e8f0;
+}
+
+.painel-sku-bloco h3 {
+  margin: 0 0 0.8rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+}
 
 @media (max-width: 768px) {
-  .produtos-main { padding: 1.2rem 1rem; }
-  .inventario-campos { grid-template-columns: 1fr; }
-  .produtos-total { margin-left: 0; }
+  .produtos-main {
+    padding: 1.2rem 1rem;
+  }
+  .inventario-campos {
+    grid-template-columns: 1fr;
+  }
+  .produtos-total {
+    margin-left: 0;
+  }
+  .historico-header-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
+
