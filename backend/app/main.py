@@ -1,10 +1,15 @@
-from app.core.erros import ErroNegocio 
 from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import estoque, ficha_tecnica, producao, costura, comercial, equipe, auth, usuarios
-from app.database import engine, Base
+from fastapi.responses import JSONResponse
+from app.core import config
+from app.core.auth import usuario_atual
+from app.core.bootstrap import criar_primeiro_usuario
+from app.core.erros import ErroNegocio
+from app.routers import estoque, ficha_tecnica, producao, costura, comercial, equipe, auth, usuarios, camisetas, portal_cliente
+from app.models import camisetas as camisetas_models, camisetas_estampas  # noqa: F401
+from app.database import engine, Base, SessionLocal
 
 # Comando para criar as tabelas no PostgreSQL (caso ainda não existam)
 Base.metadata.create_all(bind=engine)
@@ -47,12 +52,12 @@ app.add_middleware(
 
 # /login e /portal (protegido por token criptográfico de capacidade na própria URL) ficam abertos sem JWT interno.
 app.include_router(auth.router)
-app.include_router(estoque.router)
-app.include_router(ficha_tecnica.router)
-app.include_router(comercial.router)
-app.include_router(producao.router)
-app.include_router(costura.router)
-app.include_router(equipe.router)
+app.include_router(portal_cliente.router)
+
+# Todo o resto exige token. Protegendo no include_router, nenhuma rota do módulo escapa —
+# nem as que forem criadas depois.
+for _modulo in (usuarios, estoque, ficha_tecnica, comercial, producao, costura, equipe, camisetas):
+    app.include_router(_modulo.router, dependencies=[Depends(usuario_atual)])
 
 
 @app.get("/")
