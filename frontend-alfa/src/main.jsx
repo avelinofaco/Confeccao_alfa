@@ -5,6 +5,8 @@ import './index.css'; // Isso aqui faz o Tailwind funcionar!
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <App />
+    <ToastProvider>
+      <App />
+    </ToastProvider>
   </React.StrictMode>,
 )
