@@ -25,12 +25,12 @@ function Login() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
+    
     try {
       // O FastAPI padrão (OAuth2) exige que o login seja enviado como Form Data
       // e que os campos se chamem "username" e "password"
       const formData = new URLSearchParams();
-      formData.append('username', login);
+      formData.append('username', login); 
       formData.append('password', senha);
 
       // ATENÇÃO: Ajuste a rota '/login' para o endpoint exato que está no seu FastAPI
@@ -39,11 +39,14 @@ function Login() {
       });
 
       // Se deu certo, o FastAPI devolve um token. Vamos salvar no navegador!
-      const token = response.data.access_token;
-      localStorage.setItem('token_confeccao', token);
+      localStorage.setItem('token_confeccao', response.data.access_token);
 
-      //redirecionar para a tela principal (Dashboard)
-      navigate('/dashboard');
+      // Quem é o dono deste token: o resto do sistema lê daqui, em vez de supor o usuário nº 1.
+      const { data: usuario } = await api.get('/usuarios/eu');
+      localStorage.setItem('usuario_confeccao', JSON.stringify(usuario));
+
+      // Redireciona para a tela de decisão de segmento (Camisetas ou Moda Íntima)
+      navigate('/selecao-segmento');
 
     } catch (error) {
       if (error.message === 'Network Error' || !error.response) {
