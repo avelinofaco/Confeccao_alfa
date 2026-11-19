@@ -1,5 +1,6 @@
 # app/services/camisetas/costura.py
 """Remessas para facções: envio e retorno por SKU, com o caminho antigo para OPs cortadas sem cor e tamanho."""
+from decimal import Decimal
 from sqlalchemy.orm import Session
 
 from app.core.erros import ErroNegocio
@@ -221,3 +222,40 @@ def montar_resposta_remessa(remessa, avisos=None) -> CamisetaCosturaFaccaoRespon
         legada=not remessa.itens,
         itens=_resposta_dos_itens(remessa),
     )
+
+
+def excluir_remessa(db: Session, id_costura: int) -> None:
+    """Exclui uma remessa enviada à facção se ainda estiver em costura externa, estornando os aviamentos."""
+    remessa = db.get(CamisetaCosturaFaccao, id_costura)
+    if remessa is None:
+        raise ErroNegocio(404, "Remessa de costura não encontrada")
+    if remessa.status != STATUS_REMESSA_EM_COSTURA:
+        raise ErroNegocio(409, "Apenas remessas com status 'Em Costura Externa' podem ser excluídas.")
+
+    op = remessa.op
+    if op:
+        # Estorna os aviamentos baixados de volta ao estoque
+        itens_ficha = db.query(CamisetaFichaTecnica).filter(
+            CamisetaFichaTecnica.id_modelo == op.id_modelo,
+            CamisetaFichaTecnica.tipo_insumo != TIPO_TECIDO_PRINCIPAL,
+        ).all()
+        necessidades = calcular_necessidades(
+            itens_ficha,
+            remessa.quantidade_enviada,
+            remessa.margem_seguranca_aviamentos_percentual,
+        )
+        for n in necessidades:
+            n.insumo.saldo_atual = Decimal(str(n.insumo.saldo_atual or 0)) + n.quantidade
+            n.insumo.atualizado_em = get_utc_now()
+
+        # Atualiza status da OP
+        remessas_restantes = [r for r in (op.movimentacoes_costura or []) if r.id_costura != id_costura]
+        if not remessas_restantes:
+            from app.services.camisetas.ordens import STATUS_OP_AGUARDANDO, STATUS_OP_CORTADA
+            op.status_op = STATUS_OP_CORTADA if (op.pecas_reais_cortadas or 0) > 0 else STATUS_OP_AGUARDANDO
+        else:
+            op.status_op = status_op_apos_retorno(op.pecas_reais_cortadas or 0, remessas_restantes)
+
+    db.delete(remessa)
+    db.commit()
+

@@ -108,7 +108,7 @@ export function ItensPedidoEditor({ itens, onChange, modelos, cores, estampas = 
 
       <div className="itens-pedido-grade">
         {itens.map((item, indice) => {
-          const modelo = modelos.find((m) => String(m.id_modelo) === String(item.id_modelo)) || modelos[0];
+          const modelo = modelos.find((m) => String(m.id_modelo) === String(item.id_modelo));
           const cor = cores.find((c) => String(c.id_cor) === String(item.id_cor));
           const estampaCatalogo = estampas.find((est) => String(est.id_estampa) === String(item.id_estampa));
           const previaUrl = item.imagem_data_url || estampaCatalogo?.imagem_data_url || '';
@@ -246,67 +246,82 @@ export function ItensPedidoEditor({ itens, onChange, modelos, cores, estampas = 
                 )}
               </div>
 
-              {/* Barra de tamanhos (P, M, G, GG) e campos de quantidade logo abaixo */}
-              {colunas.length > 0 ? (
-                <div className="item-pedido-tamanhos-bloco" role="group" aria-label={`Quantidades do item ${indice + 1}`}>
-                  <div
-                    className="item-pedido-tamanhos-barra"
-                    style={{ gridTemplateColumns: `repeat(${colunas.length}, minmax(0, 1fr))` }}
-                  >
-                    {colunas.map((col) => (
-                      <span key={col.id}>{col.rotulo}</span>
-                    ))}
-                  </div>
-                  <div
-                    className="item-pedido-tamanhos-campos"
-                    style={{ gridTemplateColumns: `repeat(${colunas.length}, minmax(0, 1fr))` }}
-                  >
-                    {colunas.map((col) => {
-                      const celula = chaveCelula(LINHA_QTD, col.id);
-                      return (
-                        <input
-                          key={col.id}
-                          id={`${id}-${celula}`}
-                          type="number"
-                          min="0"
-                          inputMode="numeric"
-                          aria-label={`Item ${indice + 1}, tamanho ${col.rotulo}`}
-                          className="item-pedido-qtd-input grade-qtd-campo"
-                          value={item.valores[celula] ?? ''}
-                          onChange={(e) => {
-                            const val = e.target.value === '' ? '' : Math.max(0, parseInt(e.target.value, 10) || 0);
-                            alterar(item.chave, { valores: { ...item.valores, [celula]: val } });
-                          }}
-                        />
-                      );
-                    })}
-                  </div>
-                  {precoUnit > 0 && (
-                    <div className="item-pedido-preco-rodape">
-                      <span>{formatarMoeda(precoUnit)}/un</span>
-                      <strong>{formatarMoeda(subtotal)}</strong>
+              {/* FINAL DO CARD: APENAS A GRADE DE TAMANHOS E QUANTIDADES (OU AVISO SE NÃO HOUVER GRADE) */}
+              <div className="item-pedido-rodape-card">
+                {!modelo ? (
+                  <p className="painel-cadastro-vazio" style={{ margin: '0.4rem 0 0', fontSize: '0.78rem' }}>
+                    Selecione o modelo acima.
+                  </p>
+                ) : colunas.length === 0 ? (
+                  <p className="painel-cadastro-vazio" style={{ margin: '0.4rem 0 0', fontSize: '0.78rem' }}>
+                    Esse modelo ainda não possui grade cadastrada.
+                  </p>
+                ) : (
+                  <div className="item-pedido-tamanhos-bloco" role="group" aria-label={`Quantidades do item ${indice + 1}`}>
+                    <div
+                      className="item-pedido-tamanhos-barra"
+                      style={{ gridTemplateColumns: `repeat(${colunas.length}, minmax(0, 1fr))` }}
+                    >
+                      {colunas.map((col) => (
+                        <span key={col.id} className="item-pedido-tam-rotulo">{col.rotulo}</span>
+                      ))}
                     </div>
-                  )}
-                </div>
-              ) : (
-                <p className="painel-cadastro-vazio" style={{ margin: '0.4rem 0 0', fontSize: '0.78rem' }}>
-                  Selecione o modelo acima.
-                </p>
-              )}
+                    <div
+                      className="item-pedido-tamanhos-campos"
+                      style={{ gridTemplateColumns: `repeat(${colunas.length}, minmax(0, 1fr))` }}
+                    >
+                      {colunas.map((col) => {
+                        const celula = chaveCelula(LINHA_QTD, col.id);
+                        const valorAtual = item.valores[celula];
+                        const valorExibido = valorAtual !== undefined && valorAtual !== '' ? valorAtual : 0;
+
+                        return (
+                          <input
+                            key={col.id}
+                            id={`${id}-${celula}`}
+                            type="number"
+                            min="0"
+                            inputMode="numeric"
+                            aria-label={`Item ${indice + 1}, quantidade para tamanho ${col.rotulo}`}
+                            className="item-pedido-qtd-input grade-qtd-campo"
+                            value={valorExibido}
+                            onFocus={(e) => {
+                              if (e.target.value === '0') {
+                                e.target.select();
+                              }
+                            }}
+                            onChange={(e) => {
+                              const digito = e.target.value;
+                              const val = digito === '' ? 0 : Math.max(0, parseInt(digito, 10) || 0);
+                              alterar(item.chave, { valores: { ...item.valores, [celula]: val } });
+                            }}
+                          />
+                        );
+                      })}
+                    </div>
+                    {precoUnit > 0 && (
+                      <div className="item-pedido-preco-rodape">
+                        <span>{formatarMoeda(precoUnit)}/un</span>
+                        <strong>{formatarMoeda(subtotal)}</strong>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           );
         })}
 
-        {/* Botão + ao lado do último card ativo */}
-        <button
-          type="button"
-          className="item-pedido-card-adicionar"
-          onClick={adicionar}
-        >
-          <Plus size={28} strokeWidth={2} aria-hidden="true" />
-          <span>Adicionar item</span>
-        </button>
-      </div>
+              {/* Botão + ao lado do último card ativo */}
+              <button
+                type="button"
+                className="item-pedido-card-adicionar"
+                onClick={adicionar}
+              >
+                <Plus size={28} strokeWidth={2} aria-hidden="true" />
+                <span>Adicionar item</span>
+              </button>
+            </div>
     </fieldset>
   );
 }

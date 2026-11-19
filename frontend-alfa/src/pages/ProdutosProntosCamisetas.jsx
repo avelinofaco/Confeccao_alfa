@@ -199,9 +199,16 @@ function ProdutosProntosCamisetas() {
           </section>
         ))}
 
-        <section className="produtos-card" aria-labelledby="titulo-historico">
-          <h2 id="titulo-historico"><History size={18} aria-hidden="true" /> Histórico de movimentações</h2>
-          <HistoricoMovimentos versao={versaoHistorico} />
+        <section className="produtos-card produtos-card-historico" aria-labelledby="titulo-historico">
+          <HistoricoMovimentos
+            versao={versaoHistorico}
+            titulo={
+              <h2 id="titulo-historico" className="historico-titulo">
+                <History size={18} aria-hidden="true" />
+                <span>Histórico de movimentações</span>
+              </h2>
+            }
+          />
         </section>
 
         {skuAberto && (

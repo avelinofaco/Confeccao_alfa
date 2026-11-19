@@ -12,7 +12,7 @@ from app.schemas.camisetas import (
     CamisetaOrdemProducaoFinalizarCorte,
     CamisetaOrdemProducaoResponse,
 )
-from app.services.camisetas.ordens import abrir_op, montar_resposta_op, registrar_corte
+from app.services.camisetas.ordens import abrir_op, excluir_op, montar_resposta_op, registrar_corte
 
 router = APIRouter()
 
@@ -33,3 +33,10 @@ def abrir_ordem_corte(op_in: CamisetaOrdemProducaoCreate, db: Session = Depends(
 def finalizar_corte_op(id_op: int, corte_in: CamisetaOrdemProducaoFinalizarCorte, db: Session = Depends(get_db)):
     """Registra as peças cortadas por cor e tamanho (OP antiga: só o total) e calcula o rendimento."""
     return montar_resposta_op(registrar_corte(db, id_op, corte_in))
+
+
+@router.delete("/ordens/{id_op}", status_code=status.HTTP_204_NO_CONTENT)
+def deletar_ordem_corte(id_op: int, db: Session = Depends(get_db)):
+    """Exclui uma OP (desde que não enviada para costura) e estorna a malha para o estoque."""
+    excluir_op(db, id_op)
+    return None

@@ -4,18 +4,39 @@ import {
   Send,
   PackageCheck,
   ShieldCheck,
-  Building2
+  Building2,
+  Trash2
 } from 'lucide-react';
 import { useToast } from '../components/feedback/useToast';
+import { useConfirm } from '../components/feedback/useConfirm';
 import { buscarEmParalelo } from '../services/buscarEmParalelo';
+import api from '../services/api';
 import Sidebar from '../components/Sidebar';
 import { FormEnvioFaccao } from '../components/producao/FormEnvioFaccao';
 import { ModalRetornoFaccao } from '../components/producao/ModalRetornoFaccao';
-import { resumoPorCor } from '../utils/producao';
 import './CosturaFaccoesCamisetas.css';
+
+// Agrupa os SKUs da remessa por cor para exibição limpa
+function agruparItensPorCor(itens) {
+  if (!itens || itens.length === 0) return [];
+  const mapa = {};
+  for (const item of itens) {
+    const chave = item.id_cor || item.nome_cor;
+    if (!mapa[chave]) {
+      mapa[chave] = {
+        nome_cor: item.nome_cor,
+        hex_cor: item.hex_cor,
+        tamanhos: []
+      };
+    }
+    mapa[chave].tamanhos.push(item);
+  }
+  return Object.values(mapa);
+}
 
 function CosturaFaccoesCamisetas() {
   const toast = useToast();
+  const confirmar = useConfirm();
   const [opsCortadas, setOpsCortadas] = useState([]);
   const [remessas, setRemessas] = useState([]);
   const [modelos, setModelos] = useState([]);
@@ -44,6 +65,25 @@ function CosturaFaccoesCamisetas() {
   useEffect(() => {
     carregarDados();
   }, []);
+
+  // Exclusão de remessa externa com estorno de aviamentos ao estoque
+  const handleExcluirRemessa = async (remessa) => {
+    const confirmou = await confirmar({
+      titulo: `Excluir remessa da OP ${remessa.codigo_op}?`,
+      mensagem: `Deseja realmente excluir a remessa da OP ${remessa.codigo_op} enviada para a oficina "${remessa.nome_faccao}"? A remessa será removida, os aviamentos descontados no envio serão estornados ao estoque e a OP voltará a ficar disponível para envio no Passo 1.`,
+      textoConfirmar: 'Excluir Remessa',
+      perigo: true,
+    });
+    if (!confirmou) return;
+
+    try {
+      await api.delete(`/camisetas/costura/${remessa.id_costura}`);
+      toast.sucesso(`Remessa da OP ${remessa.codigo_op} excluída e aviamentos estornados com sucesso!`);
+      carregarDados();
+    } catch (e) {
+      toast.erro(e.response?.data?.detail || e.message || 'Falha ao excluir remessa.');
+    }
+  };
 
   // Indicadores
   const totalEnviado = remessas.reduce((acc, r) => acc + (r.quantidade_enviada || 0), 0);
@@ -115,87 +155,119 @@ function CosturaFaccoesCamisetas() {
                   <th>OP</th>
                   <th>Modelo</th>
                   <th>Facção Parceira</th>
-                  <th>Enviado</th>
-                  <th>Margem Aviamentos</th>
-                  <th>Retornado</th>
-                  <th>Perdas / Avarias</th>
-                  <th>Saldo Aprovado</th>
+                  <th className="th-num">Enviado</th>
+                  <th className="th-num">Retornado</th>
+                  <th className="th-num">Perdas / Avarias</th>
+                  <th className="th-num">Saldo Aprovado</th>
                   <th>Status</th>
-                  <th>Ações</th>
+                  <th className="th-actions">Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {remessas.length === 0 ? (
                   <tr>
-                    <td colSpan="10" style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+                    <td colSpan="9" style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
                       {loading ? 'Carregando…' : 'Nenhuma remessa externa enviada até o momento.'}
                     </td>
                   </tr>
                 ) : (
-                  remessas.map((rem) => (
-                    <tr key={rem.id_costura}>
-                      <td><strong>{rem.codigo_op}</strong></td>
-                      <td>
-                        {rem.nome_modelo}
-                        {rem.itens.length > 0 && <small className="remessa-resumo">{resumoPorCor(rem.itens)}</small>}
-                      </td>
-                      <td>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontWeight: 600 }}>
-                          <Building2 size={14} color="#64748b" />
-                          {rem.nome_faccao}
-                        </span>
-                      </td>
-                      <td><strong>{rem.quantidade_enviada} un.</strong></td>
-                      <td>+{parseFloat(rem.margem_seguranca_aviamentos_percentual).toFixed(1)}%</td>
-                      <td>
-                        {rem.quantidade_retornada !== null ? (
-                          <strong>{rem.quantidade_retornada} un.</strong>
-                        ) : (
-                          <span style={{ color: '#94a3b8' }}>Em costura</span>
-                        )}
-                      </td>
-                      <td>
-                        {rem.perdas_pecas > 0 ? (
-                          <span className="tag-perda-avaria">-{rem.perdas_pecas} avarias</span>
-                        ) : rem.perdas_pecas === 0 ? (
-                          <span style={{ color: '#059669', fontWeight: 700 }}>Zero perdas</span>
-                        ) : (
-                          <span style={{ color: '#94a3b8' }}>—</span>
-                        )}
-                      </td>
-                      <td>
-                        {rem.saldo_aprovado !== null ? (
-                          <span className="tag-aprovado-acabado">
-                            <PackageCheck size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />
-                            {rem.saldo_aprovado} un. Prontas
+                  remessas.map((rem) => {
+                    const gruposCor = agruparItensPorCor(rem.itens);
+                    const emCostura = (rem.status || '').includes('Em Costura');
+
+                    return (
+                      <tr key={rem.id_costura}>
+                        <td><strong className="remessa-codigo-op">{rem.codigo_op}</strong></td>
+                        <td>
+                          <div className="remessa-modelo-nome">{rem.nome_modelo}</div>
+                          {gruposCor.length > 0 && (
+                            <div className="remessa-cores-container">
+                              {gruposCor.map((corGrupo, idx) => (
+                                <div key={idx} className="remessa-cor-linha">
+                                  <span className="remessa-cor-rotulo">
+                                    <span
+                                      className="remessa-cor-bolinha"
+                                      style={{ backgroundColor: corGrupo.hex_cor || '#94a3b8' }}
+                                    />
+                                    {corGrupo.nome_cor}:
+                                  </span>
+                                  <div className="remessa-tamanhos-tags">
+                                    {corGrupo.tamanhos.map((tam, tIdx) => (
+                                      <span key={tIdx} className="remessa-tamanho-tag">
+                                        {tam.rotulo}: {tam.qtd_enviada}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </td>
+                        <td>
+                          <span className="remessa-faccao-tag">
+                            <Building2 size={14} color="#64748b" />
+                            {rem.nome_faccao}
                           </span>
-                        ) : (
-                          <span style={{ color: '#94a3b8' }}>Pendente</span>
-                        )}
-                      </td>
-                      <td>
-                        <span className={`badge-status-pedido ${rem.status.includes('Retornado') ? 'concluido' : 'producao'}`}>
-                          {rem.status}
-                        </span>
-                      </td>
-                      <td>
-                        {rem.status.includes('Em Costura') ? (
-                          <button
-                            className="btn-acao-rapida"
-                            style={{ padding: '0.35rem 0.75rem', fontSize: '0.78rem' }}
-                            onClick={() => setRemessaSelecionada(rem)}
-                          >
-                            <PackageCheck size={14} />
-                            Conferir Retorno
-                          </button>
-                        ) : (
-                          <span style={{ color: '#059669', fontSize: '0.8rem', fontWeight: 700 }}>
-                            Lançado em Produtos Prontos ✓
+                        </td>
+                        <td className="td-num"><strong>{rem.quantidade_enviada} un.</strong></td>
+                        <td className="td-num">
+                          {rem.quantidade_retornada !== null ? (
+                            <strong>{rem.quantidade_retornada} un.</strong>
+                          ) : (
+                            <span style={{ color: '#94a3b8' }}>Em costura</span>
+                          )}
+                        </td>
+                        <td className="td-num">
+                          {rem.perdas_pecas > 0 ? (
+                            <span className="tag-perda-avaria">-{rem.perdas_pecas} avarias</span>
+                          ) : rem.perdas_pecas === 0 ? (
+                            <span style={{ color: '#059669', fontWeight: 700, fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Zero perdas</span>
+                          ) : (
+                            <span style={{ color: '#94a3b8' }}>—</span>
+                          )}
+                        </td>
+                        <td className="td-num">
+                          {rem.saldo_aprovado !== null ? (
+                            <span className="tag-aprovado-acabado">
+                              <PackageCheck size={13} />
+                              {rem.saldo_aprovado} UN. PRONTAS
+                            </span>
+                          ) : (
+                            <span style={{ color: '#94a3b8' }}>Pendente</span>
+                          )}
+                        </td>
+                        <td>
+                          <span className={`badge-status-remessa ${rem.status.includes('Retornado') ? 'retornado' : 'em-costura'}`}>
+                            • {rem.status.toUpperCase()}
                           </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))
+                        </td>
+                        <td className="td-actions">
+                          {emCostura ? (
+                            <div className="remessa-acoes-flex">
+                              <button
+                                className="btn-conferir-retorno"
+                                onClick={() => setRemessaSelecionada(rem)}
+                              >
+                                <PackageCheck size={14} />
+                                Conferir Retorno
+                              </button>
+                              <button
+                                className="btn-excluir-remessa"
+                                title="Excluir remessa"
+                                onClick={() => handleExcluirRemessa(rem)}
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          ) : (
+                            <span style={{ color: '#059669', fontSize: '0.8rem', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                              Lançado em Produtos Prontos ✓
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>

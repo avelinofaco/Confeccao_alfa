@@ -1,13 +1,13 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Package, 
-  FileText, 
-  ShoppingCart, 
-  Crop, 
-  Scissors, 
-  Users, 
+import {
+  LayoutDashboard,
+  Package,
+  FileText,
+  ShoppingCart,
+  Crop,
+  Scissors,
+  Users,
   LogOut,
   RefreshCw,
   Settings,
@@ -75,7 +75,7 @@ function Sidebar({ menuMobileAberto, setMenuMobileAberto }) {
             )}
           </span>
         </div>
-        <button 
+        <button
           type="button"
           className="btn-trocar-segmento-pill"
           title="Alternar entre Camisetas e Moda Íntima"
@@ -96,69 +96,69 @@ function Sidebar({ menuMobileAberto, setMenuMobileAberto }) {
               onClick={() => irPara('/camisetas/dashboard')}
             >
               <LayoutDashboard size={19} />
-              <span>1. Dashboard Geral</span>
+              <span>Dashboard Geral</span>
             </button>
             <button
               className={`nav-item ${isActive('/comercial') || isActive('/camisetas/pedidos') ? 'active' : ''}`}
               onClick={() => irPara('/camisetas/pedidos')}
             >
               <ShoppingCart size={19} />
-              <span>2. Pedidos do Cliente</span>
+              <span>Pedidos do Cliente</span>
             </button>
             <button
               className={`nav-item ${isActive('/camisetas/clientes') ? 'active' : ''}`}
               onClick={() => irPara('/camisetas/clientes')}
             >
               <Users size={19} />
-              <span>3. Clientes</span>
+              <span>Clientes</span>
             </button>
             <button
               className={`nav-item ${isActive('/ficha-tecnica') || isActive('/camisetas/ficha-tecnica') ? 'active' : ''}`}
               onClick={() => irPara('/camisetas/ficha-tecnica')}
             >
               <FileText size={19} />
-              <span>4. Ficha Técnica Digital</span>
+              <span>Ficha Técnica Digital</span>
             </button>
             <button
               className={`nav-item ${isActive('/estoque') || isActive('/camisetas/estoque') ? 'active' : ''}`}
               onClick={() => irPara('/camisetas/estoque')}
             >
               <Package size={19} />
-              <span>5. Estoque de Insumos</span>
+              <span>Estoque de Insumos</span>
             </button>
             <button
               className={`nav-item ${isActive('/corte-rendimento') || isActive('/camisetas/corte-rendimento') ? 'active' : ''}`}
               onClick={() => irPara('/camisetas/corte-rendimento')}
             >
               <Layers size={19} />
-              <span>6. Corte & Rendimento</span>
+              <span>Corte & Rendimento</span>
             </button>
             <button
               className={`nav-item ${isActive('/costura') || isActive('/camisetas/costura-faccoes') ? 'active' : ''}`}
               onClick={() => irPara('/camisetas/costura-faccoes')}
             >
               <Scissors size={19} />
-              <span>7. Costura & Facções</span>
+              <span>Costura & Facções</span>
             </button>
             <button
               className={`nav-item ${isActive('/camisetas/produtos-prontos') ? 'active' : ''}`}
               onClick={() => irPara('/camisetas/produtos-prontos')}
             >
               <PackageCheck size={19} />
-              <span>8. Produtos Prontos</span>
+              <span>Produtos Prontos</span>
             </button>
             <button
               className={`nav-item ${isActive('/financeiro') || isActive('/camisetas/financeiro') ? 'active' : ''}`}
               onClick={() => irPara('/camisetas/financeiro')}
             >
               <DollarSign size={19} />
-              <span>9. Registro Financeiro</span>
+              <span>Registro Financeiro</span>
             </button>
           </>
         ) : (
           /* FLUXO ORIGINAL DE MODA ÍNTIMA (CONFEÇÃO ALFA) */
           <>
-            <button 
+            <button
               className={`nav-item ${isActive('/dashboard') ? 'active' : ''}`}
               onClick={() => irPara('/dashboard')}
             >
@@ -166,7 +166,7 @@ function Sidebar({ menuMobileAberto, setMenuMobileAberto }) {
               <span>Dashboard</span>
             </button>
 
-            <button 
+            <button
               className={`nav-item ${isActive('/estoque') ? 'active' : ''}`}
               onClick={() => irPara('/estoque')}
             >
@@ -174,7 +174,7 @@ function Sidebar({ menuMobileAberto, setMenuMobileAberto }) {
               <span>Estoque</span>
             </button>
 
-            <button 
+            <button
               className={`nav-item ${isActive('/ficha-tecnica') ? 'active' : ''}`}
               onClick={() => irPara('/ficha-tecnica')}
             >
@@ -182,7 +182,7 @@ function Sidebar({ menuMobileAberto, setMenuMobileAberto }) {
               <span>Ficha Técnica</span>
             </button>
 
-            <button 
+            <button
               className={`nav-item ${isActive('/comercial') ? 'active' : ''}`}
               onClick={() => irPara('/comercial')}
             >
@@ -190,7 +190,7 @@ function Sidebar({ menuMobileAberto, setMenuMobileAberto }) {
               <span>Comercial</span>
             </button>
 
-            <button 
+            <button
               className={`nav-item ${isActive('/corte-rendimento') ? 'active' : ''}`}
               onClick={() => irPara('/corte-rendimento')}
             >
@@ -198,7 +198,7 @@ function Sidebar({ menuMobileAberto, setMenuMobileAberto }) {
               <span>Corte/Rendimento</span>
             </button>
 
-            <button 
+            <button
               className={`nav-item ${isActive('/costura') ? 'active' : ''}`}
               onClick={() => irPara('/costura')}
             >
@@ -208,7 +208,7 @@ function Sidebar({ menuMobileAberto, setMenuMobileAberto }) {
           </>
         )}
 
-        <button 
+        <button
           className={`nav-item ${isActive('/configuracoes') || isActive('/perfil') ? 'active' : ''}`}
           onClick={() => irPara('/perfil')}
         >

@@ -189,12 +189,151 @@
   flex-shrink: 0;
 }
 
+/* Rodapé do card do item: Ficha técnica e Tamanhos/Quantidades */
+.item-pedido-rodape-card {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding-top: 0.45rem;
+  border-top: 1px dashed #d5cec0;
+  min-width: 0;
+}
+
+/* Ficha Técnica Digital exibida no card do item */
+.item-pedido-ficha-box {
+  background: #fcfbfa;
+  border: 1px solid #dfd8cb;
+  border-radius: 8px;
+  padding: 0.45rem 0.55rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.74rem;
+}
+
+.item-pedido-ficha-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+}
+
+.item-pedido-ficha-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  font-weight: 700;
+  color: #1e40af;
+  background: #dbeafe;
+  padding: 0.15rem 0.42rem;
+  border-radius: 4px;
+  font-size: 0.72rem;
+}
+
+.item-pedido-ficha-consumo {
+  font-weight: 600;
+  color: #57534e;
+  font-size: 0.72rem;
+}
+
+.item-pedido-ficha-materiais {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.item-pedido-ficha-mat-pill {
+  background: #f5f2ea;
+  border: 1px solid #e0d9cc;
+  border-radius: 4px;
+  padding: 0.12rem 0.35rem;
+  font-size: 0.68rem;
+  color: #44403c;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-pedido-ficha-mat-mais {
+  font-size: 0.68rem;
+  color: #78716c;
+  align-self: center;
+}
+
+.item-pedido-ficha-status {
+  display: flex;
+  align-items: center;
+  gap: 0.38rem;
+  font-size: 0.74rem;
+  padding: 0.38rem 0.55rem;
+  border-radius: 6px;
+  line-height: 1.25;
+}
+
+.item-pedido-ficha-status.carregando {
+  color: #1d4ed8;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+}
+
+.item-pedido-ficha-status.aviso-sem-ficha {
+  color: #854d0e;
+  background: #fefce8;
+  border: 1px solid #fef08a;
+}
+
+.item-pedido-ficha-status.aviso-sem-modelo {
+  color: #78716c;
+  background: #f5f2ea;
+  border: 1px dashed #d5cec0;
+  text-align: center;
+  justify-content: center;
+}
+
+.item-pedido-tamanhos-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.74rem;
+  color: #44403c;
+  margin-bottom: 0.1rem;
+}
+
+.item-pedido-tamanhos-titulo {
+  font-weight: 700;
+  color: #2c2523;
+}
+
+.item-pedido-tamanhos-total-item {
+  font-size: 0.72rem;
+  color: #57534e;
+}
+
+.item-pedido-tamanhos-total-item strong {
+  color: #1e3a8a;
+}
+
+.animar-giro {
+  animation: girar 1s linear infinite;
+}
+
+@keyframes girar {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* Barra de tamanhos (P, M, G, GG) e inputs de quantidade logo abaixo */
 .item-pedido-tamanhos-bloco {
   display: flex;
   flex-direction: column;
   gap: 0.42rem;
-  margin-top: auto;
   min-width: 0;
 }
 
@@ -274,18 +413,72 @@
   background: #f9f7f1;
 }
 
-.pedido-itens-resumo { margin: 0; padding: 0; list-style: none; font-size: 0.85rem; }
-.pedido-itens-resumo .sem-cor { color: var(--accent-artisan-amber); font-weight: 600; }
-.btn-link-itens {
-  margin-top: 0.25rem; padding: 0; border: none; background: none; font: inherit; font-size: 0.8rem;
-  color: var(--accent-artisan-indigo); text-decoration: underline; cursor: pointer;
+.pedido-itens-resumo {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.85rem;
 }
-.entrega-skus { width: 100%; margin-bottom: 1rem; border-collapse: collapse; font-size: 0.88rem; }
-.entrega-skus th, .entrega-skus td { padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--border-artisan); text-align: left; }
-.entrega-skus th { font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); }
-.entrega-falta td { color: var(--accent-artisan-terracotta); font-weight: 600; }
-.pedido-item-linha { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.15rem; }
-.pedido-item-thumb-mini { width: 1.5rem; height: 1.5rem; object-fit: contain; border-radius: 4px; border: 1px solid var(--border-artisan); background: var(--bg-artisan-subtle); flex-shrink: 0; }
+
+.pedido-itens-resumo .sem-cor {
+  color: var(--accent-artisan-amber);
+  font-weight: 600;
+}
+
+.btn-link-itens {
+  margin-top: 0.25rem;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 0.8rem;
+  color: var(--accent-artisan-indigo);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.entrega-skus {
+  width: 100%;
+  margin-bottom: 1rem;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.entrega-skus th,
+.entrega-skus td {
+  padding: 0.4rem 0.6rem;
+  border-bottom: 1px solid var(--border-artisan);
+  text-align: left;
+}
+
+.entrega-skus th {
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+.entrega-falta td {
+  color: var(--accent-artisan-terracotta);
+  font-weight: 600;
+}
+
+.pedido-item-linha {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.15rem;
+}
+
+.pedido-item-thumb-mini {
+  width: 1.5rem;
+  height: 1.5rem;
+  object-fit: contain;
+  border-radius: 4px;
+  border: 1px solid var(--border-artisan);
+  background: var(--bg-artisan-subtle);
+  flex-shrink: 0;
+}
 
 /* Modal de PDF do Pedido — Perfis, Checkboxes e Grade 4×4 por Folha A4 (Fase 5) */
 .pdf-pedido-config {

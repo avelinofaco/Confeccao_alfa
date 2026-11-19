@@ -754,3 +754,352 @@
 .pedidos-table td:first-child {
   white-space: nowrap;
 }
+
+/* ======================================================
+   REFATORAÇÃO VISUAL DA TABELA — NOVOS ESTILOS (Nov/2026)
+   ====================================================== */
+
+/* Controles à direita do cabeçalho da tabela */
+.tabela-controles-direita {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* Barra de busca refinada */
+.busca-pedidos-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.busca-pedidos-icone {
+  position: absolute;
+  left: 10px;
+  color: #94a3b8;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.busca-pedidos-input {
+  width: 20rem; /* ~w-80 */
+  padding: 0.5rem 0.9rem 0.5rem 2.1rem;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  font-size: 0.88rem;
+  color: #0f172a;
+  background: #ffffff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+
+.busca-pedidos-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Botão Exportar PDF global (topo da tabela) */
+.btn-exportar-pdf-global {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-exportar-pdf-global:hover:not(:disabled) {
+  background: #1d4ed8;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-exportar-pdf-global.desabilitado,
+.btn-exportar-pdf-global:disabled {
+  background: #cbd5e1;
+  color: #94a3b8;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Coluna de checkbox */
+.col-checkbox {
+  width: 2.5rem !important;
+  min-width: 2.5rem !important;
+  text-align: center !important;
+  padding: 0.75rem 0.5rem !important;
+}
+
+.checkbox-pedido {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+  accent-color: #2563eb;
+  border-radius: 3px;
+}
+
+/* Linha selecionada (checkbox marcado) */
+.pedidos-table tr.linha-selecionada td {
+  background-color: rgba(219, 234, 254, 0.4); /* blue-50/40 */
+}
+
+/* Hover sutil nas linhas */
+.pedidos-table tr:hover:not(.linha-selecionada) td {
+  background-color: rgba(248, 250, 252, 0.8); /* slate-50/80 */
+}
+
+/* Célula do cliente com wrapping controlado */
+.col-cliente {
+  max-width: 14rem;
+}
+
+/* Célula de itens */
+.col-itens {
+  min-width: 14rem;
+  max-width: 20rem;
+}
+
+/* Código do pedido como pill */
+.codigo-pedido-pill {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  font-size: 0.82rem;
+  letter-spacing: 0.03em;
+  color: #1e40af;
+}
+
+/* Tags de tamanhos compactas na coluna Itens */
+.tamanhos-tags-linha {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin: 0.35rem 0 0.3rem;
+}
+
+.tamanho-tag-mini {
+  display: inline-flex;
+  align-items: center;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #334155;
+  white-space: nowrap;
+}
+
+/* Botão "Editar itens" com ícone de lápis */
+.btn-editar-itens {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.3rem;
+  padding: 0.22rem 0.6rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #f8fafc;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.btn-editar-itens:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+
+/* Badges de status refinados */
+.badge-status-pedido {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px; /* rounded-full */
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  font-family: var(--font-sans-humanist, sans-serif);
+}
+
+.badge-status-pedido.aguardando {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fcd34d;
+}
+
+.badge-status-pedido.producao {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #93c5fd;
+}
+
+.badge-status-pedido.concluido {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #6ee7b7;
+}
+
+/* Badge de status do cliente */
+.badge-status-cliente {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-status-cliente.aprovado {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #6ee7b7;
+}
+
+.badge-status-cliente.pendente {
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #cbd5e1;
+}
+
+/* Bloco de coluna de status */
+.status-coluna-bloco {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  align-items: flex-start;
+}
+
+.obs-cliente-inline {
+  font-size: 0.75rem;
+  color: #b45309;
+  font-style: italic;
+  max-width: 14rem;
+  white-space: normal;
+  line-height: 1.3;
+}
+
+/* Bloco de ações da coluna de entrega */
+.acoes-coluna-bloco {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+/* Botão secundário limpo (Link de aprovação) */
+.btn-acao-secundaria {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.65rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #f8fafc;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.btn-acao-secundaria:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+
+/* Botão Registrar Entrega — alto contraste verde */
+.btn-acao-entregar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #059669; /* emerald-600 */
+  color: #ffffff;
+  border: none;
+  padding: 0.42rem 0.85rem;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(5, 150, 105, 0.3);
+}
+
+.btn-acao-entregar:hover {
+  background: #047857; /* emerald-700 */
+  box-shadow: 0 4px 10px rgba(5, 150, 105, 0.35);
+  transform: translateY(-1px);
+}
+
+/* Botão Reverter */
+.btn-acao-reverter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #ffffff;
+  color: #64748b;
+  border: 1px solid #cbd5e1;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-acao-reverter:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #94a3b8;
+}
+
+/* Botão Excluir pedido — lixeira discreta vermelha */
+.btn-excluir-pedido {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 6px;
+  border: 1px solid #fecaca;
+  background: #fff5f5;
+  color: #f87171;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.btn-excluir-pedido:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
+  transform: scale(1.07);
+}
+
+/* Ajuste de min-width da tabela com nova coluna de checkbox */
+.pedidos-table {
+  min-width: 1500px;
+}

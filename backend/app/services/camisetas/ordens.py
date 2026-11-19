@@ -236,3 +236,43 @@ def montar_resposta_op(op: CamisetaOrdemProducao) -> CamisetaOrdemProducaoRespon
         cortes=_resposta_dos_cortes(op),
         tamanhos=[TamanhoResponse(id_tamanho=t.id_tamanho, rotulo=t.rotulo) for t in tamanhos],
     )
+
+
+def excluir_op(db: Session, id_op: int) -> None:
+    op = obter_op(db, id_op)
+
+    # Se já houve envio para facção/costura, não pode ser excluída
+    if op.movimentacoes_costura:
+        raise ErroNegocio(
+            409,
+            f"A ordem {op.codigo_op} já possui envios para facção/costura e não pode ser excluída.",
+        )
+
+    # Estorna o peso de malha de volta ao saldo do estoque de cada rolo utilizado
+    if op.cores:
+        for linha in op.cores:
+            if linha.id_insumo_tecido:
+                rolo = db.get(CamisetaInsumo, linha.id_insumo_tecido)
+                if rolo:
+                    rolo.saldo_atual = (rolo.saldo_atual or ZERO) + (linha.peso_kg or ZERO)
+                    rolo.atualizado_em = get_utc_now()
+    elif op.id_insumo_tecido and op.peso_malha_enviado_kg:
+        rolo = db.get(CamisetaInsumo, op.id_insumo_tecido)
+        if rolo:
+            rolo.saldo_atual = (rolo.saldo_atual or ZERO) + (op.peso_malha_enviado_kg or ZERO)
+            rolo.atualizado_em = get_utc_now()
+
+    id_pedido = op.id_pedido
+    db.delete(op)
+    db.flush()
+
+    # Se a OP estava ligada a um pedido e ele estava "Em Produção",
+    # verifica se ainda restam outras OPs vinculadas; se não, volta para "Aguardando Produção"
+    if id_pedido:
+        pedido = db.get(CamisetaPedido, id_pedido)
+        if pedido and pedido.status_pedido == "Em Produção":
+            outras_ops = db.query(CamisetaOrdemProducao.id_op).filter_by(id_pedido=id_pedido).count()
+            if outras_ops == 0:
+                pedido.status_pedido = "Aguardando Produção"
+
+    db.commit()

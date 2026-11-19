@@ -120,7 +120,7 @@ function FichaTecnicaCamisetas() {
     carregarFichasDoModelo(mod.id_modelo);
   };
 
-  // Ao selecionar um insumo do estoque, auto-preenche tipo, descrição, custo e unidade
+  // Ao selecionar um insumo do estoque, auto-preenche tipo, descrição, unidade e calcula custo estimado
   const handleInsumoEstoqueChange = (idInsumo) => {
     if (!idInsumo) {
       setFormItemFicha({
@@ -139,296 +139,357 @@ function FichaTecnicaCamisetas() {
 
     // Detecção inteligente do tipo a partir do código ou categoria
     const cod = (insumo.codigo || '').toUpperCase();
+    const nomeOuTipo = (insumo.tipo_malha_ou_aviamento || '').toLowerCase();
     let tipoDetectado = 'Aviamento';
     let consumoSugerido = '1';
     let unidadeSugerida = 'unidades';
 
-    if (cod.startsWith('AV-LINHA')) {
-      tipoDetectado = 'Linha de Costura';
-      consumoSugerido = '0.02'; // ~0.02 carretel por peça
-      unidadeSugerida = 'unidades';
-    } else if (cod.startsWith('AV-ETIQ')) {
-      tipoDetectado = 'Etiqueta';
-      consumoSugerido = '1'; // 1 unidade por peça
-      unidadeSugerida = 'unidades';
-    } else if (cod.startsWith('AV-TAG')) {
-      tipoDetectado = 'Tag';
-      consumoSugerido = '1'; // 1 unidade por peça
-      unidadeSugerida = 'unidades';
-    } else if (cod.startsWith('MALHA') || insumo.categoria === 'ROLO_TECIDO') {
-      tipoDetectado = 'Tecido / Ribana';
-      consumoSugerido = '0.030';
-      unidadeSugerida = 'kg';
-    }
+      if (cod.startsWith('AV-LINHA') || nomeOuTipo.includes('linha')) {
+        tipoDetectado = 'Linha de Costura';
+        consumoSugerido = '0.020'; // ~0.020 carretel por peça
+        unidadeSugerida = 'unidades';
+      } else if (cod.startsWith('AV-ETIQ') || nomeOuTipo.includes('etiqueta')) {
+        tipoDetectado = 'Etiqueta';
+        consumoSugerido = '1'; // 1 unidade por peça
+        unidadeSugerida = 'unidades';
+      } else if (cod.startsWith('AV-TAG') || nomeOuTipo.includes('tag')) {
+        tipoDetectado = 'Tag';
+        consumoSugerido = '1'; // 1 unidade por peça
+        unidadeSugerida = 'unidades';
+      } else if (cod.startsWith('MALHA') || insumo.categoria === 'ROLO_TECIDO' || insumo.unidade_medida === 'kg') {
+        tipoDetectado = 'Tecido / Ribana';
+        consumoSugerido = '0.030';
+        unidadeSugerida = 'kg';
+      }
 
-    const custoMedio = parseFloat(insumo.preco_custo_medio || 0);
+      const precoUnitario = parseFloat(insumo.preco_custo_medio || 0);
+      const consumoNum = parseFloat(consumoSugerido) || 0;
+      const custoEstimado = (precoUnitario * consumoNum).toFixed(2);
 
-    setFormItemFicha({
-      id_insumo: String(idInsumo),
-      tipo_insumo: tipoDetectado,
-      descricao_insumo: `[${insumo.codigo}] ${insumo.tipo_malha_ou_aviamento}${insumo.cor ? ` (${insumo.cor})` : ''}`,
-      consumo_unitario: consumoSugerido,
-      unidade_medida: unidadeSugerida,
-      custo_unitario_estimado: custoMedio ? custoMedio.toFixed(2) : '0.00'
-    });
-  };
-
-  const abrirNovoModelo = () => {
-    setIdModeloEdicao(null);
-    setFormModelo({
-      nome_modelo: '',
-      id_grade: grades[0]?.id_grade ?? '',
-      consumo_tecido_kg: '0.180',
-      preco_venda_lisa: '28.00',
-      acrescimo_estampa: '5.00',
-      descricao: '',
-    });
-    setModalNovoModelo(true);
-  };
-
-  const abrirEdicaoModelo = (modelo) => {
-    setIdModeloEdicao(modelo.id_modelo);
-    setFormModelo({
-      nome_modelo: modelo.nome_modelo,
-      id_grade: modelo.id_grade ?? '',
-      consumo_tecido_kg: String(modelo.consumo_tecido_kg),
-      preco_venda_lisa: String(modelo.preco_venda_lisa ?? '0.00'),
-      acrescimo_estampa: String(modelo.acrescimo_estampa ?? '0.00'),
-      descricao: modelo.descricao || '',
-    });
-    setModalNovoModelo(true);
-  };
-
-  const handleSalvarModelo = async (e) => {
-    e.preventDefault();
-    if (!formModelo.nome_modelo || !formModelo.consumo_tecido_kg) {
-      mostrarToast('erro', 'Informe o nome do modelo e o consumo de tecido.');
-      return;
-    }
-    const corpo = {
-      nome_modelo: formModelo.nome_modelo,
-      consumo_tecido_kg: parseFloat(formModelo.consumo_tecido_kg),
-      preco_venda_lisa: parseFloat(formModelo.preco_venda_lisa || 0),
-      acrescimo_estampa: parseFloat(formModelo.acrescimo_estampa || 0),
-      descricao: formModelo.descricao,
-      id_grade: formModelo.id_grade ? Number(formModelo.id_grade) : null,
-    };
-    try {
-      setSalvandoModelo(true);
-      const res = idModeloEdicao
-        ? await api.put(`/camisetas/modelos/${idModeloEdicao}`, corpo)
-        : await api.post('/camisetas/modelos/', corpo);
-      mostrarToast('sucesso', `Modelo "${res.data.nome_modelo}" ${idModeloEdicao ? 'atualizado' : 'cadastrado'}.`);
-      setModalNovoModelo(false);
-      setIdModeloEdicao(null);
-      await carregarDados();
-      selecionarModelo(res.data);
-    } catch (err) {
-      console.error('Erro ao salvar modelo:', err);
-      mostrarToast('erro', err.response?.data?.detail || 'Erro ao salvar modelo.');
-    } finally {
-      setSalvandoModelo(false);
-    }
-  };
-
-  const handleSalvarItemFicha = async (e) => {
-    e.preventDefault();
-    if (!modeloAtivo) return;
-
-    if (!formItemFicha.descricao_insumo || !formItemFicha.consumo_unitario) {
-      mostrarToast('erro', 'Informe a descrição e o consumo unitário por camiseta.');
-      return;
-    }
-
-    try {
-      setSalvandoItemFicha(true);
-      const consumoNum = parseFloat(formItemFicha.consumo_unitario);
-      const custoUnit = parseFloat(formItemFicha.custo_unitario_estimado || 0);
-
-      await api.post('/camisetas/fichas/', {
-        id_modelo: modeloAtivo.id_modelo,
-        id_insumo: formItemFicha.id_insumo ? parseInt(formItemFicha.id_insumo) : null,
-        tipo_insumo: formItemFicha.tipo_insumo,
-        descricao_insumo: formItemFicha.descricao_insumo,
-        consumo_unitario: consumoNum,
-        unidade_medida: formItemFicha.unidade_medida === 'kg' ? 'kg' : 'unidades',
-        custo_unitario_estimado: custoUnit
-      });
-
-      mostrarToast('sucesso', `Item "${formItemFicha.descricao_insumo}" adicionado à ficha técnica!`);
-      setModalNovoItemFicha(false);
       setFormItemFicha({
-        id_insumo: '',
-        tipo_insumo: 'Aviamento',
-        descricao_insumo: '',
-        consumo_unitario: '1',
-        unidade_medida: 'unidades',
-        custo_unitario_estimado: ''
+        id_insumo: String(idInsumo),
+        tipo_insumo: tipoDetectado,
+        descricao_insumo: `[${insumo.codigo}] ${insumo.tipo_malha_ou_aviamento}${insumo.cor ? ` (${insumo.cor})` : ''}`,
+        consumo_unitario: consumoSugerido,
+        unidade_medida: unidadeSugerida,
+      custo_unitario_estimado: custoEstimado
       });
-      await carregarFichasDoModelo(modeloAtivo.id_modelo);
-    } catch (err) {
-      console.error("Erro ao adicionar item na ficha:", err);
-      mostrarToast('erro', err.response?.data?.detail || "Erro ao adicionar item à ficha técnica.");
-    } finally {
-      setSalvandoItemFicha(false);
-    }
-  };
+    };
 
-  // Remoção de item da ficha técnica (IHC - Controle e Liberdade do Usuário)
-  const handleRemoverItemFicha = async (idFicha, nomeItem) => {
-    const confirma = await confirmar({
-      titulo: 'Remover item da ficha técnica?',
-      mensagem: `"${nomeItem}" deixará de ser considerado no custo e na baixa de aviamentos deste modelo.`,
-      textoConfirmar: 'Remover item',
-      perigo: true,
-    });
-    if (!confirma) return;
+    // Ao alterar o campo "Quanto gasta por 1 camiseta?", recalcula automaticamente o custo estimado pelo estoque
+    const handleConsumoChange = (novoConsumo) => {
+      const insumo = formItemFicha.id_insumo
+        ? insumosEstoque.find(i => String(i.id_insumo) === String(formItemFicha.id_insumo))
+        : null;
 
-    try {
-      await api.delete(`/camisetas/fichas/${idFicha}`);
-      mostrarToast('sucesso', `Item removido da ficha técnica.`);
-      await carregarFichasDoModelo(modeloAtivo.id_modelo);
-    } catch (err) {
-      console.error("Erro ao remover item:", err);
-      mostrarToast('erro', "Não foi possível remover o item.");
-    }
-  };
+      let novoCusto = formItemFicha.custo_unitario_estimado;
+      if (insumo) {
+        const precoUnitario = parseFloat(insumo.preco_custo_medio || 0);
+        const consumoNum = parseFloat(String(novoConsumo).replace(',', '.')) || 0;
+        novoCusto = (precoUnitario * consumoNum).toFixed(2);
+      }
 
-  const formatarMoeda = (val) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
-  };
+      setFormItemFicha(prev => ({
+        ...prev,
+        consumo_unitario: novoConsumo,
+        custo_unitario_estimado: novoCusto
+      }));
+    };
 
-  const formatarNumeroLimpo = (valor, sufixo = '') => {
-    const num = parseFloat(valor || 0);
-    const formatado = num.toLocaleString('pt-BR', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 3
-    });
-    return sufixo ? `${formatado} ${sufixo}` : formatado;
-  };
+    const abrirNovoModelo = () => {
+      setIdModeloEdicao(null);
+      setFormModelo({
+        nome_modelo: '',
+        id_grade: grades[0]?.id_grade ?? '',
+        consumo_tecido_kg: '0.180',
+        preco_venda_lisa: '28.00',
+        acrescimo_estampa: '5.00',
+        descricao: '',
+      });
+      setModalNovoModelo(true);
+    };
 
-  // Formatação amigável e explicativa do consumo unitário por peça (facilita o entendimento do operador)
-  const formatarConsumoUnitarioAmigavel = (item) => {
-    const tipo = (item.tipo_insumo || '').toLowerCase();
-    const desc = (item.descricao_insumo || '').toLowerCase();
-    const consumo = parseFloat(item.consumo_unitario || 0);
+    const abrirEdicaoModelo = (modelo) => {
+      setIdModeloEdicao(modelo.id_modelo);
+      setFormModelo({
+        nome_modelo: modelo.nome_modelo,
+        id_grade: modelo.id_grade ?? '',
+        consumo_tecido_kg: String(modelo.consumo_tecido_kg),
+        preco_venda_lisa: String(modelo.preco_venda_lisa ?? '0.00'),
+        acrescimo_estampa: String(modelo.acrescimo_estampa ?? '0.00'),
+        descricao: modelo.descricao || '',
+      });
+      setModalNovoModelo(true);
+    };
 
-    // Se for linha de costura ou carretel
-    if (tipo.includes('linha') || desc.includes('linha') || desc.includes('carretel') || desc.includes('fração')) {
-      const pecasPorCone = consumo > 0 ? Math.round(1 / consumo) : 50;
-      const metrosEstimados = Math.round(consumo * 4000);
+    const handleSalvarModelo = async (e) => {
+      e.preventDefault();
+      if (!formModelo.nome_modelo || !formModelo.consumo_tecido_kg) {
+        mostrarToast('erro', 'Informe o nome do modelo e o consumo de tecido.');
+        return;
+      }
+      const corpo = {
+        nome_modelo: formModelo.nome_modelo,
+        consumo_tecido_kg: parseFloat(formModelo.consumo_tecido_kg),
+        preco_venda_lisa: parseFloat(formModelo.preco_venda_lisa || 0),
+        acrescimo_estampa: parseFloat(formModelo.acrescimo_estampa || 0),
+        descricao: formModelo.descricao,
+        id_grade: formModelo.id_grade ? Number(formModelo.id_grade) : null,
+      };
+      try {
+        setSalvandoModelo(true);
+        const res = idModeloEdicao
+          ? await api.put(`/camisetas/modelos/${idModeloEdicao}`, corpo)
+          : await api.post('/camisetas/modelos/', corpo);
+        mostrarToast('sucesso', `Modelo "${res.data.nome_modelo}" ${idModeloEdicao ? 'atualizado' : 'cadastrado'}.`);
+        setModalNovoModelo(false);
+        setIdModeloEdicao(null);
+        await carregarDados();
+        selecionarModelo(res.data);
+      } catch (err) {
+        console.error('Erro ao salvar modelo:', err);
+        mostrarToast('erro', err.response?.data?.detail || 'Erro ao salvar modelo.');
+      } finally {
+        setSalvandoModelo(false);
+      }
+    };
+
+    const handleSalvarItemFicha = async (e) => {
+      e.preventDefault();
+      if (!modeloAtivo) return;
+
+      if (!formItemFicha.descricao_insumo || !formItemFicha.consumo_unitario) {
+        mostrarToast('erro', 'Informe a descrição e o consumo unitário por camiseta.');
+        return;
+      }
+
+      try {
+        setSalvandoItemFicha(true);
+        const consumoNum = parseFloat(formItemFicha.consumo_unitario);
+        const custoUnit = parseFloat(formItemFicha.custo_unitario_estimado || 0);
+
+        await api.post('/camisetas/fichas/', {
+          id_modelo: modeloAtivo.id_modelo,
+          id_insumo: formItemFicha.id_insumo ? parseInt(formItemFicha.id_insumo) : null,
+          tipo_insumo: formItemFicha.tipo_insumo,
+          descricao_insumo: formItemFicha.descricao_insumo,
+          consumo_unitario: consumoNum,
+          unidade_medida: formItemFicha.unidade_medida === 'kg' ? 'kg' : 'unidades',
+          custo_unitario_estimado: custoUnit
+        });
+
+        mostrarToast('sucesso', `Item "${formItemFicha.descricao_insumo}" adicionado à ficha técnica!`);
+        setModalNovoItemFicha(false);
+        setFormItemFicha({
+          id_insumo: '',
+          tipo_insumo: 'Aviamento',
+          descricao_insumo: '',
+          consumo_unitario: '1',
+          unidade_medida: 'unidades',
+          custo_unitario_estimado: ''
+        });
+        await carregarFichasDoModelo(modeloAtivo.id_modelo);
+      } catch (err) {
+        console.error("Erro ao adicionar item na ficha:", err);
+        mostrarToast('erro', err.response?.data?.detail || "Erro ao adicionar item à ficha técnica.");
+      } finally {
+        setSalvandoItemFicha(false);
+      }
+    };
+
+    // Remoção de item da ficha técnica (IHC - Controle e Liberdade do Usuário)
+    const handleRemoverItemFicha = async (idFicha, nomeItem) => {
+      const confirma = await confirmar({
+        titulo: 'Remover item da ficha técnica?',
+        mensagem: `"${nomeItem}" deixará de ser considerado no custo e na baixa de aviamentos deste modelo.`,
+        textoConfirmar: 'Remover item',
+        perigo: true,
+      });
+      if (!confirma) return;
+
+      try {
+        await api.delete(`/camisetas/fichas/${idFicha}`);
+        mostrarToast('sucesso', `Item removido da ficha técnica.`);
+        await carregarFichasDoModelo(modeloAtivo.id_modelo);
+      } catch (err) {
+        console.error("Erro ao remover item:", err);
+        mostrarToast('erro', "Não foi possível remover o item.");
+      }
+    };
+
+    // Exclusão de modelo de camiseta com confirmação
+    const handleExcluirModelo = async (modelo) => {
+      if (!modelo) return;
+      const confirma = await confirmar({
+        titulo: 'Excluir modelo?',
+        mensagem: `Deseja realmente excluir o modelo "${modelo.nome_modelo}"? Esta ação removerá sua ficha técnica associada.`,
+        textoConfirmar: 'Excluir modelo',
+        perigo: true,
+      });
+      if (!confirma) return;
+
+      try {
+        await api.delete(`/camisetas/modelos/${modelo.id_modelo}`);
+        mostrarToast('sucesso', `Modelo "${modelo.nome_modelo}" excluído com sucesso.`);
+
+        const listaAtualizada = modelos.filter((m) => m.id_modelo !== modelo.id_modelo);
+        setModelos(listaAtualizada);
+
+        if (modeloAtivo?.id_modelo === modelo.id_modelo) {
+          if (listaAtualizada.length > 0) {
+            selecionarModelo(listaAtualizada[0]);
+          } else {
+            setModeloAtivo(null);
+            setFichas([]);
+          }
+        }
+      } catch (err) {
+        console.error("Erro ao excluir modelo:", err);
+        mostrarToast('erro', err.response?.data?.detail || "Não foi possível excluir o modelo.");
+      }
+    };
+
+    const formatarMoeda = (val) => {
+      return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
+    };
+
+    const formatarNumeroLimpo = (valor, sufixo = '') => {
+      const num = parseFloat(valor || 0);
+      const formatado = num.toLocaleString('pt-BR', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 3
+      });
+      return sufixo ? `${formatado} ${sufixo}` : formatado;
+    };
+
+    // Formatação amigável e explicativa do consumo unitário por peça (facilita o entendimento do operador)
+    const formatarConsumoUnitarioAmigavel = (item) => {
+      const tipo = (item.tipo_insumo || '').toLowerCase();
+      const desc = (item.descricao_insumo || '').toLowerCase();
+      const consumo = parseFloat(item.consumo_unitario || 0);
+
+      // Se for linha de costura ou carretel
+      if (tipo.includes('linha') || desc.includes('linha') || desc.includes('carretel') || desc.includes('fração')) {
+        const pecasPorCone = consumo > 0 ? Math.round(1 / consumo) : 50;
+        const metrosEstimados = Math.round(consumo * 4000);
+        return (
+          <div className="consumo-amigavel-box">
+            <span className="consumo-valor-destaque">{consumo.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} carretel</span>
+            <small className="consumo-explicacao">
+              (~{metrosEstimados}m de costura | 1 cone rende ~{pecasPorCone} peças)
+            </small>
+          </div>
+        );
+      }
+
+      // Se for tecido ou malha (kg)
+      if (item.unidade_medida === 'kg' || tipo.includes('tecido') || tipo.includes('malha') || tipo.includes('ribana')) {
+        const gramas = Math.round(consumo * 1000);
+        return (
+          <div className="consumo-amigavel-box">
+            <span className="consumo-valor-destaque">{consumo.toLocaleString('pt-BR', { minimumFractionDigits: 3 })} kg</span>
+            <small className="consumo-explicacao">({gramas}g de malha por peça)</small>
+          </div>
+        );
+      }
+
+      // Aviamentos unitários (etiquetas, tags, botões)
       return (
         <div className="consumo-amigavel-box">
-          <span className="consumo-valor-destaque">{consumo.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} carretel</span>
-          <small className="consumo-explicacao">
-            (~{metrosEstimados}m de costura | 1 cone rende ~{pecasPorCone} peças)
-          </small>
+          <span className="consumo-valor-destaque">{consumo.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} un</span>
+          <small className="consumo-explicacao">(1 unidade por peça)</small>
         </div>
       );
-    }
+    };
 
-    // Se for tecido ou malha (kg)
-    if (item.unidade_medida === 'kg' || tipo.includes('tecido') || tipo.includes('malha') || tipo.includes('ribana')) {
-      const gramas = Math.round(consumo * 1000);
-      return (
-        <div className="consumo-amigavel-box">
-          <span className="consumo-valor-destaque">{consumo.toLocaleString('pt-BR', { minimumFractionDigits: 3 })} kg</span>
-          <small className="consumo-explicacao">({gramas}g de malha por peça)</small>
-        </div>
-      );
-    }
+    // Custo Total de Insumos: inicia vazio (null) e soma os custos estimados dos insumos adicionados ao modelo
+    const custoTotalEstimado = fichas.length > 0
+      ? fichas.reduce((acc, item) => acc + parseFloat(item.custo_unitario_estimado || 0), 0)
+      : null;
 
-    // Aviamentos unitários (etiquetas, tags, botões)
     return (
-      <div className="consumo-amigavel-box">
-        <span className="consumo-valor-destaque">{consumo.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} un</span>
-        <small className="consumo-explicacao">(1 unidade por peça)</small>
-      </div>
-    );
-  };
+      <div className="ficha-camisetas-container">
+        <Sidebar />
 
-  // Custo estimado: se houver tecido na ficha, soma os insumos reais; se não houver, considera o tecido base do modelo
-  const temTecidoNaFicha = fichas.some(f => (f.tipo_insumo || '').toLowerCase().includes('tecido') || f.unidade_medida === 'kg');
-  const custoItensFicha = fichas.reduce((acc, item) => acc + parseFloat(item.custo_unitario_estimado || 0), 0);
-  const custoTecidoBase = (!temTecidoNaFicha && modeloAtivo) ? parseFloat(modeloAtivo.consumo_tecido_kg || 0) * 42.50 : 0;
-  const custoTotalEstimado = custoItensFicha + custoTecidoBase;
+        <main className="ficha-camisetas-main">
 
-  return (
-    <div className="ficha-camisetas-container">
-      <Sidebar />
+          {/* Cabeçalho da Tela: "4. Tela de Ficha Técnica Digital" (Sem "Engenharia do Produto") */}
+          <header className="ficha-header">
+            <h1>
+              <FileText size={28} color="#2563eb" aria-hidden="true" />
+              4. Tela de Ficha Técnica Digital
+            </h1>
+            <p>
+              Defina o padrão de consumo para cada modelo de camiseta cadastrado:
+              vínculo do modelo, especificação da grade (P, M, G, GG), consumo unitário de tecido (kg/peça)
+              e aviamentos associados (etiquetas e linhas).
+            </p>
+          </header>
 
-      <main className="ficha-camisetas-main">
-
-        {/* Cabeçalho da Tela: "4. Tela de Ficha Técnica Digital" (Sem "Engenharia do Produto") */}
-        <header className="ficha-header">
-          <h1>
-            <FileText size={28} color="#2563eb" aria-hidden="true" />
-            4. Tela de Ficha Técnica Digital
-          </h1>
-          <p>
-            Defina o padrão de consumo para cada modelo de camiseta cadastrado: 
-            vínculo do modelo, especificação da grade (P, M, G, GG), consumo unitário de tecido (kg/peça) 
-            e aviamentos associados (etiquetas e linhas).
-          </p>
-        </header>
-
-        <div className="ficha-abas" role="tablist" aria-label="Cadastros de produto">
-          {[['modelos', 'Modelos'], ['cores', 'Cores'], ['grades', 'Grades'], ['estampas', 'Estampas']].map(([chave, rotulo]) => (
-            <button
-              key={chave}
-              type="button"
-              role="tab"
-              aria-selected={abaFicha === chave}
-              className="ficha-aba"
-              onClick={() => {
-                setAbaFicha(chave);
-                if (chave === 'modelos') carregarDados();
-              }}
-            >
-              {rotulo}
-            </button>
-          ))}
-        </div>
-
-        {abaFicha === 'cores' && <PainelCores />}
-        {abaFicha === 'grades' && <PainelGrades />}
-        {abaFicha === 'estampas' && <PainelEstampas />}
-
-        {abaFicha === 'modelos' && (
-          <>
-          {/* SEÇÃO HORIZONTAL DE MODELOS DE CAMISETAS (IHC - Visibilidade e Ergonomia de Tela) */}
-          <section className="secao-modelos-horizontal" aria-label="Seleção de modelo de camiseta">
-            <div className="modelos-horizontal-header">
-              <div className="titulo-modelos-box">
-                <Shirt size={20} color="#2563eb" aria-hidden="true" />
-                <h2>Modelos de Camisetas</h2>
-                <span className="badge-total-modelos">{modelos.length} modelo(s)</span>
-              </div>
-
-              <button 
-                className="btn-acao-rapida secundario"
-                onClick={abrirNovoModelo}
-                title="Cadastrar um novo modelo de camiseta"
+          <div className="ficha-abas" role="tablist" aria-label="Cadastros de produto">
+            {[['modelos', 'Modelos'], ['cores', 'Cores'], ['grades', 'Grades'], ['estampas', 'Estampas']].map(([chave, rotulo]) => (
+              <button
+                key={chave}
+                type="button"
+                role="tab"
+                aria-selected={abaFicha === chave}
+                className="ficha-aba"
+                onClick={() => {
+                  setAbaFicha(chave);
+                  if (chave === 'modelos') carregarDados();
+                }}
               >
-                <PlusCircle size={17} />
-                <span>Cadastrar Novo Modelo</span>
+                {rotulo}
               </button>
-            </div>
+            ))}
+          </div>
 
-            <div className="lista-modelos-horizontal">
-              {modelos.length === 0 ? (
-                <div className="aviso-sem-modelos">
-                  <p>Nenhum modelo cadastrado. Clique no botão acima para adicionar o primeiro modelo de camiseta.</p>
+          {abaFicha === 'cores' && <PainelCores />}
+          {abaFicha === 'grades' && <PainelGrades />}
+          {abaFicha === 'estampas' && <PainelEstampas />}
+
+          {abaFicha === 'modelos' && (
+            <>
+              {/* SEÇÃO HORIZONTAL DE MODELOS DE CAMISETAS (IHC - Visibilidade e Ergonomia de Tela) */}
+              <section className="secao-modelos-horizontal" aria-label="Seleção de modelo de camiseta">
+                <div className="modelos-horizontal-header">
+                  <div className="titulo-modelos-box">
+                    <Shirt size={20} color="#2563eb" aria-hidden="true" />
+                    <h2>Modelos de Camisetas</h2>
+                    <span className="badge-total-modelos">{modelos.length} modelo(s)</span>
+                  </div>
+
+                  <button
+                    className="btn-acao-rapida secundario"
+                    onClick={abrirNovoModelo}
+                    title="Cadastrar um novo modelo de camiseta"
+                  >
+                    <PlusCircle size={17} />
+                    <span>Cadastrar Novo Modelo</span>
+                  </button>
                 </div>
-              ) : (
-                modelos.map((mod) => {
-                  const isAtivo = modeloAtivo?.id_modelo === mod.id_modelo;
-                  return (
-                    <button 
+
+                <div className="lista-modelos-horizontal">
+                  {modelos.length === 0 ? (
+                    <div className="aviso-sem-modelos">
+                      <p>Nenhum modelo cadastrado. Clique no botão acima para adicionar o primeiro modelo de camiseta.</p>
+                    </div>
+                  ) : (
+                    modelos.map((mod) => {
+                      const isAtivo = modeloAtivo?.id_modelo === mod.id_modelo;
+                      return (
+                    <div 
                       key={mod.id_modelo}
-                      type="button"
                       className={`modelo-card-horizontal ${isAtivo ? 'ativo' : ''}`}
                       onClick={() => selecionarModelo(mod)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          selecionarModelo(mod);
+                        }
+                      }}
                       aria-pressed={isAtivo}
                     >
                       <div className="modelo-card-icone">
@@ -443,17 +504,31 @@ function FichaTecnicaCamisetas() {
                           <span className="pill-grade">{mod.tamanhos?.join(', ') || mod.grade_disponivel}</span>
                         </div>
                       </div>
-                      {isAtivo && (
-                        <div className="badge-modelo-selecionado" title="Modelo ativo na ficha técnica">
-                          <CheckCircle size={16} color="#2563eb" />
-                        </div>
-                      )}
-                    </button>
-                  );
+                      <div className="modelo-card-acoes">
+                        {isAtivo && (
+                          <div className="badge-modelo-selecionado" title="Modelo ativo na ficha técnica">
+                            <CheckCircle size={15} color="#2563eb" />
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          className="btn-excluir-modelo"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleExcluirModelo(mod);
+                          }}
+                          title={`Excluir modelo ${mod.nome_modelo}`}
+                          aria-label={`Excluir modelo ${mod.nome_modelo}`}
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    </div>
+                );
                 })
               )}
-            </div>
-          </section>
+              </div>
+            </section>
 
           {/* DETALHE DA FICHA TÉCNICA (LARGURA TOTAL DESIMPEDIDA) */}
           {modeloAtivo ? (
@@ -465,7 +540,7 @@ function FichaTecnicaCamisetas() {
                     {modeloAtivo.descricao || 'Camiseta padrão confeccionada em linha de produção'}
                   </p>
                 </div>
-                <button 
+                <button
                   className="btn-acao-rapida"
                   onClick={() => {
                     setFormItemFicha({
@@ -492,6 +567,15 @@ function FichaTecnicaCamisetas() {
                   <Pencil size={18} />
                   <span>Editar modelo</span>
                 </button>
+                <button
+                  type="button"
+                  className="btn-acao-rapida perigo-outline"
+                  onClick={() => handleExcluirModelo(modeloAtivo)}
+                  title="Excluir este modelo de camiseta"
+                >
+                  <Trash2 size={18} />
+                  <span>Excluir modelo</span>
+                </button>
               </div>
 
               {/* ESPECIFICAÇÕES PRINCIPAIS EM CARDS HORIZONTAIS */}
@@ -514,8 +598,8 @@ function FichaTecnicaCamisetas() {
                 <div className="espec-item">
                   <span className="espec-rotulo">Rendimento Esperado</span>
                   <strong className="espec-valor">
-                    {parseFloat(modeloAtivo.consumo_tecido_kg) > 0 
-                      ? (1 / parseFloat(modeloAtivo.consumo_tecido_kg)).toFixed(2) 
+                    {parseFloat(modeloAtivo.consumo_tecido_kg) > 0
+                      ? (1 / parseFloat(modeloAtivo.consumo_tecido_kg)).toFixed(2)
                       : '0'} peças / kg
                   </strong>
                 </div>
@@ -523,7 +607,7 @@ function FichaTecnicaCamisetas() {
                 <div className="espec-item">
                   <span className="espec-rotulo">Custo Total de Insumos</span>
                   <strong className="espec-valor destaque-verde">
-                    {formatarMoeda(custoTotalEstimado)} / peça
+                    {custoTotalEstimado !== null ? `${formatarMoeda(custoTotalEstimado)} / peça` : '-'}
                   </strong>
                 </div>
 
@@ -561,7 +645,7 @@ function FichaTecnicaCamisetas() {
                       {fichas.length === 0 ? (
                         <tr>
                           <td colSpan="5" style={{ textAlign: 'center', padding: '2.5rem 1rem', color: '#64748b' }}>
-                            Nenhum material (tecido, etiqueta, linha, tag) adicionado à receita ainda. 
+                            Nenhum material (tecido, etiqueta, linha, tag) adicionado à receita ainda.
                             Clique em <strong>"Adicionar Insumo na Ficha"</strong> acima para montar a composição.
                           </td>
                         </tr>
@@ -583,7 +667,7 @@ function FichaTecnicaCamisetas() {
                               <strong style={{ color: '#047857' }}>{formatarMoeda(f.custo_unitario_estimado)}</strong>
                             </td>
                             <td style={{ textAlign: 'center' }}>
-                              <button 
+                              <button
                                 type="button"
                                 className="btn-remover-item-ficha"
                                 onClick={() => handleRemoverItemFicha(f.id_ficha, f.descricao_insumo)}
@@ -597,6 +681,19 @@ function FichaTecnicaCamisetas() {
                         ))
                       )}
                     </tbody>
+                    {fichas.length > 0 && (
+                      <tfoot>
+                        <tr className="tfoot-total-ficha">
+                          <td colSpan="3" style={{ textAlign: 'right', fontWeight: 600 }}>Custo Total de Insumos:</td>
+                          <td>
+                            <strong style={{ color: '#047857', fontSize: '1rem' }}>
+                              {formatarMoeda(custoTotalEstimado)}
+                            </strong>
+                          </td>
+                          <td></td>
+                        </tr>
+                      </tfoot>
+                    )}
                   </table>
                 </div>
               </div>
@@ -606,13 +703,13 @@ function FichaTecnicaCamisetas() {
               <p>Selecione ou cadastre um modelo de camiseta para visualizar sua ficha técnica digital.</p>
             </div>
           )}
-          </>
+        </>
         )}
 
         {/* MODAL CADASTRAR NOVO MODELO (MAIS ESTREITO E COMPACTO) */}
         {modalNovoModelo && (
-          <div 
-            className="modal-overlay" 
+          <div
+            className="modal-overlay"
             onClick={(e) => e.target.classList.contains('modal-overlay') && setModalNovoModelo(false)}
             role="dialog"
             aria-modal="true"
@@ -624,8 +721,8 @@ function FichaTecnicaCamisetas() {
                   <h3 id="titulo-modal-modelo">{idModeloEdicao ? 'Editar Modelo' : 'Cadastrar Novo Modelo'}</h3>
                   <p className="modal-subtitulo">Defina o nome e o consumo de malha por camiseta.</p>
                 </div>
-                <button 
-                  className="modal-close-btn" 
+                <button
+                  className="modal-close-btn"
                   onClick={() => setModalNovoModelo(false)}
                   aria-label="Fechar janela"
                 >
@@ -636,9 +733,9 @@ function FichaTecnicaCamisetas() {
               <form onSubmit={handleSalvarModelo}>
                 <div className="form-group">
                   <label htmlFor="modelo-nome">Nome do Modelo *</label>
-                  <input 
+                  <input
                     id="modelo-nome"
-                    type="text" 
+                    type="text"
                     placeholder="Ex: Camiseta Básica Gola Redonda"
                     value={formModelo.nome_modelo}
                     onChange={(e) => setFormModelo({ ...formModelo, nome_modelo: e.target.value })}
@@ -669,9 +766,9 @@ function FichaTecnicaCamisetas() {
                   <label htmlFor="modelo-consumo">Consumo de Malha por Peça (kg) *</label>
                   <div className="input-group-addon">
                     <span className="addon-prefix" aria-hidden="true">kg</span>
-                    <input 
+                    <input
                       id="modelo-consumo"
-                      type="number" 
+                      type="number"
                       step="0.001"
                       min="0.01"
                       placeholder="0.180"
@@ -711,7 +808,7 @@ function FichaTecnicaCamisetas() {
 
                 <div className="form-group">
                   <label htmlFor="modelo-desc">Descrição / Observações (Opcional)</label>
-                  <textarea 
+                  <textarea
                     id="modelo-desc"
                     rows="2"
                     placeholder="Ex: Modelagem regular fit, ribana 2x1 na gola, costura reforçada ombro a ombro..."
@@ -721,16 +818,16 @@ function FichaTecnicaCamisetas() {
                 </div>
 
                 <div className="modal-footer">
-                  <button 
-                    type="button" 
-                    className="btn-cancelar" 
+                  <button
+                    type="button"
+                    className="btn-cancelar"
                     onClick={() => setModalNovoModelo(false)}
                     disabled={salvandoModelo}
                   >
                     Cancelar
                   </button>
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     className="btn-acao-rapida"
                     disabled={salvandoModelo}
                   >
@@ -745,8 +842,8 @@ function FichaTecnicaCamisetas() {
 
         {/* MODAL ADICIONAR INSUMO NA FICHA (SIMPLES, PRÁTICO E DIDÁTICO) */}
         {modalNovoItemFicha && (
-          <div 
-            className="modal-overlay" 
+          <div
+            className="modal-overlay"
             onClick={(e) => e.target.classList.contains('modal-overlay') && setModalNovoItemFicha(false)}
             role="dialog"
             aria-modal="true"
@@ -760,8 +857,8 @@ function FichaTecnicaCamisetas() {
                     Modelo selecionado: <strong>{modeloAtivo?.nome_modelo}</strong>
                   </p>
                 </div>
-                <button 
-                  className="modal-close-btn" 
+                <button
+                  className="modal-close-btn"
                   onClick={() => setModalNovoItemFicha(false)}
                   aria-label="Fechar janela"
                 >
@@ -776,7 +873,7 @@ function FichaTecnicaCamisetas() {
                     <span>1. Selecionar Insumo do Estoque</span>
                     <span className="badge-dica-preenche">Preenche dados automaticamente</span>
                   </label>
-                  <select 
+                  <select
                     id="select-insumo-estoque"
                     value={formItemFicha.id_insumo}
                     onChange={(e) => handleInsumoEstoqueChange(e.target.value)}
@@ -796,7 +893,7 @@ function FichaTecnicaCamisetas() {
                 <div className="modal-form-grid-2">
                   <div className="form-group">
                     <label htmlFor="item-tipo">Tipo do Insumo *</label>
-                    <select 
+                    <select
                       id="item-tipo"
                       value={formItemFicha.tipo_insumo}
                       onChange={(e) => setFormItemFicha({ ...formItemFicha, tipo_insumo: e.target.value })}
@@ -814,7 +911,7 @@ function FichaTecnicaCamisetas() {
 
                   <div className="form-group">
                     <label htmlFor="item-unidade">Unidade de Medida *</label>
-                    <select 
+                    <select
                       id="item-unidade"
                       value={formItemFicha.unidade_medida}
                       onChange={(e) => setFormItemFicha({ ...formItemFicha, unidade_medida: e.target.value })}
@@ -829,9 +926,9 @@ function FichaTecnicaCamisetas() {
 
                 <div className="form-group">
                   <label htmlFor="item-descricao">Descrição do Insumo / Material *</label>
-                  <input 
+                  <input
                     id="item-descricao"
-                    type="text" 
+                    type="text"
                     placeholder="Ex: Etiqueta de Cetim P/M/G ou Carretel Linha 120"
                     value={formItemFicha.descricao_insumo}
                     onChange={(e) => setFormItemFicha({ ...formItemFicha, descricao_insumo: e.target.value })}
@@ -849,9 +946,9 @@ function FichaTecnicaCamisetas() {
                       <span className="addon-prefix" aria-hidden="true">
                         {formItemFicha.unidade_medida === 'kg' ? 'kg' : 'Uni'}
                       </span>
-                      <input 
+                      <input
                         id="item-consumo"
-                        type="number" 
+                        type="number"
                         step="any"
                         min="0.0001"
                         placeholder={formItemFicha.unidade_medida === 'kg' ? "Ex: 0.030" : "Ex: 1"}
@@ -870,9 +967,9 @@ function FichaTecnicaCamisetas() {
                     <label htmlFor="item-custo">Custo Estimado por Peça (R$)</label>
                     <div className="input-group-addon">
                       <span className="addon-prefix" aria-hidden="true">R$</span>
-                      <input 
+                      <input
                         id="item-custo"
-                        type="number" 
+                        type="number"
                         step="0.01"
                         min="0"
                         placeholder="0.15"
@@ -903,24 +1000,24 @@ function FichaTecnicaCamisetas() {
                   <div className="dica-linha-box">
                     <strong>💡 Como funciona a Linha de Costura na confecção:</strong>
                     <div>
-                      Um carretel/cone padrão de Linha 120 (4.000m) atende cerca de 50 camisetas (~80 metros de costura somando overloque, galoneira e reta). 
-                      Por isso, a fração é <strong>0,020 carretel por peça</strong> (1 ÷ 50). 
+                      Um carretel/cone padrão de Linha 120 (4.000m) atende cerca de 50 camisetas (~80 metros de costura somando overloque, galoneira e reta).
+                      Por isso, a fração é <strong>0,020 carretel por peça</strong> (1 ÷ 50).
                       Ao produzir uma ordem de 100 camisetas, o sistema baixará exatamente 2 carretéis inteiros do estoque.
                     </div>
                   </div>
                 )}
 
                 <div className="modal-footer">
-                  <button 
-                    type="button" 
-                    className="btn-cancelar" 
+                  <button
+                    type="button"
+                    className="btn-cancelar"
                     onClick={() => setModalNovoItemFicha(false)}
                     disabled={salvandoItemFicha}
                   >
                     Cancelar
                   </button>
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     className="btn-acao-rapida"
                     disabled={salvandoItemFicha}
                   >
@@ -933,7 +1030,7 @@ function FichaTecnicaCamisetas() {
           </div>
         )}
       </main>
-    </div>
+    </div >
   );
 }
 

@@ -105,7 +105,11 @@ export function GradeQuantidades({
         <thead>
           <tr>
             <th scope="col"><span className="sr-only">Cor</span></th>
-            {colunas.map((coluna) => <th key={coluna.id} scope="col">{coluna.rotulo}</th>)}
+            {colunas.map((coluna) => (
+              <th key={coluna.id} scope="col">
+                <span className="tamanho-grade-badge">{coluna.rotulo}</span>
+              </th>
+            ))}
             <th scope="col">Total</th>
           </tr>
         </thead>
