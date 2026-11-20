@@ -4,7 +4,20 @@
   margin: 0;
   padding: 0;
   font-family: var(--font-sans-humanist, 'Plus Jakarta Sans', 'DM Sans', sans-serif);
+}
+
+body {
   color: var(--color-text-main, #2C2523);
+}
+
+/* Herança natural de cor para botões e seus elementos internos (ícones SVG e spans) */
+button {
+  color: inherit;
+}
+
+button *,
+a.btn * {
+  color: inherit;
 }
 
 /* Fundo da tela */

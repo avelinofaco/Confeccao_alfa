@@ -96,6 +96,57 @@
   gap: 0.6rem;
 }
 
+/* Botão Principal: Abrir OP e baixar malha */
+.btn-abrir-op,
+.form-op-card .btn-acao-rapida {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  background-color: #1e3a8a;
+  color: #ffffff !important;
+  border: 1px solid #1e40af;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.22);
+}
+
+.btn-abrir-op *,
+.form-op-card .btn-acao-rapida * {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+.btn-abrir-op:hover:not(:disabled),
+.form-op-card .btn-acao-rapida:hover:not(:disabled) {
+  background-color: #1d4ed8;
+  border-color: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.32);
+}
+
+.btn-abrir-op:disabled,
+.form-op-card .btn-acao-rapida:disabled {
+  background-color: #94a3b8;
+  border-color: #cbd5e1;
+  color: #f8fafc !important;
+  opacity: 0.75;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-abrir-op:disabled *,
+.form-op-card .btn-acao-rapida:disabled * {
+  color: #f8fafc !important;
+  stroke: #f8fafc !important;
+}
+
 /* Tabela de OPs */
 .tabela-ops-card {
   background: #ffffff;
@@ -261,7 +312,7 @@
   background-color: #1d4ed8 !important;
 }
 
-.btn-registrar-corte svg {
+.btn-registrar-corte * {
   color: #ffffff !important;
   stroke: #ffffff !important;
 }

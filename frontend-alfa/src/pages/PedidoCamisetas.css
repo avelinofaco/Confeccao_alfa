@@ -254,34 +254,55 @@
   letter-spacing: 0.03em;
 }
 
-/* Botão Salvar Pedido (Azul Suave Alfaiataria) */
-.btn-salvar-pedido {
+/* Botão Salvar Pedido (Azul Primário de Alto Contraste) */
+.btn-salvar-pedido,
+.form-card .btn-acao-rapida {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.6rem;
-  background: #3D7098;
-  color: #ffffff;
-  padding: 0.75rem 1.6rem;
+  background-color: #2563eb;
+  color: #ffffff !important;
+  padding: 10px 18px;
   border-radius: 8px;
   font-family: var(--font-sans-humanist, sans-serif);
   font-weight: 600;
-  font-size: 0.92rem;
-  border: 1px solid #336184;
+  font-size: 0.94rem;
+  border: 1px solid #1d4ed8;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 6px rgba(44, 37, 35, 0.08);
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
 }
 
-.btn-salvar-pedido:hover:not(:disabled) {
-  background: #315C7E;
-  border-color: #264A66;
+.btn-salvar-pedido *,
+.form-card .btn-acao-rapida * {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+.btn-salvar-pedido:hover:not(:disabled),
+.form-card .btn-acao-rapida:hover:not(:disabled) {
+  background-color: #1d4ed8;
+  border-color: #1e40af;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(44, 37, 35, 0.12);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
 }
 
-.btn-salvar-pedido:disabled {
-  opacity: 0.55;
+.btn-salvar-pedido:disabled,
+.form-card .btn-acao-rapida:disabled {
+  background-color: #93c5fd;
+  border-color: #bfdbfe;
+  color: #ffffff !important;
+  opacity: 0.65;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-salvar-pedido:disabled *,
+.form-card .btn-acao-rapida:disabled * {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
 }
 
 /* Tabela de Pedidos */
@@ -710,8 +731,8 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: #10b981;
-  color: #ffffff;
+  background: #059669;
+  color: #ffffff !important;
   border: none;
   padding: 0.65rem 1.4rem;
   border-radius: 8px;
@@ -721,9 +742,14 @@
   transition: all 0.2s;
 }
 
+.modal-btn-confirmar:not(:disabled):not(.btn-bloqueado) * {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
 .modal-btn-confirmar:hover:not(:disabled) {
-  background: #059669;
-  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+  background: #047857;
+  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35);
   transform: translateY(-1px);
 }
 
@@ -735,6 +761,12 @@
   box-shadow: none !important;
   transform: none !important;
   opacity: 0.85;
+}
+
+.modal-btn-confirmar:disabled *,
+.modal-btn-confirmar.btn-bloqueado * {
+  color: #64748b !important;
+  stroke: #64748b !important;
 }
 
 @media (max-width: 768px) {
@@ -805,8 +837,8 @@
   align-items: center;
   gap: 0.45rem;
   background: #2563eb;
-  color: #ffffff;
-  border: none;
+  color: #ffffff !important;
+  border: 1px solid #1d4ed8;
   padding: 0.5rem 1rem;
   border-radius: 8px;
   font-size: 0.84rem;
@@ -814,6 +846,11 @@
   cursor: pointer;
   transition: all 0.2s;
   white-space: nowrap;
+}
+
+.btn-exportar-pdf-global:not(:disabled):not(.desabilitado) * {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
 }
 
 .btn-exportar-pdf-global:hover:not(:disabled) {
@@ -825,10 +862,17 @@
 .btn-exportar-pdf-global.desabilitado,
 .btn-exportar-pdf-global:disabled {
   background: #cbd5e1;
-  color: #94a3b8;
+  border-color: #cbd5e1;
+  color: #64748b !important;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
+}
+
+.btn-exportar-pdf-global.desabilitado *,
+.btn-exportar-pdf-global:disabled * {
+  color: #64748b !important;
+  stroke: #64748b !important;
 }
 
 /* Coluna de checkbox */
@@ -1034,8 +1078,8 @@
   align-items: center;
   gap: 0.4rem;
   background: #059669; /* emerald-600 */
-  color: #ffffff;
-  border: none;
+  color: #ffffff !important;
+  border: 1px solid #047857;
   padding: 0.42rem 0.85rem;
   border-radius: 6px;
   font: inherit;
@@ -1047,8 +1091,14 @@
   box-shadow: 0 1px 3px rgba(5, 150, 105, 0.3);
 }
 
+.btn-acao-entregar * {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
 .btn-acao-entregar:hover {
   background: #047857; /* emerald-700 */
+  border-color: #065f46;
   box-shadow: 0 4px 10px rgba(5, 150, 105, 0.35);
   transform: translateY(-1px);
 }

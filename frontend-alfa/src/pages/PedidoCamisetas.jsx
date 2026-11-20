@@ -388,7 +388,7 @@ function PedidoCamisetas() {
               ></textarea>
             </div>
 
-            <button type="submit" className="btn-acao-rapida" disabled={loading || !!erroData}>
+            <button type="submit" className="btn-salvar-pedido btn-acao-rapida" disabled={loading || !!erroData}>
               <CheckCircle size={18} />
               <span>Salvar Pedido (Status: Aguardando Produção)</span>
             </button>

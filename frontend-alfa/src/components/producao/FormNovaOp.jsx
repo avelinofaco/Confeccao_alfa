@@ -165,7 +165,7 @@ export function FormNovaOp({ modelos, tecidos, cores, pedidos = [], onCriada }) 
         Total na mesa: <strong>{pesoTotal.toFixed(3)} kg</strong> · previsão de <strong>{pecasPrevistas} peças</strong>
       </p>
       {faltas.length > 0 && <ul className="producao-aviso" role="alert">{faltas.map((f) => <li key={f}>{f}</li>)}</ul>}
-      <button type="submit" className="btn-acao-rapida" disabled={salvando || faltas.length > 0}>
+      <button type="submit" className="btn-abrir-op btn-acao-rapida" disabled={salvando || faltas.length > 0}>
         <Scale size={18} aria-hidden="true" />
         <span>Abrir OP e baixar a malha</span>
       </button>

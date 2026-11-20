@@ -697,7 +697,7 @@
 
 .btn-cancelar {
   background: #ffffff;
-  color: #475569;
+  color: #475569 !important;
   border: 1px solid #cbd5e1;
   padding: 0.65rem 1.25rem;
   border-radius: 8px;
@@ -705,11 +705,26 @@
   font-size: 0.88rem;
   cursor: pointer;
   transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.btn-cancelar * {
+  color: #475569 !important;
+  stroke: #475569 !important;
 }
 
 .btn-cancelar:hover:not(:disabled) {
   background: #f1f5f9;
-  color: #0f172a;
+  color: #0f172a !important;
+  border-color: #94a3b8;
+}
+
+.btn-cancelar:hover:not(:disabled) * {
+  color: #0f172a !important;
+  stroke: #0f172a !important;
 }
 
 .btn-cancelar:disabled {
@@ -717,13 +732,15 @@
   cursor: not-allowed;
 }
 
+/* Botão Ação Rápida Principal ("Adicionar Insumo na Ficha" e submits) */
 .btn-acao-rapida {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.55rem;
-  background: #3D7098;
-  color: #ffffff;
-  border: 1px solid #336184;
+  background-color: #2563eb;
+  color: #ffffff !important;
+  border: 1px solid #1d4ed8;
   padding: 0.65rem 1.25rem;
   border-radius: 8px;
   font-family: var(--font-sans-humanist, sans-serif);
@@ -731,33 +748,125 @@
   font-size: 0.88rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 6px rgba(44, 37, 35, 0.08);
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
+}
+
+.btn-acao-rapida *,
+.btn-acao-rapida span,
+.btn-acao-rapida svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
 }
 
 .btn-acao-rapida:hover:not(:disabled) {
-  background: #315C7E;
-  border-color: #264A66;
-  box-shadow: 0 4px 12px rgba(44, 37, 35, 0.12);
+  background-color: #1d4ed8;
+  border-color: #1e40af;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
   transform: translateY(-1px);
 }
 
 .btn-acao-rapida:disabled {
-  opacity: 0.6;
+  background-color: #93c5fd;
+  border-color: #bfdbfe;
+  color: #ffffff !important;
+  opacity: 0.65;
   cursor: not-allowed;
   transform: none;
+  box-shadow: none;
 }
 
+.btn-acao-rapida:disabled * {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+/* Botão Secundário ("Editar modelo", "Novo Modelo") */
 .btn-acao-rapida.secundario {
-  background: #FAF8F5;
-  color: #2C2523;
-  border: 1px solid var(--border-artisan-strong, #D5CCC0);
-  box-shadow: 0 1px 3px rgba(44, 37, 35, 0.04);
+  background-color: #ffffff;
+  color: #1e293b !important;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.btn-acao-rapida.secundario *,
+.btn-acao-rapida.secundario span,
+.btn-acao-rapida.secundario svg {
+  color: #1e293b !important;
+  stroke: #1e293b !important;
 }
 
 .btn-acao-rapida.secundario:hover:not(:disabled) {
-  background: #F4EFEA;
-  border-color: #C8BCB0;
-  color: #204B72;
+  background-color: #f8fafc;
+  border-color: #94a3b8;
+  color: #0f172a !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.btn-acao-rapida.secundario:hover:not(:disabled) * {
+  color: #0f172a !important;
+  stroke: #0f172a !important;
+}
+
+/* Botão "Excluir modelo" no cabeçalho do detalhe (Ação Destrutiva Bem Definida) */
+.btn-acao-rapida.perigo-outline {
+  background-color: #fef2f2;
+  color: #b91c1c !important;
+  border: 1px solid #fecaca;
+  box-shadow: 0 1px 3px rgba(185, 28, 28, 0.06);
+}
+
+.btn-acao-rapida.perigo-outline *,
+.btn-acao-rapida.perigo-outline span,
+.btn-acao-rapida.perigo-outline svg {
+  color: #b91c1c !important;
+  stroke: #b91c1c !important;
+}
+
+.btn-acao-rapida.perigo-outline:hover:not(:disabled) {
+  background-color: #fee2e2;
+  border-color: #fca5a5;
+  color: #991b1b !important;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(185, 28, 28, 0.14);
+}
+
+.btn-acao-rapida.perigo-outline:hover:not(:disabled) * {
+  color: #991b1b !important;
+  stroke: #991b1b !important;
+}
+
+/* Botão de Excluir modelo no card do carrossel horizontal */
+.btn-excluir-modelo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.85rem;
+  height: 1.85rem;
+  border-radius: 6px;
+  background-color: #fff5f5;
+  border: 1px solid #fecaca;
+  color: #dc2626 !important;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.btn-excluir-modelo * {
+  color: #dc2626 !important;
+  stroke: #dc2626 !important;
+}
+
+.btn-excluir-modelo:hover {
+  background-color: #fee2e2;
+  border-color: #fca5a5;
+  color: #b91c1c !important;
+  transform: scale(1.08);
+}
+
+.btn-excluir-modelo:hover * {
+  color: #b91c1c !important;
+  stroke: #b91c1c !important;
 }
 
 /* RESPONSIVIDADE */

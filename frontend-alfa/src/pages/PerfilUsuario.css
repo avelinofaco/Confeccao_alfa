@@ -166,13 +166,28 @@
 
 .perfil-tab-btn.active {
   background: #2563eb;
-  color: #ffffff;
+  color: #ffffff !important;
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.perfil-tab-btn.active *,
+.perfil-tab-btn.active span,
+.perfil-tab-btn.active svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
 }
 
 .perfil-tab-btn.active.moda-intima {
   background: #00c875;
+  color: #ffffff !important;
   box-shadow: 0 4px 12px rgba(0, 200, 117, 0.2);
+}
+
+.perfil-tab-btn.active.moda-intima *,
+.perfil-tab-btn.active.moda-intima span,
+.perfil-tab-btn.active.moda-intima svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
 }
 
 /* Card do Conteúdo */
@@ -259,15 +274,22 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: #94a3b8;
-  display: flex;
+  color: #64748b;
+  display: inline-flex;
   align-items: center;
-  padding: 0.3rem;
-  transition: color 0.2s;
+  justify-content: center;
+  padding: 0.35rem;
+  border-radius: 6px;
+  transition: all 0.2s;
 }
 
 .btn-toggle-password:hover {
   color: #0f172a;
+  background-color: #f1f5f9;
+}
+
+.btn-toggle-password svg {
+  stroke: currentColor;
 }
 
 /* Indicador de Força de Senha */
@@ -364,29 +386,45 @@ input:checked + .slider-toggle:before {
 /* Botão Salvar */
 .btn-salvar-perfil {
   background: #2563eb;
-  color: #ffffff;
-  border: none;
-  padding: 0.85rem 1.6rem;
-  border-radius: 10px;
+  color: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 0.75rem 1.6rem;
+  border-radius: 8px;
   font-size: 0.95rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.6rem;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.22);
   margin-top: 1rem;
 }
 
-.btn-salvar-perfil:hover {
-  background: #1d4ed8;
+.btn-salvar-perfil *,
+.btn-salvar-perfil span,
+.btn-salvar-perfil svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+.btn-salvar-perfil:hover:not(:disabled) {
+  filter: brightness(1.08);
   transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35);
 }
 
 .btn-salvar-perfil:disabled {
-  opacity: 0.6;
+  opacity: 0.65;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-salvar-perfil:disabled * {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
 }
 
 /* Banner de Sucesso */

@@ -116,7 +116,16 @@
 
 .cadastro-btn.primario {
   background: var(--accent-artisan-indigo);
-  color: var(--bg-artisan-surface);
+  color: #ffffff !important;
+}
+
+.cadastro-btn.primario * {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+.cadastro-btn.primario:hover:not(:disabled) {
+  filter: brightness(1.1);
 }
 
 .cadastro-btn.secundario {

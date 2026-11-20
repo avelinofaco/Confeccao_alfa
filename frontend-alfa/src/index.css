@@ -280,71 +280,149 @@ table td,
   font-size: 0.76rem !important;
 }
 
-/* 5. SUAVIZAÇÃO DOS BOTÕES (Sem cores de fundo muito fortes) */
-/* Botões Azuis: Azul Alfaiataria Suave e Elegante */
+/* 5. SUAVIZAÇÃO E ALTO CONTRASTE DOS BOTÕES */
+/* Botões Azuis: Alto contraste e harmonia alfaiataria */
 button[style*="background: rgb(37, 99, 235)"],
 button[style*="background: #2563eb"],
+button[style*="background-color: rgb(37, 99, 235)"],
+button[style*="background-color: #2563eb"],
 button[style*="backgroundColor: #2563eb"],
-.btn-acao-rapida:not(.secundario),
+.btn-acao-rapida:not(.secundario):not(.perigo-outline),
 .btn-salvar-pedido,
+.btn-salvar-perfil,
+.btn-abrir-op,
 .btn-criar-op-enfesto,
 .btn-novo-modelo,
 .btn-salvar,
-.btn-primario {
-  background-color: #3D7098 !important;
+.btn-primario,
+.cadastro-btn.primario {
+  background-color: #2563eb !important;
   color: #FFFFFF !important;
-  border: 1px solid #336184 !important;
+  border: 1px solid #1d4ed8 !important;
   border-radius: 8px !important;
   font-family: var(--font-sans-humanist) !important;
   font-weight: 600 !important;
-  box-shadow: 0 2px 6px rgba(44, 37, 35, 0.08) !important;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.18) !important;
   transition: all 0.2s ease !important;
 }
 
-button[style*="background: rgb(37, 99, 235)"]:hover,
-button[style*="background: #2563eb"]:hover,
-.btn-acao-rapida:not(.secundario):hover,
-.btn-salvar-pedido:hover,
-.btn-criar-op-enfesto:hover,
-.btn-novo-modelo:hover,
-.btn-salvar:hover,
-.btn-primario:hover {
-  background-color: #315C7E !important;
-  border-color: #264A66 !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 4px 12px rgba(44, 37, 35, 0.12) !important;
+/* Propagação explícita de cor branca e traço de ícones para todos os filhos de botões azuis */
+button[style*="background: rgb(37, 99, 235)"] *,
+button[style*="background: #2563eb"] *,
+button[style*="background-color: rgb(37, 99, 235)"] *,
+button[style*="background-color: #2563eb"] *,
+button[style*="backgroundColor: #2563eb"] *,
+.btn-acao-rapida:not(.secundario):not(.perigo-outline) *,
+.btn-salvar-pedido *,
+.btn-salvar-perfil *,
+.btn-abrir-op *,
+.btn-criar-op-enfesto *,
+.btn-novo-modelo *,
+.btn-salvar *,
+.btn-primario *,
+.cadastro-btn.primario * {
+  color: #FFFFFF !important;
+  stroke: #FFFFFF !important;
 }
 
-/* Botões Verdes: Verde Sálvia / Floresta Suave (Sem tom berrante/neon) */
+button[style*="background: rgb(37, 99, 235)"]:hover:not(:disabled),
+button[style*="background: #2563eb"]:hover:not(:disabled),
+button[style*="background-color: rgb(37, 99, 235)"]:hover:not(:disabled),
+button[style*="background-color: #2563eb"]:hover:not(:disabled),
+.btn-acao-rapida:not(.secundario):not(.perigo-outline):hover:not(:disabled),
+.btn-salvar-pedido:hover:not(:disabled),
+.btn-salvar-perfil:hover:not(:disabled),
+.btn-abrir-op:hover:not(:disabled),
+.btn-criar-op-enfesto:hover:not(:disabled),
+.btn-novo-modelo:hover:not(:disabled),
+.btn-salvar:hover:not(:disabled),
+.btn-primario:hover:not(:disabled),
+.cadastro-btn.primario:hover:not(:disabled) {
+  background-color: #1d4ed8 !important;
+  border-color: #1e40af !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3) !important;
+}
+
+button[style*="background: rgb(37, 99, 235)"]:disabled,
+button[style*="background: #2563eb"]:disabled,
+.btn-acao-rapida:not(.secundario):not(.perigo-outline):disabled,
+.btn-salvar-pedido:disabled,
+.btn-salvar-perfil:disabled,
+.btn-abrir-op:disabled,
+.btn-primario:disabled,
+.cadastro-btn.primario:disabled {
+  background-color: #93c5fd !important;
+  border-color: #bfdbfe !important;
+  color: #ffffff !important;
+  opacity: 0.7 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Botões Verdes: Alto contraste esmeralda/alfaiataria */
 button[style*="background: rgb(16, 185, 129)"],
 button[style*="background: #10b981"],
 button[style*="background: #00c875"],
 button[style*="background-color: #00c875"],
+button[style*="background-color: rgb(0, 200, 117)"],
 .btn-acao-entregar,
 .btn-action-retorno,
 .btn-sincronizar-fin,
 .login-button {
-  background-color: #387D56 !important;
+  background-color: #059669 !important;
   color: #FFFFFF !important;
-  border: 1px solid #2F6947 !important;
+  border: 1px solid #047857 !important;
   border-radius: 8px !important;
   font-family: var(--font-sans-humanist) !important;
   font-weight: 600 !important;
-  box-shadow: 0 2px 6px rgba(44, 37, 35, 0.08) !important;
+  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.15) !important;
   transition: all 0.2s ease !important;
 }
 
-button[style*="background: rgb(16, 185, 129)"]:hover,
-button[style*="background: #10b981"]:hover,
-button[style*="background: #00c875"]:hover,
-.btn-acao-entregar:hover,
-.btn-action-retorno:hover,
-.btn-sincronizar-fin:hover,
-.login-button:hover {
-  background-color: #2D6846 !important;
-  border-color: #245437 !important;
+/* Propagação explícita de cor branca para filhos de botões verdes */
+button[style*="background: rgb(16, 185, 129)"] *,
+button[style*="background: #10b981"] *,
+button[style*="background: #00c875"] *,
+button[style*="background-color: #00c875"] *,
+button[style*="background-color: rgb(0, 200, 117)"] *,
+.btn-acao-entregar *,
+.btn-action-retorno *,
+.btn-sincronizar-fin *,
+.login-button * {
+  color: #FFFFFF !important;
+  stroke: #FFFFFF !important;
+}
+
+button[style*="background: rgb(16, 185, 129)"]:hover:not(:disabled),
+button[style*="background: #10b981"]:hover:not(:disabled),
+button[style*="background: #00c875"]:hover:not(:disabled),
+button[style*="background-color: #00c875"]:hover:not(:disabled),
+.btn-acao-entregar:hover:not(:disabled),
+.btn-action-retorno:hover:not(:disabled),
+.btn-sincronizar-fin:hover:not(:disabled),
+.login-button:hover:not(:disabled) {
+  background-color: #047857 !important;
+  border-color: #065f46 !important;
   transform: translateY(-1px) !important;
-  box-shadow: 0 4px 12px rgba(44, 37, 35, 0.12) !important;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25) !important;
+}
+
+/* Botões Destrutivos / Perigo com alto contraste */
+.btn-perigo,
+.btn-acao-rapida.perigo,
+.cadastro-btn.perigo {
+  background-color: #dc2626 !important;
+  color: #ffffff !important;
+  border: 1px solid #b91c1c !important;
+}
+
+.btn-perigo *,
+.btn-acao-rapida.perigo *,
+.cadastro-btn.perigo * {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
 }
 
 /* Foco em Inputs e Formulários */
