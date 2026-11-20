@@ -624,7 +624,13 @@
 
 /* RESPONSIVIDADE (IHC - ADAPTABILIDADE) */
 @media (max-width: 768px) {
+  .estoque-camisetas-container {
+    flex-direction: column;
+  }
   .estoque-camisetas-main {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
     padding: 1.2rem;
   }
   .modal-form-grid-2,

@@ -488,3 +488,15 @@
 .tabela-ops td:first-child {
   white-space: nowrap;
 }
+
+@media (max-width: 768px) {
+  .corte-camisetas-container {
+    flex-direction: column;
+  }
+  .corte-camisetas-main {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 1.2rem;
+  }
+}

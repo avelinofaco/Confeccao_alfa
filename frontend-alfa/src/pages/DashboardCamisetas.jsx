@@ -8,7 +8,9 @@ import {
   FileText, 
   ShoppingCart, 
   Scissors, 
-  RefreshCw 
+  RefreshCw,
+  Menu,
+  X
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
@@ -22,6 +24,7 @@ function DashboardCamisetas() {
   const navigate = useNavigate();
   const toast = useToast();
   const [loading, setLoading] = useState(true);
+  const [menuMobileAberto, setMenuMobileAberto] = useState(false);
   const [metricas, setMetricas] = useState({
     cards: {
       producao_total_acumulada: 0,
@@ -195,7 +198,30 @@ function DashboardCamisetas() {
 
   return (
     <div className="dashboard-camisetas-container">
-      <Sidebar />
+      {/* CABEÇALHO MOBILE (Só aparece no celular) */}
+      <div className="mobile-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div className="logo-box-sm">
+            <Scissors size={20} color="#2563eb" strokeWidth={2} />
+          </div>
+          <h2 style={{ fontSize: '16px', fontWeight: 'bold', color: '#1f2937' }}>Confecção Alfa</h2>
+        </div>
+        <button 
+          type="button"
+          className="btn-menu-mobile" 
+          onClick={() => setMenuMobileAberto(!menuMobileAberto)}
+          aria-label="Abrir menu de navegação"
+        >
+          {menuMobileAberto ? <X size={24} color="#1f2937" /> : <Menu size={24} color="#1f2937" />}
+        </button>
+      </div>
+
+      {/* Backdrop escuro para fechar ao tocar fora no mobile */}
+      {menuMobileAberto && (
+        <div className="sidebar-backdrop" onClick={() => setMenuMobileAberto(false)} aria-hidden="true" />
+      )}
+
+      <Sidebar menuMobileAberto={menuMobileAberto} setMenuMobileAberto={setMenuMobileAberto} />
 
       <main className="dashboard-camisetas-main">
         {/* Cabeçalho */}

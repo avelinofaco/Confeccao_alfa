@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Link2, MessageCircle, Pencil, Plus, Search, Trash2, Users } from 'lucide-react';
+import { Link2, MessageCircle, Pencil, Plus, Search, Trash2, Users, Menu, X, Scissors } from 'lucide-react';
 import api from '../services/api';
 import Sidebar from '../components/Sidebar';
 import { useToast } from '../components/feedback/useToast';
@@ -25,6 +25,7 @@ function ClientesCamisetas() {
   const [incluirInativos, setIncluirInativos] = useState(false);
   const [carregando, setCarregando] = useState(false);
   const [emEdicao, setEmEdicao] = useState(null); // null = fechado · {} = novo · cliente = editar
+  const [menuMobileAberto, setMenuMobileAberto] = useState(false);
 
   const carregar = useCallback(async () => {
     try {
@@ -99,7 +100,30 @@ function ClientesCamisetas() {
 
   return (
     <div className="clientes-container">
-      <Sidebar />
+      {/* CABEÇALHO MOBILE (Só aparece no celular) */}
+      <div className="mobile-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div className="logo-box-sm">
+            <Scissors size={20} color="#2563eb" strokeWidth={2} />
+          </div>
+          <h2 style={{ fontSize: '16px', fontWeight: 'bold', color: '#1f2937' }}>Confecção Alfa</h2>
+        </div>
+        <button 
+          type="button"
+          className="btn-menu-mobile" 
+          onClick={() => setMenuMobileAberto(!menuMobileAberto)}
+          aria-label="Abrir menu de navegação"
+        >
+          {menuMobileAberto ? <X size={24} color="#1f2937" /> : <Menu size={24} color="#1f2937" />}
+        </button>
+      </div>
+
+      {/* Backdrop escuro para fechar ao tocar fora no mobile */}
+      {menuMobileAberto && (
+        <div className="sidebar-backdrop" onClick={() => setMenuMobileAberto(false)} aria-hidden="true" />
+      )}
+
+      <Sidebar menuMobileAberto={menuMobileAberto} setMenuMobileAberto={setMenuMobileAberto} />
       <main className="clientes-main">
         <header className="page-header">
           <h1><Users size={28} color="#2563eb" aria-hidden="true" /> 3. Clientes</h1>

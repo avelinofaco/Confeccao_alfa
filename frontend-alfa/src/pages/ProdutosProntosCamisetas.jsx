@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Boxes, ClipboardList, History } from 'lucide-react';
+import { Boxes, ClipboardList, History, Menu, X, Scissors } from 'lucide-react';
 import api from '../services/api';
 import Sidebar from '../components/Sidebar';
 import { useToast } from '../components/feedback/useToast';
@@ -63,6 +63,7 @@ function FiltrosProdutos({ filtros, onChange, modelos, cores, desativado }) {
 function ProdutosProntosCamisetas() {
   const toast = useToast();
   const [linhas, setLinhas] = useState([]);
+  const [menuMobileAberto, setMenuMobileAberto] = useState(false);
   const [modelos, setModelos] = useState([]);
   const [cores, setCores] = useState([]);
   const [filtros, setFiltros] = useState(FILTROS_INICIAIS);

@@ -126,7 +126,13 @@
 }
 
 @media (max-width: 768px) {
+  .clientes-container {
+    flex-direction: column;
+  }
   .clientes-main {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
     padding: 1.2rem 1rem;
   }
 }

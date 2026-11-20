@@ -219,3 +219,87 @@
   background-color: #fef2f2;
   color: #dc2626;
 }
+
+/* ==========================================================================
+   RESPONSIVIDADE DA SIDEBAR & CABEÇALHO MOBILE (IHC)
+   ========================================================================== */
+
+/* Esconde o cabeçalho mobile no Desktop por padrão */
+.mobile-header {
+  display: none;
+}
+
+.btn-menu-mobile {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 6px;
+  color: #1f2937;
+  transition: background-color 0.2s ease;
+}
+
+.btn-menu-mobile:hover {
+  background-color: #f3f4f6;
+}
+
+.sidebar-backdrop {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  /* Exibe cabeçalho mobile no celular */
+  .mobile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 20px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+    position: sticky;
+    top: 0;
+    z-index: 46;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Backdrop escuro para fechar ao tocar fora */
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background-color: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(2px);
+    z-index: 48;
+    animation: fadeInBackdrop 0.2s ease;
+  }
+
+  /* Transforma a Sidebar em gaveta flutuante (Drawer) */
+  .sidebar {
+    position: fixed;
+    left: -270px;
+    top: 0;
+    bottom: 0;
+    height: 100vh;
+    z-index: 50;
+    transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.18);
+  }
+
+  /* Entrada da sidebar na tela */
+  .sidebar.open {
+    left: 0;
+  }
+}
+
+@keyframes fadeInBackdrop {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

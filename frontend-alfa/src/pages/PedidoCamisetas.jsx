@@ -11,6 +11,9 @@ import {
   Printer,
   Pencil,
   Trash2,
+  Menu,
+  X,
+  Scissors,
 } from 'lucide-react';
 import api from '../services/api';
 import Sidebar from '../components/Sidebar';
@@ -52,6 +55,7 @@ function PedidoCamisetas() {
   const [loading, setLoading] = useState(false);
   const [busca, setBusca] = useState('');
   const [erroData, setErroData] = useState('');
+  const [menuMobileAberto, setMenuMobileAberto] = useState(false);
   const toast = useToast();
   const confirmar = useConfirm();
 
@@ -260,7 +264,30 @@ function PedidoCamisetas() {
 
   return (
     <div className="pedido-camisetas-container">
-      <Sidebar />
+      {/* CABEÇALHO MOBILE (Só aparece no celular) */}
+      <div className="mobile-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div className="logo-box-sm">
+            <Scissors size={20} color="#2563eb" strokeWidth={2} />
+          </div>
+          <h2 style={{ fontSize: '16px', fontWeight: 'bold', color: '#1f2937' }}>Confecção Alfa</h2>
+        </div>
+        <button 
+          type="button"
+          className="btn-menu-mobile" 
+          onClick={() => setMenuMobileAberto(!menuMobileAberto)}
+          aria-label="Abrir menu de navegação"
+        >
+          {menuMobileAberto ? <X size={24} color="#1f2937" /> : <Menu size={24} color="#1f2937" />}
+        </button>
+      </div>
+
+      {/* Backdrop escuro para fechar ao tocar fora no mobile */}
+      {menuMobileAberto && (
+        <div className="sidebar-backdrop" onClick={() => setMenuMobileAberto(false)} aria-hidden="true" />
+      )}
+
+      <Sidebar menuMobileAberto={menuMobileAberto} setMenuMobileAberto={setMenuMobileAberto} />
 
       <main className="pedido-camisetas-main">
 
