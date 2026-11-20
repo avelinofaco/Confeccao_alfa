@@ -69,29 +69,67 @@ export function ItensPedidoEditor({ itens, onChange, modelos, cores, estampas = 
     onChange([...itens, itemVazio(proxima, idModeloPadrao, idCorPadrao)]);
   };
 
+  const processarArquivoImagem = (arquivo, callback) => {
+    const leitor = new FileReader();
+    leitor.onload = () => {
+      const dataUrl = leitor.result;
+      if (typeof dataUrl !== 'string') return;
+
+      const img = new Image();
+      img.onload = () => {
+        const maxDim = 1200;
+        let largura = img.width;
+        let altura = img.height;
+        let precisaCanvas = false;
+
+        if (largura > maxDim || altura > maxDim) {
+          if (largura > altura) {
+            altura = Math.round((altura * maxDim) / largura);
+            largura = maxDim;
+          } else {
+            largura = Math.round((largura * maxDim) / altura);
+            altura = maxDim;
+          }
+          precisaCanvas = true;
+        }
+
+        const tiposValidos = ['image/png', 'image/jpeg', 'image/webp'];
+        if (precisaCanvas || !tiposValidos.includes(arquivo.type)) {
+          const canvas = document.createElement('canvas');
+          canvas.width = largura;
+          canvas.height = altura;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, largura, altura);
+          const formato = arquivo.type === 'image/png' ? 'image/png' : 'image/jpeg';
+          callback(canvas.toDataURL(formato, 0.88));
+        } else {
+          callback(dataUrl);
+        }
+      };
+      img.onerror = () => callback(dataUrl);
+      img.src = dataUrl;
+    };
+    leitor.readAsDataURL(arquivo);
+  };
+
   const aoEscolherImagemNoCard = (chave, e) => {
     const arquivo = e.target.files?.[0];
     if (!arquivo) return;
-    if (!['image/png', 'image/jpeg', 'image/webp'].includes(arquivo.type)) {
-      toast.aviso('Escolha uma imagem PNG, JPG ou WEBP.');
+    if (arquivo.type && !arquivo.type.startsWith('image/')) {
+      toast.aviso('Escolha um arquivo de imagem válido.');
       e.target.value = '';
       return;
     }
-    if (arquivo.size > LIMITE_BYTES) {
-      toast.aviso('A imagem excede o limite de 2 MB.');
-      e.target.value = '';
-      return;
-    }
-    const leitor = new FileReader();
-    leitor.onload = () => {
-      const resultado = typeof leitor.result === 'string' ? leitor.result : '';
+
+    processarArquivoImagem(arquivo, (resultado) => {
       alterar(chave, {
         id_estampa: '',
+        imagem_estampa_url: '',
         imagem_data_url: resultado,
         nome_estampa_nova: arquivo.name.replace(/\.[^.]+$/, ''),
       });
-    };
-    leitor.readAsDataURL(arquivo);
+      toast.sucesso('Imagem da blusa carregada com sucesso.');
+    });
   };
 
   const totalGeral = itens.reduce((total, item) => total + totalDoItem(item), 0);
@@ -111,9 +149,9 @@ export function ItensPedidoEditor({ itens, onChange, modelos, cores, estampas = 
           const modelo = modelos.find((m) => String(m.id_modelo) === String(item.id_modelo));
           const cor = cores.find((c) => String(c.id_cor) === String(item.id_cor));
           const estampaCatalogo = estampas.find((est) => String(est.id_estampa) === String(item.id_estampa));
-          const previaUrl = item.imagem_data_url || estampaCatalogo?.imagem_data_url || '';
+          const previaUrl = item.imagem_data_url || item.imagem_estampa_url || estampaCatalogo?.imagem_data_url || '';
           const colunas = colunasDoModelo(modelo);
-          const id = `${idPrefixo}-${item.chave}`;
+          const id = `${idPrefixo || 'item'}-${item.chave}`;
           const precoUnit = precoUnitarioDoItem(item, modelos);
           const subtotal = subtotalDoItem(item, modelos);
 
@@ -133,13 +171,22 @@ export function ItensPedidoEditor({ itens, onChange, modelos, cores, estampas = 
 
               {/* Área superior dedicada ao upload / pré-visualização da imagem */}
               <div className="item-pedido-arte-wrapper">
-                <label htmlFor={`${id}-arquivo`} className="item-pedido-arte-box">
+                <label
+                  htmlFor={`${id}-arquivo`}
+                  className={`item-pedido-arte-box ${previaUrl ? 'tem-imagem' : ''}`}
+                  title={previaUrl ? 'Clique para trocar a imagem da blusa' : 'Clique para adicionar a imagem da blusa'}
+                >
                   {previaUrl ? (
-                    <img
-                      src={previaUrl}
-                      alt={estampaCatalogo?.nome || item.nome_estampa_nova || `Estampa do item ${indice + 1}`}
-                      className="item-pedido-arte-img"
-                    />
+                    <>
+                      <img
+                        src={previaUrl}
+                        alt={estampaCatalogo?.nome || item.nome_estampa_nova || `Estampa do item ${indice + 1}`}
+                        className="item-pedido-arte-img"
+                      />
+                      <span className="item-pedido-arte-hover-overlay">
+                        <span>Trocar imagem</span>
+                      </span>
+                    </>
                   ) : (
                     <span className="item-pedido-arte-vazia">
                       <IconeCamisetaArte />
@@ -150,8 +197,9 @@ export function ItensPedidoEditor({ itens, onChange, modelos, cores, estampas = 
                 <input
                   id={`${id}-arquivo`}
                   type="file"
-                  accept="image/png,image/jpeg,image/webp"
+                  accept="image/*"
                   className="painel-estampa-input-oculto"
+                  onClick={(e) => { e.target.value = ''; }}
                   onChange={(e) => aoEscolherImagemNoCard(item.chave, e)}
                 />
                 {previaUrl && (
@@ -160,7 +208,11 @@ export function ItensPedidoEditor({ itens, onChange, modelos, cores, estampas = 
                     className="item-pedido-limpar-arte"
                     title="Remover imagem deste item (deixar camiseta lisa)"
                     aria-label={`Remover imagem do item ${indice + 1}`}
-                    onClick={() => alterar(item.chave, { id_estampa: '', imagem_data_url: '', nome_estampa_nova: '' })}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      alterar(item.chave, { id_estampa: '', imagem_data_url: '', imagem_estampa_url: '', nome_estampa_nova: '' });
+                    }}
                   >
                     <X size={13} />
                   </button>
@@ -211,16 +263,18 @@ export function ItensPedidoEditor({ itens, onChange, modelos, cores, estampas = 
                     id={`${id}-estampa`}
                     aria-label={`Estampa do catálogo para o item ${indice + 1}`}
                     value={item.id_estampa || ''}
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      const estEscolhida = estampas.find((est) => String(est.id_estampa) === String(e.target.value));
                       alterar(item.chave, {
                         id_estampa: e.target.value,
+                        imagem_estampa_url: estEscolhida?.imagem_data_url || '',
                         imagem_data_url: '',
                         nome_estampa_nova: '',
-                      })
-                    }
+                      });
+                    }}
                   >
                     <option value="">
-                      {item.imagem_data_url ? `Upload: ${item.nome_estampa_nova || 'Nova arte'}` : 'Lisa / Catálogo…'}
+                      {item.imagem_data_url ? `Upload: ${item.nome_estampa_nova || 'Nova arte'}` : (item.imagem_estampa_url ? 'Imagem personalizada' : 'Lisa / Catálogo…')}
                     </option>
                     {estampas.map((est) => (
                       <option key={est.id_estampa} value={est.id_estampa}>

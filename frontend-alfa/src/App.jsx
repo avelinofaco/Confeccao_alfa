@@ -47,7 +47,7 @@ function AppRoutes() {
       <Route path="/" element={<Login />} />
       <Route path="/portal/pedido/:token" element={<PortalPedidoCliente />} />
       <Route path="/portal/cliente/:token" element={<PortalCatalogoCliente />} />
-      <Route path="/cadastro" element={<RotaProtegida><Cadastro /></RotaProtegida>} />
+      <Route path="/cadastro" element={<Cadastro />} />
       <Route path="/selecao-segmento" element={<RotaProtegida><SelecaoSegmento /></RotaProtegida>} />
 
       {/* 1. Dashboard: Alterna automaticamente pelo segmento ativo */}

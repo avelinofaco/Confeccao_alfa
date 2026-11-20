@@ -56,7 +56,10 @@ app.include_router(portal_cliente.router)
 
 # Todo o resto exige token. Protegendo no include_router, nenhuma rota do módulo escapa —
 # nem as que forem criadas depois.
-for _modulo in (usuarios, estoque, ficha_tecnica, comercial, producao, costura, equipe, camisetas):
+# Cadastro público (POST /usuarios) fica livre; as rotas privadas de /usuarios já exigem token individualmente
+app.include_router(usuarios.router)
+
+for _modulo in (estoque, ficha_tecnica, comercial, producao, costura, equipe, camisetas):
     app.include_router(_modulo.router, dependencies=[Depends(usuario_atual)])
 
 

@@ -19,6 +19,7 @@ export const itemVazio = (chave, idModelo = '', idCor = '') => ({
   id_modelo: String(idModelo),
   id_cor: String(idCor),
   id_estampa: '',
+  imagem_estampa_url: '',
   imagem_data_url: '',
   nome_estampa_nova: '',
   posicao_estampa: 'Frente',
@@ -44,7 +45,7 @@ export const colunasDoModelo = (modelo) => {
 
 export const totalDoItem = (item) => Object.values(item.valores).reduce((total, valor) => total + (Number(valor) || 0), 0);
 
-export const temArteNoItem = (item) => Boolean(item.id_estampa || item.imagem_data_url);
+export const temArteNoItem = (item) => Boolean(item.id_estampa || item.imagem_data_url || item.imagem_estampa_url);
 
 export const precoUnitarioDoItem = (item, modelos = []) => {
   const modelo = modelos.find((m) => String(m.id_modelo) === String(item.id_modelo));
@@ -78,8 +79,9 @@ export const itemDaApi = (item, chave) => ({
   id_modelo: String(item.id_modelo),
   id_cor: item.id_cor ? String(item.id_cor) : '',
   id_estampa: item.id_estampa ? String(item.id_estampa) : '',
+  imagem_estampa_url: item.imagem_estampa_url || '',
   imagem_data_url: '',
-  nome_estampa_nova: '',
+  nome_estampa_nova: item.nome_estampa || '',
   posicao_estampa: item.posicao_estampa || 'Frente',
   valores: Object.fromEntries(item.quantidades.map((q) => [chaveCelula(LINHA_QTD, q.id_tamanho), q.quantidade])),
 });
@@ -94,7 +96,7 @@ export function problemaDosItens(itens) {
   const vazio = itens.findIndex((i) => totalDoItem(i) <= 0);
   if (vazio >= 0) return `Informe as quantidades do item ${vazio + 1}.`;
   const chaves = itens.map((i) => {
-    const arteChave = i.id_estampa ? `est:${i.id_estampa}` : i.imagem_data_url ? `upload:${i.chave}` : '';
+    const arteChave = i.id_estampa ? `est:${i.id_estampa}` : (i.imagem_data_url || i.imagem_estampa_url) ? `upload:${i.chave}` : '';
     const posChave = temArteNoItem(i) ? (i.posicao_estampa || 'Frente').toLowerCase() : '';
     return `${i.id_modelo}:${i.id_cor}:${arteChave}:${posChave}`;
   });

@@ -8,7 +8,6 @@ function Cadastro() {
   // Ajustando os estados para refletir o backend
   const [nomeUsuario, setNomeUsuario] = useState('');
   const [login, setLogin] = useState('');
-  const [perfil, setPerfil] = useState('Gestor');
   const [senha, setSenha] = useState('');
   
   const [carregando, setCarregando] = useState(false);
@@ -33,19 +32,19 @@ function Cadastro() {
 
     try {
       setCarregando(true);
-      // Montando o payload exatamente como o FastAPI espera
+      // Montando o payload exatamente como o FastAPI espera com perfil padrão "Gestor"
       const payload = {
         login: loginFormatado,
         nome_usuario: nomeFormatado,
-        perfil: perfil,
+        perfil: 'Gestor',
         ativo: true,
         senha: senha
       };
 
       await api.post('/usuarios/', payload);
 
-      toast.sucesso(`Usuário ${nomeFormatado} cadastrado.`);
-      navigate('/configuracoes'); // quem cadastrou já estava logado: não cai para fora
+      toast.sucesso(`Usuário ${nomeFormatado} cadastrado com sucesso! Faça login para continuar.`);
+      navigate('/'); // Redireciona para o login
 
     } catch (error) {
       console.error("Erro no cadastro:", error);
@@ -103,19 +102,6 @@ function Cadastro() {
             />
           </div>
 
-          {/* Novo campo para escolher o Perfil */}
-          <div className="input-group">
-            <label>Perfil</label>
-            <select
-              value={perfil}
-              onChange={(e) => setPerfil(e.target.value)}
-              required
-            >
-              <option value="Gestor">Gestor</option>
-              <option value="Operador">Operador</option>
-            </select>
-          </div>
-
           <div className="input-group">
             <label>Senha (mínimo 6 caracteres)</label>
             <input
@@ -135,7 +121,7 @@ function Cadastro() {
 
         <div className="register-link-container">
           <span>Já possui uma conta? </span>
-          <Link to="/configuracoes" className="register-link">Voltar</Link>
+          <Link to="/" className="register-link">Fazer Login</Link>
         </div>
       </div>
     </div>

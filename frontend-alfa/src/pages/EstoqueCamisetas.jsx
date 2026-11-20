@@ -318,7 +318,7 @@ function EstoqueCamisetas() {
         tipo_malha_ou_aviamento: formNovoInsumo.tipo_malha_ou_aviamento,
         cor: formNovoInsumo.cor,
         unidade_medida: formNovoInsumo.unidade_medida,
-        saldo_atual: parseFloat(formNovoInsumo.saldo_atual || 0),
+        saldo_atual: 0,
         estoque_minimo: parseFloat(formNovoInsumo.estoque_minimo || 0),
         preco_custo_medio: parseFloat(formNovoInsumo.preco_custo_medio || 0),
         id_cor: formNovoInsumo.categoria === 'ROLO_TECIDO' && formNovoInsumo.id_cor ? Number(formNovoInsumo.id_cor) : null,
@@ -838,24 +838,8 @@ function EstoqueCamisetas() {
                   </div>
                 </div>
 
-                {/* Linha 4: Saldo Inicial, Estoque Mínimo e Preço de Custo (Inputs Alinhados e Limpos) */}
-                <div className="modal-form-grid-3">
-                  <div className="form-group">
-                    <label htmlFor="novo-insumo-saldo">
-                      Saldo Inicial ({siglaUnidadeNovo})
-                    </label>
-                    <input 
-                      id="novo-insumo-saldo"
-                      type="number" 
-                      step="any"
-                      min="0"
-                      placeholder="0"
-                      value={formNovoInsumo.saldo_atual}
-                      onChange={(e) => setFormNovoInsumo({ ...formNovoInsumo, saldo_atual: e.target.value })}
-                    />
-                    <span className="form-help-hint">Quantidade inicial em {siglaUnidadeNovo}</span>
-                  </div>
-
+                {/* Linha 4: Estoque Mínimo e Preço de Custo (Inputs Alinhados e Limpos) */}
+                <div className="modal-form-grid-2">
                   <div className="form-group">
                     <label htmlFor="novo-insumo-minimo">
                       Estoque Mínimo ({siglaUnidadeNovo}) *
