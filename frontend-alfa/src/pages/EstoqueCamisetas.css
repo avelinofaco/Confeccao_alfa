@@ -650,3 +650,30 @@
   color: var(--bg-artisan-surface);
   border: 1px solid var(--accent-artisan-terracotta);
 }
+
+/* Botão de excluir insumo — lixeira vermelha discreta */
+.btn-excluir-insumo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 6px;
+  background: #fff5f5;
+  border: 1px solid #fecaca;
+  color: #ef4444;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s, border-color 0.18s, transform 0.1s;
+  flex-shrink: 0;
+  margin-left: 0.3rem;
+}
+
+.btn-excluir-insumo:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fca5a5;
+}
+
+.btn-excluir-insumo:active {
+  transform: scale(0.93);
+}

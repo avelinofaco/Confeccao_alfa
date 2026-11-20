@@ -35,7 +35,8 @@ from app.schemas.camisetas import (
 from app.schemas.camisetas import CamisetaInsumoUpdate
 from app.services.camisetas.cores import validar_cor_opcional
 from app.services.camisetas.estoque import calcular_custo_medio
-from app.services.camisetas.insumos import atualizar_insumo, montar_resposta_insumo
+from app.services.camisetas.insumos import atualizar_insumo, excluir_insumo, montar_resposta_insumo
+from app.core.erros import ErroNegocio
 
 router = APIRouter()
 
@@ -143,3 +144,9 @@ def registrar_entrada_estoque(entrada_in: CamisetaEntradaInsumoCreate, db: Sessi
 def editar_insumo(id_insumo: int, dados: CamisetaInsumoUpdate, db: Session = Depends(get_db)):
     """Edição cadastral: não altera saldo nem custo médio."""
     return montar_resposta_insumo(atualizar_insumo(db, id_insumo, dados))
+
+
+@router.delete("/insumos/{id_insumo}", status_code=status.HTTP_204_NO_CONTENT)
+def deletar_insumo(id_insumo: int, db: Session = Depends(get_db)):
+    """Remove o insumo do estoque. Bloqueado se houver fichas técnicas ou histórico de entradas vinculados."""
+    excluir_insumo(db, id_insumo)

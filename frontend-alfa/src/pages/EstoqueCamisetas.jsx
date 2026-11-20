@@ -10,10 +10,12 @@ import {
   ArrowDownLeft,
   Tag,
   RefreshCw,
-  Info
+  Info,
+  Trash2
 } from 'lucide-react';
 import api from '../services/api';
 import { useToast } from '../components/feedback/useToast';
+import { useConfirm } from '../components/feedback/useConfirm';
 import { ModalEditarInsumo } from '../components/cadastros/ModalEditarInsumo';
 import '../components/cadastros/cadastros.css';
 import Sidebar from '../components/Sidebar';
@@ -64,6 +66,7 @@ function EstoqueCamisetas() {
   const [loading, setLoading] = useState(false);
   const [busca, setBusca] = useState('');
   const toast = useToast();
+  const confirmar = useConfirm();
   const [cores, setCores] = useState([]);
   const [insumoEmEdicao, setInsumoEmEdicao] = useState(null);
 
@@ -183,6 +186,24 @@ function EstoqueCamisetas() {
   }, [modalNovoInsumoAberto, modalEntradaAberto]);
 
   const mostrarToast = (tipo, texto) => toast.mostrar(tipo, texto);
+
+  // Exclusão de insumo com confirmação e estorno do estoque
+  const handleExcluirInsumo = async (item) => {
+    const confirmou = await confirmar({
+      titulo: `Excluir insumo "${item.tipo_malha_ou_aviamento}"?`,
+      mensagem: `Deseja realmente excluir o insumo ${item.codigo} — ${item.tipo_malha_ou_aviamento}? Esta ação não pode ser desfeita.`,
+      textoConfirmar: 'Excluir',
+      perigo: true,
+    });
+    if (!confirmou) return;
+    try {
+      await api.delete(`/camisetas/insumos/${item.id_insumo}`);
+      toast.sucesso(`Insumo "${item.tipo_malha_ou_aviamento}" excluído com sucesso.`);
+      carregarInsumos();
+    } catch (e) {
+      toast.erro(e.response?.data?.detail || e.message || 'Falha ao excluir insumo.');
+    }
+  };
 
   // Filtragem: Rolo de tecido vs Aviamentos (Linha, Etiqueta, Tag e outros)
   const rolosTecido = insumos.filter(i => (i.categoria || '').toUpperCase() === 'ROLO_TECIDO');
@@ -510,6 +531,13 @@ function EstoqueCamisetas() {
                             title={`Lançar entrada rápida para ${item.tipo_malha_ou_aviamento}`}
                           >
                             + Entrada
+                          </button>
+                          <button
+                            className="btn-excluir-insumo"
+                            title="Excluir insumo"
+                            onClick={() => handleExcluirInsumo(item)}
+                          >
+                            <Trash2 size={14} />
                           </button>
                         </td>
                       </tr>

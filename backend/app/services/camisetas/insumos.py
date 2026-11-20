@@ -28,6 +28,39 @@ def montar_resposta_insumo(insumo: CamisetaInsumo) -> CamisetaInsumoResponse:
     )
 
 
+def excluir_insumo(db: Session, id_insumo: int) -> None:
+    """Remove o insumo do estoque, bloqueando se houver vínculos ativos."""
+    insumo = db.get(CamisetaInsumo, id_insumo)
+    if insumo is None:
+        raise ErroNegocio(404, "Insumo não encontrado.")
+
+    from app.models.camisetas import CamisetaFichaTecnica, CamisetaEntradaInsumo, CamisetaOrdemProducao
+    from app.models.camisetas_sku import CamisetaOpCor
+
+    # Fichas técnicas com vínculo ativo (id_insumo não-nulo)
+    ficha_vinculada = db.query(CamisetaFichaTecnica).filter(
+        CamisetaFichaTecnica.id_insumo == id_insumo
+    ).first()
+    if ficha_vinculada:
+        raise ErroNegocio(
+            400,
+            "Não é possível excluir este insumo pois ele está vinculado a fichas técnicas ou ordens de produção."
+        )
+
+    # Entradas de estoque: bloqueiam exclusão (ondelete=RESTRICT no banco)
+    entrada_vinculada = db.query(CamisetaEntradaInsumo).filter(
+        CamisetaEntradaInsumo.id_insumo == id_insumo
+    ).first()
+    if entrada_vinculada:
+        raise ErroNegocio(
+            400,
+            "Não é possível excluir este insumo pois ele possui histórico de entradas no estoque."
+        )
+
+    db.delete(insumo)
+    db.commit()
+
+
 def atualizar_insumo(db: Session, id_insumo: int, dados: CamisetaInsumoUpdate) -> CamisetaInsumo:
     insumo = db.get(CamisetaInsumo, id_insumo)
     if insumo is None:
