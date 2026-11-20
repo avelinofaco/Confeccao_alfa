@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Package, FileText, ShoppingCart, Crop, Scissors, Users, LogOut,
   Plus, Search, CheckCircle, Activity, X, ArrowRight, Menu, GitBranch, Layers
 } from 'lucide-react';
-
+import Sidebar from '../components/Sidebar';
 import api from '../services/api';
 import './CorteRendimento.css';
 
