@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { CheckCircle, DollarSign, FileSpreadsheet, PlusCircle, Printer, Trash2 } from 'lucide-react';
+import { CheckCircle, DollarSign, FileSpreadsheet, PlusCircle, Printer, Trash2, Menu, X, Scissors } from 'lucide-react';
 import api from '../services/api';
 import Sidebar from '../components/Sidebar';
 import { useToast } from '../components/feedback/useToast';
@@ -57,6 +57,7 @@ const somar = (registros, campo) => registros.reduce((acc, r) => acc + (Number(r
 function RegistroFinanceiroCamisetas() {
   const toast = useToast();
   const anoCorrente = Number(mesAtual().slice(0, 4));
+  const [menuMobileAberto, setMenuMobileAberto] = useState(false);
   const [ano, setAno] = useState(anoCorrente);
   const [registros, setRegistros] = useState([]);
   const [dreMes, setDreMes] = useState(null);
@@ -255,7 +256,33 @@ function RegistroFinanceiroCamisetas() {
 
   return (
     <div className="financeiro-camisetas-container">
-      <Sidebar />
+      {/* CABEÇALHO MOBILE (Só aparece no celular) */}
+      <div className="mobile-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div className="logo-box-sm">
+            <Scissors size={20} color="#2563eb" strokeWidth={2} />
+          </div>
+          <h2 style={{ fontSize: '16px', fontWeight: 'bold', color: '#1f2937' }}>Confecção Alfa</h2>
+        </div>
+        <button
+          type="button"
+          className="btn-menu-mobile"
+          onClick={() => setMenuMobileAberto(!menuMobileAberto)}
+          aria-label="Abrir menu de navegação"
+        >
+          {menuMobileAberto ? <X size={24} color="#1f2937" /> : <Menu size={24} color="#1f2937" />}
+        </button>
+      </div>
+
+      {menuMobileAberto && (
+        <div
+          className="sidebar-backdrop"
+          onClick={() => setMenuMobileAberto(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      <Sidebar menuMobileAberto={menuMobileAberto} setMenuMobileAberto={setMenuMobileAberto} />
 
       <main className="financeiro-camisetas-main">
         <header className="financeiro-header">
@@ -415,6 +442,7 @@ function RegistroFinanceiroCamisetas() {
                       <tr>
                         <th>Categoria</th>
                         <th>Descrição</th>
+                        <th>Data</th>
                         <th>Valor</th>
                         <th>Situação</th>
                         <th>Ações</th>
@@ -425,6 +453,7 @@ function RegistroFinanceiroCamisetas() {
                         <tr key={d.id_despesa}>
                           <td><strong>{rotuloCategoria(d.categoria)}</strong></td>
                           <td>{d.descricao}</td>
+                          <td>{d.data_vencimento ? new Date(d.data_vencimento + 'T00:00:00').toLocaleDateString('pt-BR') : '—'}</td>
                           <td style={{ color: '#dc2626', fontWeight: 700 }}>{formatarMoeda(d.valor)}</td>
                           <td>
                             <span className={`fin-status-badge ${d.status_pagamento === 'Pago' ? 'pago' : 'pendente'}`}>
@@ -432,23 +461,25 @@ function RegistroFinanceiroCamisetas() {
                             </span>
                           </td>
                           <td className="fin-acoes-celula">
-                            {d.status_pagamento === 'Pendente' && (
+                            <div className="fin-acoes-wrapper">
+                              {d.status_pagamento === 'Pendente' && (
+                                <button
+                                  type="button"
+                                  className="fin-btn-quitar"
+                                  onClick={() => handleQuitarDespesa(d.id_despesa)}
+                                >
+                                  Quitar
+                                </button>
+                              )}
                               <button
                                 type="button"
-                                className="fin-btn-quitar"
-                                onClick={() => handleQuitarDespesa(d.id_despesa)}
+                                className="fin-btn-excluir"
+                                aria-label={`Excluir despesa ${d.descricao}`}
+                                onClick={() => handleExcluirDespesa(d.id_despesa)}
                               >
-                                Quitar
+                                <Trash2 size={14} />
                               </button>
-                            )}
-                            <button
-                              type="button"
-                              className="fin-btn-excluir"
-                              aria-label={`Excluir despesa ${d.descricao}`}
-                              onClick={() => handleExcluirDespesa(d.id_despesa)}
-                            >
-                              <Trash2 size={14} />
-                            </button>
+                            </div>
                           </td>
                         </tr>
                       ))}

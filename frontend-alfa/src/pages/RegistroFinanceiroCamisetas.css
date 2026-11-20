@@ -328,6 +328,7 @@
   border-radius: 10px;
   padding: 1rem 1.1rem;
   background: #ffffff;
+  overflow-x: auto;
 }
 
 .dre-lista-card h3 {
@@ -343,10 +344,17 @@
   font-size: 0.88rem;
 }
 
+.tabela-fin-compacta {
+  width: 100%;
+  min-width: 520px;
+  border-collapse: collapse;
+}
+
 .tabela-fin-compacta th,
 .tabela-fin-compacta td {
-  padding: 0.55rem 0.65rem;
-  font-size: 0.83rem;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.84rem;
+  vertical-align: middle;
 }
 
 .fin-status-badge {
@@ -355,6 +363,7 @@
   border-radius: 999px;
   font-size: 0.72rem;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .fin-status-badge.pago {
@@ -370,13 +379,22 @@
 }
 
 .fin-acoes-celula {
-  display: flex;
+  vertical-align: middle;
+  white-space: nowrap;
+  text-align: right;
+  width: 1%;
+}
+
+.fin-acoes-wrapper {
+  display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  justify-content: flex-end;
+  gap: 0.45rem;
+  vertical-align: middle;
 }
 
 .fin-btn-quitar {
-  padding: 0.25rem 0.55rem;
+  padding: 0.28rem 0.6rem;
   border-radius: 6px;
   border: 1px solid #204B72;
   background: #ffffff;
@@ -384,6 +402,13 @@
   font-size: 0.74rem;
   font-weight: 700;
   cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1.2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
 }
 
 .fin-btn-quitar:hover {
@@ -392,7 +417,7 @@
 }
 
 .fin-btn-excluir {
-  padding: 0.25rem 0.4rem;
+  padding: 0.35rem 0.45rem;
   border-radius: 6px;
   border: 1px solid #FECACA;
   background: #FEF2F2;
@@ -400,6 +425,16 @@
   cursor: pointer;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 1;
+  transition: all 0.15s ease;
+}
+
+.fin-btn-excluir:hover {
+  background: #FEE2E2;
+  border-color: #F87171;
+  color: #991B1B;
 }
 
 .fin-avulso-details {
@@ -418,5 +453,26 @@
 @media (max-width: 1024px) {
   .despesa-form-grid {
     grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .financeiro-camisetas-container {
+    flex-direction: column;
+  }
+
+  .financeiro-camisetas-main {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 1.2rem 1rem;
+  }
+
+  .despesa-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dre-listas-grid {
+    grid-template-columns: 1fr;
   }
 }

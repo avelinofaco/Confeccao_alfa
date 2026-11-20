@@ -277,6 +277,22 @@
     animation: fadeInBackdrop 0.2s ease;
   }
 
+  /* Topo da Sidebar móvel com fundo branco sólido e borda discreta (Camisetas e Moda Íntima) */
+  .sidebar .sidebar-header,
+  .sidebar.camisetas-mode .sidebar-header {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 18px 20px 16px;
+    flex-shrink: 0;
+  }
+
+  .sidebar .sidebar-header h2,
+  .sidebar.camisetas-mode .sidebar-header h2 {
+    color: #1f2937;
+    font-size: 18px;
+    font-weight: 700;
+  }
+
   /* Transforma a Sidebar em gaveta flutuante (Drawer) */
   .sidebar {
     position: fixed;
@@ -284,14 +300,33 @@
     top: 0;
     bottom: 0;
     height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
     z-index: 50;
     transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.18);
+    background-color: #ffffff;
   }
 
   /* Entrada da sidebar na tela */
   .sidebar.open {
     left: 0;
+  }
+
+  /* Navegação com rolagem independente */
+  .sidebar-nav {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Rodapé fixo ao final para o botão Sair nunca ser cortado */
+  .sidebar-footer {
+    flex-shrink: 0;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
+    background-color: #ffffff;
   }
 }
 
