@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
+import {
   LayoutDashboard, Package, FileText, ShoppingCart, Crop, Scissors, PackageCheck, Users, LogOut,
   Plus, Search, X, CheckCircle, XCircle, CalendarCheck, FileSpreadsheet, Menu
 } from 'lucide-react';
+import Sidebar from '../components/Sidebar';
 import api from '../services/api';
 import './Equipe.css';
 
@@ -79,7 +80,7 @@ function Equipe() {
     const presencaInicial = {};
     colaboradores.forEach(colab => {
       if (colab.ativo) {
-        presencaInicial[colab.id_colaborador || colab.id] = true; 
+        presencaInicial[colab.id_colaborador || colab.id] = true;
       }
     });
     setListaPresenca(presencaInicial);
@@ -131,13 +132,13 @@ function Equipe() {
     }
   };
 
-  const colaboradoresFiltrados = colaboradores.filter(colab => 
+  const colaboradoresFiltrados = colaboradores.filter(colab =>
     (colab.nome_completo || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Máscara inteligente para o WhatsApp
   const mascaraTelefone = (valor) => {
-    let v = valor.replace(/\D/g, ''); 
+    let v = valor.replace(/\D/g, '');
     v = v.substring(0, 11);
     if (v.length > 2) {
       v = `(${v.substring(0, 2)})${v.substring(2)}`;
@@ -150,7 +151,7 @@ function Equipe() {
 
   return (
     <div className="dashboard-container">
-      
+
       {/* CABEÇALHO MOBILE */}
       <div className="mobile-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -164,26 +165,8 @@ function Equipe() {
         </button>
       </div>
 
-      {/* Sidebar Responsiva */}
-      <aside className={`sidebar ${menuMobileAberto ? 'open' : ''}`}>
-        <div className="sidebar-header">
-          <div className="logo-box-sm"><Scissors size={22} color="#00c875" strokeWidth={2} /></div>
-          <h2>Confecção Alfa</h2>
-        </div>
-        <nav className="sidebar-nav">
-          <button className="nav-item" onClick={() => { navigate('/dashboard'); setMenuMobileAberto(false); }}><LayoutDashboard size={19} /><span>Dashboard</span></button>
-          <button className="nav-item" onClick={() => { navigate('/estoque'); setMenuMobileAberto(false); }}><Package size={19} /><span>Estoque</span></button>
-          <button className="nav-item" onClick={() => { navigate('/ficha-tecnica'); setMenuMobileAberto(false); }}><FileText size={19} /><span>Ficha Técnica</span></button>
-          <button className="nav-item" onClick={() => { navigate('/comercial'); setMenuMobileAberto(false); }}><ShoppingCart size={19} /><span>Comercial</span></button>
-          <button className="nav-item" onClick={() => { navigate('/corte-rendimento'); setMenuMobileAberto(false); }}><Crop size={19} /><span>Corte/Rendimento</span></button>
-          <button className="nav-item" onClick={() => { navigate('/costura'); setMenuMobileAberto(false); }}><Scissors size={19} /><span>Costura</span></button>
-          <button className="nav-item active" onClick={() => { navigate('/equipe'); setMenuMobileAberto(false); }}><Users size={19} /><span>Equipe</span></button>
-          <button className="nav-item" onClick={() => { navigate('/configuracoes'); setMenuMobileAberto(false); }}><Users size={19} /><span>Configurações</span></button>
-        </nav>
-        <div className="sidebar-footer">
-          <button className="nav-item logout" onClick={() => { localStorage.removeItem('token_confeccao'); navigate('/'); }}><LogOut size={19} /><span>Sair</span></button>
-        </div>
-      </aside>
+      {/* SIDEBAR UNIFICADA (Com switcher dinâmico de segmento e menus especializados) */}
+      <Sidebar menuMobileAberto={menuMobileAberto} setMenuMobileAberto={setMenuMobileAberto} />
 
       <main className="main-content">
         <header className="top-header">
@@ -205,8 +188,8 @@ function Equipe() {
           <div className="search-filter-group">
             <div className="search-box">
               <Search size={18} color="#9ca3af" />
-              <input 
-                type="text" 
+              <input
+                type="text"
                 placeholder="Buscar colaborador..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -218,12 +201,12 @@ function Equipe() {
               <FileSpreadsheet size={18} />
               <span>Resumo Mensal</span>
             </button>
-            
+
             <button className="secondary-btn" onClick={abrirModalChamada} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: '#00c875', borderColor: '#00c875' }}>
               <CalendarCheck size={18} />
               <span>Fazer Chamada</span>
             </button>
-            
+
             <button className="primary-btn" onClick={() => setShowModalColaborador(true)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
               <Plus size={18} />
               <span>Novo Colaborador</span>
@@ -244,9 +227,9 @@ function Equipe() {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan="3" style={{textAlign: 'center', padding: '20px'}}>Carregando equipe...</td></tr>
+                  <tr><td colSpan="3" style={{ textAlign: 'center', padding: '20px' }}>Carregando equipe...</td></tr>
                 ) : colaboradoresFiltrados.length === 0 ? (
-                  <tr><td colSpan="3" style={{textAlign: 'center', padding: '20px'}}>Nenhum colaborador encontrado.</td></tr>
+                  <tr><td colSpan="3" style={{ textAlign: 'center', padding: '20px' }}>Nenhum colaborador encontrado.</td></tr>
                 ) : (
                   colaboradoresFiltrados.map((colab) => (
                     <tr key={colab.id_colaborador || colab.id}>
@@ -279,19 +262,19 @@ function Equipe() {
             <form onSubmit={handleCadastrarColaborador} className="modal-form">
               <div className="input-group">
                 <label>Nome Completo</label>
-                <input type="text" placeholder="Ex: Maria das Graças" value={novoColaborador.nome_completo} onChange={(e) => setNovoColaborador({...novoColaborador, nome_completo: e.target.value})} required />
+                <input type="text" placeholder="Ex: Maria das Graças" value={novoColaborador.nome_completo} onChange={(e) => setNovoColaborador({ ...novoColaborador, nome_completo: e.target.value })} required />
               </div>
               <div className="input-group">
                 <label>WhatsApp (Telefone)</label>
-                <input 
-                  type="text" 
-                  placeholder="(85)9 84657234" 
-                  value={novoColaborador.telefone_whatsapp} 
+                <input
+                  type="text"
+                  placeholder="(85)9 84657234"
+                  value={novoColaborador.telefone_whatsapp}
                   onChange={(e) => {
                     const valorFormatado = mascaraTelefone(e.target.value);
-                    setNovoColaborador({...novoColaborador, telefone_whatsapp: valorFormatado});
-                  }} 
-                  required 
+                    setNovoColaborador({ ...novoColaborador, telefone_whatsapp: valorFormatado });
+                  }}
+                  required
                 />
               </div>
               <div className="modal-actions">
@@ -316,7 +299,7 @@ function Equipe() {
                 <label>Data da Presença</label>
                 <input type="date" value={dataChamada} onChange={(e) => setDataChamada(e.target.value)} required />
               </div>
-              
+
               <div style={{ marginTop: '16px', maxHeight: '350px', overflowY: 'auto', paddingRight: '5px' }}>
                 <p style={{ fontWeight: 600, color: '#374151', marginBottom: '8px' }}>Registro de Presenças:</p>
                 {colaboradores.filter(c => c.ativo).map(colab => {
@@ -325,8 +308,8 @@ function Equipe() {
                   return (
                     <div key={id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 10px', borderBottom: '1px solid #f3f4f6' }}>
                       <span style={{ color: '#4b5563', fontWeight: '500' }}>{colab.nome_completo}</span>
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         onClick={() => togglePresenca(id)}
                         style={{
                           padding: '6px 16px', borderRadius: '20px', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px',
@@ -362,10 +345,10 @@ function Equipe() {
             <div className="modal-form">
               <div className="input-group" style={{ marginBottom: '20px' }}>
                 <label>Selecione o Mês de Apuração</label>
-                <input 
-                  type="month" 
-                  value={mesFiltro} 
-                  onChange={(e) => buscarResumoMensal(e.target.value)} 
+                <input
+                  type="month"
+                  value={mesFiltro}
+                  onChange={(e) => buscarResumoMensal(e.target.value)}
                 />
               </div>
 
