@@ -16,7 +16,8 @@ import {
   Shirt,
   Sparkles,
   DollarSign,
-  User
+  User,
+  X
 } from 'lucide-react';
 import { useSegmento } from '../context/SegmentoContext';
 import './Sidebar.css';
@@ -46,16 +47,37 @@ function Sidebar({ menuMobileAberto, setMenuMobileAberto }) {
   };
 
   return (
-    <aside className={`sidebar ${isCamisetas ? 'camisetas-mode' : ''} ${menuMobileAberto ? 'open' : ''}`}>
-      {/* Cabeçalho da Empresa */}
-      <div className="sidebar-header">
-        <div className="logo-box-sm">
-          <Scissors size={20} color={isCamisetas ? "#2563eb" : "#00c875"} strokeWidth={2.2} />
+    <>
+      {/* Backdrop para fechar ao tocar fora no mobile */}
+      {menuMobileAberto && (
+        <div
+          className="sidebar-backdrop"
+          onClick={fecharMobile}
+          aria-hidden="true"
+        />
+      )}
+
+      <aside className={`sidebar ${isCamisetas ? 'camisetas-mode' : ''} ${menuMobileAberto ? 'open' : ''}`}>
+        {/* Cabeçalho da Empresa */}
+        <div className="sidebar-header">
+          <div className="sidebar-brand">
+            <div className="logo-box-sm">
+              <Scissors size={20} color={isCamisetas ? "#2563eb" : "#00c875"} strokeWidth={2.2} />
+            </div>
+            <div>
+              <h2>Confecção Alfa</h2>
+            </div>
+          </div>
+          {/* Botão X para fechar no celular */}
+          <button
+            type="button"
+            className="btn-fechar-sidebar"
+            onClick={fecharMobile}
+            aria-label="Fechar menu"
+          >
+            <X size={20} />
+          </button>
         </div>
-        <div>
-          <h2>Confecção Alfa</h2>
-        </div>
-      </div>
 
       {/* Switcher Dinâmico de Segmento (RF04) */}
       <div className="segmento-switcher-card">
@@ -224,6 +246,7 @@ function Sidebar({ menuMobileAberto, setMenuMobileAberto }) {
         </button>
       </div>
     </aside>
+    </>
   );
 }
 
