@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { formatarNumero, formatarPecasPorKg } from '../utils/numeros';
 import {
   LayoutDashboard,
   Package,
@@ -311,7 +312,7 @@ function Dashboard() {
             <div className="kpi-data">
               <span className="kpi-label">Total de Peças em Estoque</span>
               <div className="kpi-value-group">
-                <span className="kpi-value">{totalPecasProntas}</span>
+                <span className="kpi-value">{formatarNumero(totalPecasProntas)}</span>
                 <span className="kpi-unit">peças</span>
               </div>
             </div>
@@ -326,7 +327,7 @@ function Dashboard() {
               <div className="kpi-value-group">
                 <span className="kpi-value text-blue">{malhaCampeao.malha}</span>
                 {malhaCampeao.rendimento > 0 && (
-                  <span className="kpi-badge positive">{malhaCampeao.rendimento} pçs/kg</span>
+                  <span className="kpi-badge positive">{formatarPecasPorKg(malhaCampeao.rendimento)}</span>
                 )}
               </div>
             </div>
@@ -371,7 +372,7 @@ function Dashboard() {
                     <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 13 }} unit=" p/kg" />
                     <Tooltip
                       cursor={{ fill: '#f9fafb' }}
-                      formatter={(value) => [`${value} peças/kg`, 'Rendimento']}
+                      formatter={(value) => [formatarPecasPorKg(value), 'Rendimento']}
                       contentStyle={{ backgroundColor: '#ffffff', borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                     />
                     <Bar dataKey="rendimento" name="Rendimento (peças/kg)" fill="#3b82f6" radius={[6, 6, 0, 0]} barSize={36} />
@@ -399,7 +400,7 @@ function Dashboard() {
                   <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 13 }} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 13 }} />
                   <Tooltip
-                    formatter={(value) => [`${value} peças`, 'Produção']}
+                    formatter={(value) => [`${formatarNumero(value)} peças`, 'Produção']}
                     contentStyle={{ backgroundColor: '#ffffff', borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                   />
                   <Area

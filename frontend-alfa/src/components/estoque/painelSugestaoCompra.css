@@ -1,0 +1,225 @@
+/* Painel de sugestão de compra de insumos (tela Estoque e Insumos) */
+
+.sugestao-compra-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.4rem 1.5rem;
+  margin-bottom: 1.8rem;
+  box-shadow: 0 1px 3px rgb(16 24 40 / 6%);
+}
+
+.sugestao-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.2rem;
+  flex-wrap: wrap;
+}
+
+.sugestao-topo h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 1.1rem;
+  color: #204b72;
+}
+
+.sugestao-explicacao {
+  margin: 0.4rem 0 0;
+  font-size: 0.82rem;
+  color: #64748b;
+  max-width: 62ch;
+}
+
+.sugestao-acoes {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.sugestao-acoes label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.sugestao-acoes input {
+  width: 6.5rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  font-size: 0.9rem;
+}
+
+.sugestao-acoes button {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.9rem;
+  border: 0;
+  border-radius: 7px;
+  background: #204b72;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.sugestao-acoes button:hover:not(:disabled) {
+  background: #16375a;
+}
+
+.sugestao-acoes button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.sugestao-total {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin: 1.2rem 0;
+  padding: 0.9rem 1.1rem;
+  background: #f0f7ff;
+  border-left: 4px solid #2563eb;
+  border-radius: 8px;
+}
+
+.sugestao-total span {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #475569;
+}
+
+.sugestao-total strong {
+  font-size: 1.6rem;
+  color: #1d4ed8;
+}
+
+.sugestao-total small {
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.sugestao-alertas {
+  list-style: none;
+  margin: 0 0 1.2rem;
+  padding: 0.8rem 1rem;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.sugestao-alertas li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  color: #92400e;
+}
+
+.sugestao-alertas svg {
+  flex: 0 0 auto;
+  margin-top: 0.1rem;
+}
+
+.sugestao-bloco {
+  margin-top: 1.3rem;
+}
+
+.sugestao-bloco h4 {
+  margin: 0 0 0.6rem;
+  font-size: 0.95rem;
+  color: #334155;
+}
+
+.sugestao-vazio {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.sugestao-tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.sugestao-tabela th {
+  text-align: left;
+  padding: 0.55rem 0.7rem;
+  background: #f4f6f8;
+  border-bottom: 2px solid #dde3e9;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: #475569;
+  white-space: nowrap;
+}
+
+.sugestao-tabela td {
+  padding: 0.6rem 0.7rem;
+  border-bottom: 1px solid #eef1f4;
+  vertical-align: top;
+}
+
+.sugestao-tabela td small {
+  display: block;
+  font-size: 0.73rem;
+  color: #94a3b8;
+}
+
+.sugestao-comprar {
+  font-weight: 800;
+  color: #b91c1c;
+  white-space: nowrap;
+}
+
+.sugestao-custo {
+  font-weight: 700;
+  color: #047857;
+  white-space: nowrap;
+}
+
+.sugestao-coberto .sugestao-comprar {
+  color: #059669;
+  font-weight: 600;
+}
+
+.sugestao-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0;
+  border: 0;
+  background: none;
+  color: #204b72;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sugestao-toggle:hover {
+  text-decoration: underline;
+}
+
+@media (width <= 640px) {
+  .sugestao-compra-card {
+    padding: 1.1rem;
+  }
+
+  .sugestao-acoes {
+    width: 100%;
+  }
+}

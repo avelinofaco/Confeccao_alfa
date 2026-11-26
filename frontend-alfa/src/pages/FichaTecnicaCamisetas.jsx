@@ -19,6 +19,7 @@ import { PainelEstampas } from '../components/cadastros/PainelEstampas';
 import { useConfirm } from '../components/feedback/useConfirm';
 import { buscarEmParalelo } from '../services/buscarEmParalelo';
 import Sidebar from '../components/Sidebar';
+import { formatarMoeda, formatarNumero, formatarPecasPorKg, paraCampoNumerico } from '../utils/numeros';
 import './FichaTecnicaCamisetas.css';
 
 function FichaTecnicaCamisetas() {
@@ -167,7 +168,7 @@ function FichaTecnicaCamisetas() {
 
       const precoUnitario = parseFloat(insumo.preco_custo_medio || 0);
       const consumoNum = parseFloat(consumoSugerido) || 0;
-      const custoEstimado = (precoUnitario * consumoNum).toFixed(2);
+      const custoEstimado = paraCampoNumerico(precoUnitario * consumoNum);
 
       setFormItemFicha({
         id_insumo: String(idInsumo),
@@ -189,7 +190,7 @@ function FichaTecnicaCamisetas() {
       if (insumo) {
         const precoUnitario = parseFloat(insumo.preco_custo_medio || 0);
         const consumoNum = parseFloat(String(novoConsumo).replace(',', '.')) || 0;
-        novoCusto = (precoUnitario * consumoNum).toFixed(2);
+        novoCusto = paraCampoNumerico(precoUnitario * consumoNum);
       }
 
       setFormItemFicha(prev => ({
@@ -352,18 +353,8 @@ function FichaTecnicaCamisetas() {
       }
     };
 
-    const formatarMoeda = (val) => {
-      return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
-    };
-
-    const formatarNumeroLimpo = (valor, sufixo = '') => {
-      const num = parseFloat(valor || 0);
-      const formatado = num.toLocaleString('pt-BR', {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 3
-      });
-      return sufixo ? `${formatado} ${sufixo}` : formatado;
-    };
+    const formatarNumeroLimpo = (valor, sufixo = '') =>
+      sufixo ? `${formatarNumero(valor)} ${sufixo}` : formatarNumero(valor);
 
     // Formatação amigável e explicativa do consumo unitário por peça (facilita o entendimento do operador)
     const formatarConsumoUnitarioAmigavel = (item) => {
@@ -377,7 +368,7 @@ function FichaTecnicaCamisetas() {
         const metrosEstimados = Math.round(consumo * 4000);
         return (
           <div className="consumo-amigavel-box">
-            <span className="consumo-valor-destaque">{consumo.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} carretel</span>
+            <span className="consumo-valor-destaque">{formatarNumero(consumo, { min: 2, max: 4 })} carretel</span>
             <small className="consumo-explicacao">
               (~{metrosEstimados}m de costura | 1 cone rende ~{pecasPorCone} peças)
             </small>
@@ -390,7 +381,7 @@ function FichaTecnicaCamisetas() {
         const gramas = Math.round(consumo * 1000);
         return (
           <div className="consumo-amigavel-box">
-            <span className="consumo-valor-destaque">{consumo.toLocaleString('pt-BR', { minimumFractionDigits: 3 })} kg</span>
+            <span className="consumo-valor-destaque">{formatarNumero(consumo, { min: 3, max: 3 })} kg</span>
             <small className="consumo-explicacao">({gramas}g de malha por peça)</small>
           </div>
         );
@@ -399,7 +390,7 @@ function FichaTecnicaCamisetas() {
       // Aviamentos unitários (etiquetas, tags, botões)
       return (
         <div className="consumo-amigavel-box">
-          <span className="consumo-valor-destaque">{consumo.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} un</span>
+          <span className="consumo-valor-destaque">{formatarNumero(consumo, { max: 2 })} un</span>
           <small className="consumo-explicacao">(1 unidade por peça)</small>
         </div>
       );
@@ -625,8 +616,8 @@ function FichaTecnicaCamisetas() {
                   <span className="espec-rotulo">Rendimento Esperado</span>
                   <strong className="espec-valor">
                     {parseFloat(modeloAtivo.consumo_tecido_kg) > 0
-                      ? (1 / parseFloat(modeloAtivo.consumo_tecido_kg)).toFixed(2)
-                      : '0'} peças / kg
+                      ? formatarPecasPorKg(1 / parseFloat(modeloAtivo.consumo_tecido_kg))
+                      : '—'}
                   </strong>
                 </div>
 

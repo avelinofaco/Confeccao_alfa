@@ -4,6 +4,7 @@ import api from '../services/api';
 import Sidebar from '../components/Sidebar';
 import { useToast } from '../components/feedback/useToast';
 import { mensagemDeErro } from '../components/feedback/mensagemErro';
+import { formatarMoeda, formatarPercentual } from '../utils/numeros';
 import './RegistroFinanceiroCamisetas.css';
 
 const NOMES_MESES = [
@@ -27,9 +28,6 @@ const rotuloCategoria = (codigo) =>
 
 const mesAtual = () => new Date().toLocaleDateString('sv-SE').slice(0, 7);
 
-const formatarMoeda = (valor) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(valor) || 0);
-
 const formatarMesAno = (mesAno) => {
   const [ano, mes] = String(mesAno || '').split('-');
   const indice = parseInt(mes, 10) - 1;
@@ -38,7 +36,7 @@ const formatarMesAno = (mesAno) => {
 
 const margemPercentual = (reg) => {
   const faturamento = Number(reg.faturamento_receita) || 0;
-  return faturamento > 0 ? ((Number(reg.lucro_liquido) / faturamento) * 100).toFixed(1) : '0.0';
+  return formatarPercentual(faturamento > 0 ? (Number(reg.lucro_liquido) / faturamento) * 100 : 0);
 };
 
 const descreverOrigem = (reg) => {
@@ -64,7 +62,8 @@ function RegistroFinanceiroCamisetas() {
   const [carregando, setCarregando] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [salvandoDespesa, setSalvandoDespesa] = useState(false);
-  const [formFin, setFormFin] = useState({ mes_ano: mesAtual(), outros_custos_operacionais: '', observacoes: '' });
+  const [formFin, setFormFin] = useState({ mes_ano: mesAtual(), observacoes: '' });
+  const [avulsoEditado, setAvulsoEditado] = useState(null); // null = o usuário ainda não mexeu no campo
   const [formDespesa, setFormDespesa] = useState({
     categoria: 'FACCAO',
     descricao: '',
@@ -95,14 +94,24 @@ function RegistroFinanceiroCamisetas() {
 
   const registroDoMes = registros.find((r) => r.mes_ano === formFin.mes_ano);
 
+  // O campo de custo avulso tem de mostrar o valor já gravado: enquanto ele vinha sempre
+  // vazio, qualquer salvamento de observação mandava 0 e apagava o lançamento do mês.
+  // O valor é derivado no render, não sincronizado por efeito: `avulsoEditado` vale null
+  // até o usuário digitar, e aí passa a ganhar do que está gravado.
+  const avulsoGravado = (reg) =>
+    reg?.outros_custos_avulsos != null && Number(reg.outros_custos_avulsos) > 0
+      ? String(reg.outros_custos_avulsos)
+      : '';
+  const avulsoNoCampo = avulsoEditado ?? avulsoGravado(registroDoMes);
+
   const handleMesAnoChange = (e) => {
     const novoMes = e.target.value;
     const existente = registros.find((r) => r.mes_ano === novoMes);
     setFormFin({
       mes_ano: novoMes,
-      outros_custos_operacionais: '',
       observacoes: existente?.observacoes || '',
     });
+    setAvulsoEditado(null);
     const anoDoMes = Number(novoMes.slice(0, 4));
     if (anoDoMes && anoDoMes !== ano) setAno(anoDoMes);
   };
@@ -173,7 +182,7 @@ function RegistroFinanceiroCamisetas() {
 
   const handleSalvar = async (e) => {
     e.preventDefault();
-    const outros = Number(formFin.outros_custos_operacionais || 0);
+    const outros = Number(avulsoNoCampo || 0);
     if (!formFin.mes_ano) {
       toast.aviso('Escolha o mês de referência.');
       return;
@@ -186,10 +195,11 @@ function RegistroFinanceiroCamisetas() {
       setSalvando(true);
       await api.post('/camisetas/financeiro/', {
         mes_ano: formFin.mes_ano,
-        outros_custos_operacionais: outros,
+        outros_custos_avulsos: outros,
         observacoes: formFin.observacoes,
       });
       toast.sucesso(`Observações e ajuste avulso de ${formatarMesAno(formFin.mes_ano)} salvos.`);
+      setAvulsoEditado(null);
       await carregarDados(ano, formFin.mes_ano);
     } catch (err) {
       toast.erro(mensagemDeErro(err, 'Erro ao salvar os outros custos.'));
@@ -201,7 +211,7 @@ function RegistroFinanceiroCamisetas() {
   const totalFaturamento = somar(registros, 'faturamento_receita');
   const totalGasto = somar(registros, 'valor_gasto_materiais');
   const totalLucro = somar(registros, 'lucro_liquido');
-  const margemMedia = totalFaturamento > 0 ? ((totalLucro / totalFaturamento) * 100).toFixed(1) : '0.0';
+  const margemMedia = formatarPercentual(totalFaturamento > 0 ? (totalLucro / totalFaturamento) * 100 : 0);
 
   const handleExportarPDF = () => {
     const janela = window.open('', '_blank');
@@ -216,9 +226,9 @@ function RegistroFinanceiroCamisetas() {
         <td>${escaparHtml(descreverOrigem(reg))}</td>
         <td style="text-align:right;color:#b91c1c;font-weight:700;">${formatarMoeda(reg.valor_gasto_materiais)}</td>
         <td style="text-align:right;color:#1d4ed8;font-weight:700;">${formatarMoeda(reg.faturamento_receita)}</td>
-        <td style="text-align:right;">${formatarMoeda(reg.outros_custos_operacionais)}</td>
+        <td style="text-align:right;">${formatarMoeda(reg.total_despesas_operacionais)}</td>
         <td style="text-align:right;color:#047857;font-weight:800;">${formatarMoeda(reg.lucro_liquido)}</td>
-        <td style="text-align:center;font-weight:700;">${margemPercentual(reg)}%</td>
+        <td style="text-align:center;font-weight:700;">${margemPercentual(reg)}</td>
         <td style="font-size:10px;color:#6b7280;">${escaparHtml(reg.observacoes || '-')}</td>
       </tr>`).join('');
 
@@ -243,7 +253,7 @@ function RegistroFinanceiroCamisetas() {
         <div class="kpi"><span>Faturamento</span><strong>${formatarMoeda(totalFaturamento)}</strong></div>
         <div class="kpi"><span>Compras de matéria-prima</span><strong>${formatarMoeda(totalGasto)}</strong></div>
         <div class="kpi"><span>Lucro líquido</span><strong>${formatarMoeda(totalLucro)}</strong></div>
-        <div class="kpi"><span>Margem média</span><strong>${margemMedia}%</strong></div>
+        <div class="kpi"><span>Margem média</span><strong>${margemMedia}</strong></div>
       </div>
       <table><thead><tr>
         <th>Mês</th><th>Origem</th><th>Matéria-prima</th><th>Faturamento</th><th>Despesas operacionais</th>
@@ -312,7 +322,7 @@ function RegistroFinanceiroCamisetas() {
           </div>
           <div className="card-financeiro-kpi">
             <span>Margem Média</span>
-            <h3>{margemMedia}%</h3>
+            <h3>{margemMedia}</h3>
           </div>
         </section>
 
@@ -355,7 +365,7 @@ function RegistroFinanceiroCamisetas() {
                 <strong className={Number(dreMes.lucro_liquido) >= 0 ? 'dre-valor-verde' : 'dre-valor-vermelho'}>
                   {formatarMoeda(dreMes.lucro_liquido)}
                 </strong>
-                <small>Margem líquida: {Number(dreMes.margem_liquida_percentual || 0).toFixed(1)}%</small>
+                <small>Margem líquida: {formatarPercentual(dreMes.margem_liquida_percentual)}</small>
               </div>
             </div>
           )}
@@ -554,8 +564,8 @@ function RegistroFinanceiroCamisetas() {
                     min="0"
                     step="0.01"
                     placeholder="Ex: 150.00"
-                    value={formFin.outros_custos_operacionais}
-                    onChange={(e) => setFormFin({ ...formFin, outros_custos_operacionais: e.target.value })}
+                    value={avulsoNoCampo}
+                    onChange={(e) => setAvulsoEditado(e.target.value)}
                   />
                 </div>
                 <div className="form-group">
@@ -581,6 +591,11 @@ function RegistroFinanceiroCamisetas() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.4rem', flexWrap: 'wrap', gap: '0.8rem' }}>
             <div>
               <h2 style={{ margin: 0 }}>Mês a mês — {ano}</h2>
+              <p style={{ margin: '0.3rem 0 0.6rem', fontSize: '0.82rem', color: '#64748b', maxWidth: '58ch' }}>
+                <strong>Matéria-Prima (Notas)</strong> é a soma das notas fiscais lançadas no mês,
+                pela data da nota. Não é o valor parado no estoque — esse fica em Estoque e Insumos
+                e muda conforme a produção consome o material.
+              </p>
               <label htmlFor="fin-ano" className="seletor-ano-label">
                 Ano:{' '}
                 <select id="fin-ano" value={ano} onChange={(e) => setAno(Number(e.target.value))}>
@@ -616,7 +631,7 @@ function RegistroFinanceiroCamisetas() {
                 ) : registros.map((reg) => (
                   <tr
                     key={reg.mes_ano}
-                    onClick={() => setFormFin((atual) => ({ ...atual, mes_ano: reg.mes_ano, observacoes: reg.observacoes || '' }))}
+                    onClick={() => { setFormFin({ mes_ano: reg.mes_ano, observacoes: reg.observacoes || '' }); setAvulsoEditado(null); }}
                     style={{ cursor: 'pointer' }}
                     title="Clique para abrir o DRE deste mês"
                   >
@@ -628,9 +643,9 @@ function RegistroFinanceiroCamisetas() {
                     </td>
                     <td style={{ color: '#dc2626', fontWeight: 700 }}>{formatarMoeda(reg.valor_gasto_materiais)}</td>
                     <td style={{ color: '#2563eb', fontWeight: 700 }}>{formatarMoeda(reg.faturamento_receita)}</td>
-                    <td>{formatarMoeda(reg.outros_custos_operacionais)}</td>
+                    <td>{formatarMoeda(reg.total_despesas_operacionais)}</td>
                     <td style={{ color: '#059669', fontWeight: 800 }}>{formatarMoeda(reg.lucro_liquido)}</td>
-                    <td><span className="margem-lucro-tag">{margemPercentual(reg)}%</span></td>
+                    <td><span className="margem-lucro-tag">{margemPercentual(reg)}</span></td>
                     <td style={{ fontSize: '0.85rem', color: '#64748b' }}>{reg.observacoes || '—'}</td>
                   </tr>
                 ))}

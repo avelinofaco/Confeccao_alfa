@@ -4,6 +4,7 @@ import { useToast } from '../feedback/useToast';
 import { mensagemDeErro } from '../feedback/mensagemErro';
 import { chaveCelula, valoresParaLista } from '../../utils/grade';
 import { formatarRendimento } from '../../utils/producao';
+import { formatarPecas, formatarPeso } from '../../utils/numeros';
 import { GradeQuantidades } from './GradeQuantidades';
 import { ModalProducao } from './ModalProducao';
 
@@ -41,7 +42,7 @@ export function ModalCorteOp({ op, onFechar, onSalvo }) {
   return (
     <ModalProducao titulo={`Registrar corte · ${op.codigo_op}`} idTitulo="titulo-corte-op" onFechar={onFechar} largo={!op.legada}>
       <p className="producao-resumo">
-        {op.nome_modelo} · {Number(op.peso_malha_enviado_kg).toFixed(3)} kg na mesa · previsão de {op.pecas_planejadas || 0} peças
+        {op.nome_modelo} · {formatarPeso(op.peso_malha_enviado_kg)} na mesa · previsão de {formatarPecas(op.pecas_planejadas)}
       </p>
       <form onSubmit={salvar}>
         {op.legada ? (
@@ -54,11 +55,11 @@ export function ModalCorteOp({ op, onFechar, onSalvo }) {
             valores={valores} onChange={setValores} />
         )}
         <ul className="producao-lista" aria-live="polite">
-          <li>Total: <strong>{total} peças</strong> · {formatarRendimento(total, op.peso_malha_enviado_kg)}</li>
+          <li>Total: <strong>{formatarPecas(total)}</strong> · {formatarRendimento(total, op.peso_malha_enviado_kg)}</li>
           {!op.legada && op.cores.map((c) => (
             <li key={c.id_cor}>
               <span className="cadastro-amostra" style={{ background: c.hex_cor }} aria-hidden="true" /> {c.nome_cor}:{' '}
-              {totalDaCor(c.id_cor)} peças em {Number(c.peso_kg).toFixed(3)} kg · {formatarRendimento(totalDaCor(c.id_cor), c.peso_kg)}
+              {formatarPecas(totalDaCor(c.id_cor))} em {formatarPeso(c.peso_kg)} · {formatarRendimento(totalDaCor(c.id_cor), c.peso_kg)}
             </li>
           ))}
         </ul>

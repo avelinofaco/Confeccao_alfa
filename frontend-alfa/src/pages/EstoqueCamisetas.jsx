@@ -19,9 +19,14 @@ import api from '../services/api';
 import { useToast } from '../components/feedback/useToast';
 import { useConfirm } from '../components/feedback/useConfirm';
 import { ModalEditarInsumo } from '../components/cadastros/ModalEditarInsumo';
+import { PainelSugestaoCompra } from '../components/estoque/PainelSugestaoCompra';
+import { formatarMoeda, formatarPesoCurto, formatarQuantidade, siglaUnidade } from '../utils/numeros';
 import '../components/cadastros/cadastros.css';
 import Sidebar from '../components/Sidebar';
 import './EstoqueCamisetas.css';
+
+// Data de hoje no fuso local, no formato AAAA-MM-DD que o input type="date" espera.
+const dataDeHoje = () => new Date().toLocaleDateString('sv-SE');
 
 // Mapeamento completo de Categorias com prefixos para Código Único e parâmetros de IHC
 const MAPA_CATEGORIAS = {
@@ -86,7 +91,8 @@ function EstoqueCamisetas() {
     numero_nota_fiscal: '',
     fornecedor: '',
     quantidade: '',
-    valor_total: ''
+    valor_total: '',
+    data_entrada: dataDeHoje()
   });
 
   // Formulário de Novo Insumo
@@ -99,31 +105,14 @@ function EstoqueCamisetas() {
     unidade_medida: 'kg',
     saldo_atual: '',
     estoque_minimo: '',
-    preco_custo_medio: ''
+    preco_custo_medio: '',
+    embalagem_compra: ''
   });
 
   // Converte unidade cadastrada para a sigla (kg ou Uni)
-  const obterSiglaUnidade = (unidade) => {
-    return (unidade || '').toLowerCase() === 'kg' ? 'kg' : 'Uni';
-  };
-
-  // Formatação limpa de quantidades: 150 kg e 40 kg sem zeros desnecessários (,000)
-  const formatarQuantidade = (valor, sigla = '') => {
-    if (valor === null || valor === undefined || valor === '') return `0 ${sigla}`.trim();
-    const num = Number(valor);
-    if (isNaN(num)) return `0 ${sigla}`.trim();
-
-    // Se for inteiro (ex: 150), exibe 150. Se for quebrado (ex: 380.5), exibe 380,5
-    const formatado = num.toLocaleString('pt-BR', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 3
-    });
-
-    return sigla ? `${formatado} ${sigla}` : formatado;
-  };
 
   // Sigla dinâmica da unidade de medida do novo insumo
-  const siglaUnidadeNovo = obterSiglaUnidade(formNovoInsumo.unidade_medida);
+  const siglaUnidadeNovo = siglaUnidade(formNovoInsumo.unidade_medida);
 
   // Geração automática e auditável de Código Único por Categoria individual (Linha, Tag, Etiqueta, Malha)
   const gerarCodigoAutomatico = (categoria, listaInsumos = []) => {
@@ -250,24 +239,19 @@ function EstoqueCamisetas() {
 
   // Abertura do modal de entrada rápida
   const abrirModalEntrada = (insumo = null) => {
+    const campos = {
+      numero_nota_fiscal: '',
+      fornecedor: '',
+      quantidade: '',
+      valor_total: '',
+      data_entrada: dataDeHoje(),
+    };
     if (insumo) {
       setInsumoSelecionado(insumo);
-      setFormEntrada({
-        id_insumo: insumo.id_insumo,
-        numero_nota_fiscal: '',
-        fornecedor: '',
-        quantidade: '',
-        valor_total: ''
-      });
+      setFormEntrada({ ...campos, id_insumo: insumo.id_insumo });
     } else {
       setInsumoSelecionado(null);
-      setFormEntrada({
-        id_insumo: insumos.length > 0 ? insumos[0].id_insumo : '',
-        numero_nota_fiscal: '',
-        fornecedor: '',
-        quantidade: '',
-        valor_total: ''
-      });
+      setFormEntrada({ ...campos, id_insumo: insumos.length > 0 ? insumos[0].id_insumo : '' });
     }
     setModalEntradaAberto(true);
   };
@@ -278,6 +262,16 @@ function EstoqueCamisetas() {
       mostrarToast('erro', 'Selecione o insumo e informe a quantidade.');
       return;
     }
+    // Sem isto o valor virava 0 calado: a nota entrava no estoque e não aparecia
+    // na coluna Matéria-Prima do financeiro.
+    if (formEntrada.valor_total === '' || formEntrada.valor_total === null) {
+      mostrarToast('erro', 'Informe o valor total da nota. Use 0 para bonificação ou ajuste sem valor.');
+      return;
+    }
+    if (!formEntrada.data_entrada) {
+      mostrarToast('erro', 'Informe a data da nota: é ela que define o mês no financeiro.');
+      return;
+    }
 
     try {
       setSalvandoEntrada(true);
@@ -286,7 +280,8 @@ function EstoqueCamisetas() {
         numero_nota_fiscal: formEntrada.numero_nota_fiscal,
         fornecedor: formEntrada.fornecedor,
         quantidade: parseFloat(formEntrada.quantidade),
-        valor_total: parseFloat(formEntrada.valor_total || 0)
+        valor_total: parseFloat(formEntrada.valor_total),
+        data_entrada: formEntrada.data_entrada,
       });
 
       mostrarToast('sucesso', 'Entrada de material registrada com sucesso! Saldo em estoque atualizado.');
@@ -321,6 +316,9 @@ function EstoqueCamisetas() {
         saldo_atual: 0,
         estoque_minimo: parseFloat(formNovoInsumo.estoque_minimo || 0),
         preco_custo_medio: parseFloat(formNovoInsumo.preco_custo_medio || 0),
+        embalagem_compra: formNovoInsumo.categoria === 'ROLO_TECIDO' || formNovoInsumo.embalagem_compra === ''
+          ? null
+          : parseFloat(formNovoInsumo.embalagem_compra),
         id_cor: formNovoInsumo.categoria === 'ROLO_TECIDO' && formNovoInsumo.id_cor ? Number(formNovoInsumo.id_cor) : null,
       });
 
@@ -333,10 +331,6 @@ function EstoqueCamisetas() {
     } finally {
       setSalvandoNovoInsumo(false);
     }
-  };
-
-  const formatarMoeda = (val) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
   };
 
   // Totais financeiros consolidados de matérias-primas cadastradas no estoque
@@ -413,10 +407,12 @@ function EstoqueCamisetas() {
           <div className="card-estoque-kpi">
             <span>Valor Total de Matérias-Primas</span>
             <h3>{formatarMoeda(totalValorEstoque)}</h3>
-            <small style={{ color: '#64748b', fontSize: '0.8rem' }}>Patrimônio em estoque cadastrado</small>
+            <small style={{ color: '#64748b', fontSize: '0.8rem' }}>
+              Saldo × custo médio. Não compare com a coluna de notas do financeiro: aqui o valor cai quando a produção consome.
+            </small>
           </div>
           <div className="card-estoque-kpi">
-            <span>Investido em Malhas ({totalPesoMalhas.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} kg)</span>
+            <span>Investido em Malhas ({formatarPesoCurto(totalPesoMalhas)})</span>
             <h3 style={{ color: '#2563eb' }}>{formatarMoeda(totalValorMalhas)}</h3>
             <small style={{ color: '#64748b', fontSize: '0.8rem' }}>{rolosTecido.length} tipo(s) de malha cadastrados</small>
           </div>
@@ -426,6 +422,9 @@ function EstoqueCamisetas() {
             <small style={{ color: '#64748b', fontSize: '0.8rem' }}>{aviamentos.length} tipo(s) de aviamentos (linhas, etiquetas, tags)</small>
           </div>
         </section>
+
+        {/* SUGESTÃO DE COMPRA A PARTIR DOS PEDIDOS NA FILA DE PRODUÇÃO */}
+        <PainelSugestaoCompra />
 
         {/* NAVEGAÇÃO ENTRE AS DUAS ABAS (IHC - Metáfora de Abas e Comunicabilidade) */}
         <div className="tabs-navigation" role="tablist" aria-label="Categorias de insumos">
@@ -505,8 +504,6 @@ function EstoqueCamisetas() {
                     const minNum = parseFloat(item.estoque_minimo || 0);
                     const isCritico = saldoNum <= minNum;
                     const isNegativo = saldoNum < 0;
-                    const siglaItem = obterSiglaUnidade(item.unidade_medida);
-
                     return (
                       <tr key={item.id_insumo}>
                         <td><strong className="codigo-insumo-destaque">{item.codigo}</strong></td>
@@ -515,11 +512,11 @@ function EstoqueCamisetas() {
                           {item.hex_cor && <span className="cadastro-amostra" style={{ background: item.hex_cor }} title={item.nome_cor} />}{' '}
                           {item.cor || item.nome_cor || '—'}
                         </td>
-                        {/* Exibição limpa: a sigla da unidade (kg ou Uni) já acompanha diretamente o valor */}
+                        {/* A sigla da unidade sai junto do valor, pelo formatador compartilhado */}
                         <td style={{ fontSize: '0.95rem', fontWeight: 800 }}>
-                          {formatarQuantidade(item.saldo_atual, siglaItem)}
+                          {formatarQuantidade(item.saldo_atual, item.unidade_medida)}
                         </td>
-                        <td>{formatarQuantidade(item.estoque_minimo, siglaItem)}</td>
+                        <td>{formatarQuantidade(item.estoque_minimo, item.unidade_medida)}</td>
                         <td>
                           <strong>{formatarMoeda(item.preco_custo_medio)}</strong>
                         </td>
@@ -612,7 +609,7 @@ function EstoqueCamisetas() {
                     <option value="">Selecione o insumo...</option>
                     {insumos.map(i => (
                       <option key={i.id_insumo} value={i.id_insumo}>
-                        [{i.codigo}] {i.tipo_malha_ou_aviamento} ({i.cor || 'Sem cor'}) — Saldo Atual: {formatarQuantidade(i.saldo_atual, obterSiglaUnidade(i.unidade_medida))}
+                        [{i.codigo}] {i.tipo_malha_ou_aviamento} ({i.cor || 'Sem cor'}) — Saldo Atual: {formatarQuantidade(i.saldo_atual, i.unidade_medida)}
                       </option>
                     ))}
                   </select>
@@ -636,21 +633,35 @@ function EstoqueCamisetas() {
                   </div>
 
                   <div className="form-group">
-                    <label htmlFor="entrada-valor-total">Valor Total da Compra (R$)</label>
-                    <input 
+                    <label htmlFor="entrada-valor-total">Valor Total da Compra (R$) *</label>
+                    <input
                       id="entrada-valor-total"
-                      type="number" 
+                      type="number"
                       step="0.01"
                       min="0"
                       placeholder="Ex: 2100.00"
                       value={formEntrada.valor_total}
                       onChange={(e) => setFormEntrada({ ...formEntrada, valor_total: e.target.value })}
+                      required
                     />
-                    <span className="form-help-hint">Valor financeiro da entrada</span>
+                    <span className="form-help-hint">Vai para a coluna Matéria-Prima do financeiro. Use 0 para bonificação.</span>
                   </div>
                 </div>
 
                 <div className="modal-form-grid-2">
+                  <div className="form-group">
+                    <label htmlFor="entrada-data">Data da Nota *</label>
+                    <input
+                      id="entrada-data"
+                      type="date"
+                      max={dataDeHoje()}
+                      value={formEntrada.data_entrada}
+                      onChange={(e) => setFormEntrada({ ...formEntrada, data_entrada: e.target.value })}
+                      required
+                    />
+                    <span className="form-help-hint">Define em que mês a compra entra no financeiro</span>
+                  </div>
+
                   <div className="form-group">
                     <label htmlFor="entrada-nf">Número Nota Fiscal</label>
                     <input 
@@ -662,7 +673,9 @@ function EstoqueCamisetas() {
                     />
                     <span className="form-help-hint">Rastreabilidade fiscal</span>
                   </div>
+                </div>
 
+                <div className="modal-form-grid-2">
                   <div className="form-group">
                     <label htmlFor="entrada-fornecedor">Fornecedor</label>
                     <input 
@@ -872,6 +885,22 @@ function EstoqueCamisetas() {
                     />
                     <span className="form-help-hint">Valor por {siglaUnidadeNovo}</span>
                   </div>
+
+                  {formNovoInsumo.categoria !== 'ROLO_TECIDO' && (
+                    <div className="form-group">
+                      <label htmlFor="novo-insumo-embalagem">Embalagem do Fornecedor</label>
+                      <input
+                        id="novo-insumo-embalagem"
+                        type="number"
+                        step="0.001"
+                        min="0"
+                        placeholder="Ex: 1000"
+                        value={formNovoInsumo.embalagem_compra}
+                        onChange={(e) => setFormNovoInsumo({ ...formNovoInsumo, embalagem_compra: e.target.value })}
+                      />
+                      <span className="form-help-hint">Caixa fechada; vazio = compra fracionada</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="info-box-ihc">
