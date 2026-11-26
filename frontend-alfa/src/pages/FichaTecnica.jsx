@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { formatarNumero } from '../utils/numeros';
 import {
   LayoutDashboard, Package, FileText, ShoppingCart, Crop, Scissors, PackageCheck, Users, LogOut,
   Plus, Search, PlusCircle, X, ChevronRight, Menu
@@ -157,7 +158,7 @@ function FichaTecnica() {
       return (
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <span style={{ fontWeight: 700, color: '#00c875' }}>
-            {consumo.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} carretel
+            {formatarNumero(consumo, { min: 2, max: 4 })} carretel
           </span>
           <small style={{ color: '#6b7280', fontSize: '11px', marginTop: '2px' }}>
             (~{metros}m de costura | 1 cone rende ~{pecasPorCone} peças)
@@ -172,7 +173,7 @@ function FichaTecnica() {
       return (
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <span style={{ fontWeight: 700, color: '#00c875' }}>
-            {consumo.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 4 })} kg
+            {formatarNumero(consumo, { min: 3, max: 4 })} kg
           </span>
           <small style={{ color: '#6b7280', fontSize: '11px', marginTop: '2px' }}>
             ({gramas} g de malha por peça)
@@ -187,7 +188,7 @@ function FichaTecnica() {
       return (
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <span style={{ fontWeight: 700, color: '#00c875' }}>
-            {consumo.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 3 })} m
+            {formatarNumero(consumo, { min: 2, max: 3 })} m
           </span>
           <small style={{ color: '#6b7280', fontSize: '11px', marginTop: '2px' }}>
             ({cm} cm de elástico/renda por peça)
@@ -200,10 +201,10 @@ function FichaTecnica() {
     return (
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         <span style={{ fontWeight: 700, color: '#00c875' }}>
-          {consumo.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} un
+          {formatarNumero(consumo, { max: 2 })} un
         </span>
         <small style={{ color: '#6b7280', fontSize: '11px', marginTop: '2px' }}>
-          ({consumo === 1 ? '1 unidade' : `${consumo} unidades`} por peça)
+          ({consumo === 1 ? '1 unidade' : `${formatarNumero(consumo, { max: 2 })} unidades`} por peça)
         </small>
       </div>
     );

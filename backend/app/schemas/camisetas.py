@@ -63,6 +63,10 @@ class CamisetaInsumoBase(BaseModel):
     saldo_atual: Decimal = Decimal("0.000")
     estoque_minimo: Decimal = Decimal("10.000")
     preco_custo_medio: Decimal = Decimal("0.00")
+    embalagem_compra: Optional[Decimal] = Field(
+        None, ge=0,
+        description="Quantidade da embalagem fechada do fornecedor; vazio = compra fracionada. Só vale para aviamento.",
+    )
     id_cor: Optional[int] = None  # cor de camiseta que esta malha produz
 
 class CamisetaInsumoCreate(CamisetaInsumoBase):
@@ -83,14 +87,22 @@ class CamisetaInsumoUpdate(BaseModel):
     id_cor: Optional[int] = None
     unidade_medida: str = Field(..., min_length=1, max_length=15)
     estoque_minimo: Decimal = Field(..., ge=0)
+    embalagem_compra: Optional[Decimal] = Field(None, ge=0)
 
 # ----------------- ENTRADA DE INSUMOS (COMPRAS/NFs) -----------------
 class CamisetaEntradaInsumoCreate(BaseModel):
+    """O valor é obrigatório de propósito: omitir virava R$ 0,00 calado e a nota
+    sumia da coluna de matéria-prima do financeiro. Para bonificação ou ajuste
+    sem valor, mande 0 explicitamente."""
     id_insumo: int
     numero_nota_fiscal: Optional[str] = None
     fornecedor: Optional[str] = None
     quantidade: Decimal
-    valor_total: Decimal = Decimal("0.00")
+    valor_total: Decimal = Field(..., description="Valor total da nota; 0 só para bonificação ou ajuste")
+    data_entrada: Optional[date] = Field(
+        None,
+        description="Data da nota fiscal. Vazio = momento do lançamento. Define o mês do financeiro.",
+    )
 
 class CamisetaEntradaInsumoResponse(BaseModel):
     id_entrada: int
@@ -259,24 +271,25 @@ class CamisetaCosturaFaccaoResponse(BaseModel):
 
 # ----------------- REGISTRO FINANCEIRO -----------------
 class CamisetaRegistroFinanceiroCreate(BaseModel):
-    """Lançamento manual do mês: só outros custos e observações são gravados.
+    """Lançamento manual do mês: só o custo avulso e as observações são gravados.
 
     Faturamento, gasto e lucro são calculados pelo sistema; se vierem no corpo,
-    são ignorados (mantidos aqui só por compatibilidade com o frontend antigo).
+    são ignorados.
+
+    Campo omitido é campo não alterado: salvar só a observação não apaga o custo
+    avulso que já estava gravado. Para zerar o avulso, mande 0.
     """
     mes_ano: str
-    outros_custos_operacionais: Decimal = Decimal("0.00")
+    outros_custos_avulsos: Optional[Decimal] = None
     observacoes: Optional[str] = None
-    valor_gasto_materiais: Optional[Decimal] = None
-    faturamento_receita: Optional[Decimal] = None
-    lucro_liquido: Optional[Decimal] = None
 
 class CamisetaRegistroFinanceiroResponse(BaseModel):
     id_registro: Optional[int] = None  # nulo quando o mês não tem lançamento manual
     mes_ano: str
     valor_gasto_materiais: Decimal
     faturamento_receita: Decimal
-    outros_custos_operacionais: Decimal
+    outros_custos_avulsos: Decimal = Decimal("0.00")
+    total_despesas_operacionais: Decimal
     lucro_liquido: Decimal
     observacoes: Optional[str] = None
     criado_em: Optional[datetime] = None
@@ -289,6 +302,47 @@ class CamisetaRegistroFinanceiroResponse(BaseModel):
     receita_recebida: Decimal = Decimal("0.00")
     receita_a_receber: Decimal = Decimal("0.00")
     model_config = ConfigDict(from_attributes=True)
+
+# ----------------- SUGESTÃO DE COMPRA DE INSUMOS -----------------
+class CamisetaLinhaSugestaoResponse(BaseModel):
+    """O que falta de um insumo para os pedidos que vão entrar em produção."""
+    id_insumo: int
+    codigo: str
+    descricao: str
+    unidade: str
+    nome_cor: Optional[str] = None
+    necessario: Decimal
+    saldo_atual: Decimal
+    estoque_minimo: Decimal
+    comprar: Decimal
+    preco_referencia: Decimal
+    origem_preco: str
+    custo_estimado: Decimal
+    pecas: int
+    embalagens: int = 0
+    sobra: Decimal = Decimal("0")
+    model_config = ConfigDict(from_attributes=True)
+
+
+class CamisetaPedidoConsideradoResponse(BaseModel):
+    codigo_pedido: str
+    nome_cliente: str
+    status_pedido: str
+    prazo_entrega: Optional[date] = None
+    pecas: int
+    conta_tecido: bool
+    pecas_pendentes_aviamento: int
+    model_config = ConfigDict(from_attributes=True)
+
+
+class CamisetaSugestaoCompraResponse(BaseModel):
+    tecidos: List[CamisetaLinhaSugestaoResponse]
+    aviamentos: List[CamisetaLinhaSugestaoResponse]
+    total_estimado: Decimal
+    pedidos_considerados: List[CamisetaPedidoConsideradoResponse]
+    alertas: List[str]
+    model_config = ConfigDict(from_attributes=True)
+
 
 class CamisetaApuracaoMensalResponse(BaseModel):
     mes_ano: str

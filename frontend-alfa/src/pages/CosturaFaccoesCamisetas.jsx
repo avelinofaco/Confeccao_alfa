@@ -16,6 +16,7 @@ import api from '../services/api';
 import Sidebar from '../components/Sidebar';
 import { FormEnvioFaccao } from '../components/producao/FormEnvioFaccao';
 import { ModalRetornoFaccao } from '../components/producao/ModalRetornoFaccao';
+import { formatarPecas } from '../utils/numeros';
 import './CosturaFaccoesCamisetas.css';
 
 // Agrupa os SKUs da remessa por cor para exibição limpa
@@ -137,18 +138,18 @@ function CosturaFaccoesCamisetas() {
         <section className="metricas-costura-bar">
           <div className="metrica-costura-card">
             <span>Total Painéis Enviados</span>
-            <h3>{totalEnviado.toLocaleString('pt-BR')} un.</h3>
+            <h3>{formatarPecas(totalEnviado)}</h3>
           </div>
 
           <div className="metrica-costura-card">
             <span>Camisetas Prontas (Saldo Aprovado)</span>
-            <h3 style={{ color: '#059669' }}>{totalRetornado.toLocaleString('pt-BR')} un.</h3>
+            <h3 style={{ color: '#059669' }}>{formatarPecas(totalRetornado)}</h3>
           </div>
 
           <div className="metrica-costura-card">
             <span>Perdas / Avarias de Lote</span>
             <h3 style={{ color: totalPerdas > 0 ? '#dc2626' : '#64748b' }}>
-              {totalPerdas.toLocaleString('pt-BR')} un.
+              {formatarPecas(totalPerdas)}
             </h3>
           </div>
         </section>

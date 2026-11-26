@@ -1,14 +1,35 @@
 # app/services/camisetas/estoque.py
 """Regras de estoque do segmento Camisetas."""
 from dataclasses import dataclass
+from datetime import date, datetime, timezone
 from decimal import ROUND_HALF_UP, Decimal
+from typing import Optional
 
 from sqlalchemy.orm import Session
 
+from app.core.config import FUSO_HORARIO
+from app.core.erros import ErroNegocio
 from app.models.camisetas import CamisetaInsumo, get_utc_now
 
 DUAS_CASAS = Decimal("0.01")
 ZERO = Decimal("0")
+
+
+def momento_da_nota(data_nota: Optional[date]) -> datetime:
+    """Instante UTC em que a nota fiscal deve ser gravada.
+
+    A data informada vale como o início daquele dia no fuso do negócio — a mesma
+    convenção que a apuração mensal usa para recortar o mês. É isso que faz uma nota
+    de agosto lançada em novembro cair em agosto no financeiro.
+
+    Sem data informada, usa o momento do lançamento.
+    """
+    if data_nota is None:
+        return get_utc_now()
+    if data_nota > datetime.now(FUSO_HORARIO).date():
+        raise ErroNegocio(400, "A data da nota fiscal não pode ser futura.")
+    inicio_do_dia = datetime(data_nota.year, data_nota.month, data_nota.day, tzinfo=FUSO_HORARIO)
+    return inicio_do_dia.astimezone(timezone.utc)
 
 
 def calcular_custo_medio(saldo_anterior: Decimal, custo_anterior: Decimal,

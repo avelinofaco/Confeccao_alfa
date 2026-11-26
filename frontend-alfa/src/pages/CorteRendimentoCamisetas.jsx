@@ -13,6 +13,7 @@ import { useToast } from '../components/feedback/useToast';
 import { useConfirm } from '../components/feedback/useConfirm';
 import { buscarEmParalelo } from '../services/buscarEmParalelo';
 import api from '../services/api';
+import { formatarPecas, formatarPecasPorKg, formatarPeso, formatarPesoCurto } from '../utils/numeros';
 import Sidebar from '../components/Sidebar';
 import { FormNovaOp } from '../components/producao/FormNovaOp';
 import { ModalCorteOp } from '../components/producao/ModalCorteOp';
@@ -73,7 +74,7 @@ function CorteRendimentoCamisetas() {
   const handleExcluirOp = async (op) => {
     const confirmou = await confirmar({
       titulo: `Excluir ordem de produção ${op.codigo_op}?`,
-      mensagem: `Deseja realmente excluir a OP ${op.codigo_op} (${op.nome_modelo})? O peso de ${parseFloat(op.peso_malha_enviado_kg || 0).toFixed(3)} kg de malha será estornado de volta ao estoque.`,
+      mensagem: `Deseja realmente excluir a OP ${op.codigo_op} (${op.nome_modelo})? O peso de ${formatarPeso(op.peso_malha_enviado_kg)} de malha será estornado de volta ao estoque.`,
       textoConfirmar: 'Excluir OP',
       perigo: true,
     });
@@ -94,7 +95,8 @@ function CorteRendimentoCamisetas() {
   // Métricas do Topo
   const totalKgCortados = ordens.reduce((acc, o) => acc + parseFloat(o.peso_malha_enviado_kg || 0), 0);
   const totalPecasCortadas = ordens.reduce((acc, o) => acc + (o.pecas_reais_cortadas || 0), 0);
-  const mediaRendimento = totalKgCortados > 0 ? (totalPecasCortadas / totalKgCortados).toFixed(2) : '5.60';
+  // Sem nada cortado não há rendimento: mostrar um valor fixo aqui fingia um dado que não existe.
+  const mediaRendimento = totalKgCortados > 0 ? totalPecasCortadas / totalKgCortados : null;
 
   return (
     <div className="corte-camisetas-container">
@@ -140,17 +142,19 @@ function CorteRendimentoCamisetas() {
         <section className="metricas-corte-bar">
           <div className="metrica-corte-card">
             <span>Total Malha Enfesta/Cortada</span>
-            <h3>{totalKgCortados.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} kg</h3>
+            <h3>{formatarPesoCurto(totalKgCortados)}</h3>
           </div>
 
           <div className="metrica-corte-card">
             <span>Peças Reais Cortadas</span>
-            <h3 style={{ color: '#2563eb' }}>{totalPecasCortadas.toLocaleString('pt-BR')} un.</h3>
+            <h3 style={{ color: '#2563eb' }}>{formatarPecas(totalPecasCortadas)}</h3>
           </div>
 
           <div className="metrica-corte-card">
             <span>Rendimento Médio Global</span>
-            <h3 style={{ color: '#059669' }}>{mediaRendimento} peças / kg</h3>
+            <h3 style={{ color: '#059669' }}>
+              {mediaRendimento === null ? '—' : formatarPecasPorKg(mediaRendimento)}
+            </h3>
           </div>
         </section>
 
@@ -252,10 +256,10 @@ function CorteRendimentoCamisetas() {
                       </td>
 
                       <td className="td-num">
-                        <strong>{parseFloat(op.peso_malha_enviado_kg).toFixed(3)} kg</strong>
+                        <strong>{formatarPeso(op.peso_malha_enviado_kg)}</strong>
                       </td>
                       <td className="td-num">
-                        {op.pecas_planejadas ? `${op.pecas_planejadas} un.` : '—'}
+                        {op.pecas_planejadas ? formatarPecas(op.pecas_planejadas) : '—'}
                       </td>
                       <td className="td-num">
                         {op.pecas_reais_cortadas ? (
@@ -268,7 +272,7 @@ function CorteRendimentoCamisetas() {
                         {op.rendimento_real_pecas_kg ? (
                           <span className="badge-rendimento-real">
                             <Sparkles size={12} />
-                            {parseFloat(op.rendimento_real_pecas_kg).toFixed(2)} peças/kg
+                            {formatarPecasPorKg(op.rendimento_real_pecas_kg)}
                           </span>
                         ) : (
                           <span className="text-slate-400">—</span>

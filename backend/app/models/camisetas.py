@@ -51,6 +51,10 @@ class CamisetaInsumo(Base):
     saldo_atual = Column(Numeric(12, 3), default=0.000)
     estoque_minimo = Column(Numeric(12, 3), default=10.000)
     preco_custo_medio = Column(Numeric(12, 2), default=0.00)
+    # Quantidade da embalagem fechada do fornecedor (caixa de 1000 etiquetas, rolo de 100 m
+    # de viés). Nula = compra fracionada. Vale só para aviamento: rolo de malha não tem peso
+    # fixo na vida real, então a sugestão de compra ignora este campo em ROLO_TECIDO.
+    embalagem_compra = Column(Numeric(12, 3), nullable=True)
     id_cor = Column(Integer, ForeignKey("camisetas_cores.id_cor", ondelete="SET NULL"), nullable=True)  # cor de camiseta que a malha produz
 
     criado_em = Column(DateTime(timezone=True), default=get_utc_now)

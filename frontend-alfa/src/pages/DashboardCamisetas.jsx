@@ -18,6 +18,7 @@ import {
 import api from '../services/api';
 import { useToast } from '../components/feedback/useToast';
 import Sidebar from '../components/Sidebar';
+import { formatarPecas, formatarPecasPorKg } from '../utils/numeros';
 import './DashboardCamisetas.css';
 
 function DashboardCamisetas() {
@@ -256,7 +257,7 @@ function DashboardCamisetas() {
               <span className="card-destaque-title">Produção Total</span>
             </div>
             <div className="card-destaque-valor">
-              {(metricas.cards.producao_total_acumulada || 0).toLocaleString('pt-BR')} un.
+              {formatarPecas(metricas.cards.producao_total_acumulada)}
             </div>
             <div className="card-destaque-subtexto">
               Volume disponível em fábrica (abatido das entregas realizadas aos clientes)
@@ -292,7 +293,7 @@ function DashboardCamisetas() {
             </div>
             <div className="card-destaque-subtexto">
               {metricas.cards.rendimento_medio_tecido != null ? (
-                <>Rendimento Real Apurado: <strong>{Number(metricas.cards.rendimento_medio_tecido).toFixed(2)} peças / kg</strong></>
+                <>Rendimento Real Apurado: <strong>{formatarPecasPorKg(metricas.cards.rendimento_medio_tecido)}</strong></>
               ) : (
                 'Nenhum corte registrado ainda'
               )}

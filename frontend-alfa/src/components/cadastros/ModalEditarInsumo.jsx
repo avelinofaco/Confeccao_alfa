@@ -20,6 +20,7 @@ export function ModalEditarInsumo({ insumo, cores, onSalvo, onFechar }) {
     id_cor: insumo.id_cor ?? '',
     unidade_medida: insumo.unidade_medida,
     estoque_minimo: String(insumo.estoque_minimo ?? 0),
+    embalagem_compra: insumo.embalagem_compra != null ? String(insumo.embalagem_compra) : '',
   });
   const [erro, setErro] = useState('');
   const [salvando, setSalvando] = useState(false);
@@ -47,6 +48,8 @@ export function ModalEditarInsumo({ insumo, cores, onSalvo, onFechar }) {
         ...dados,
         id_cor: dados.id_cor ? Number(dados.id_cor) : null,
         estoque_minimo: Number(dados.estoque_minimo || 0),
+        // Vazio significa "sem embalagem fechada", e o backend aceita nulo.
+        embalagem_compra: ehRolo || dados.embalagem_compra === '' ? null : Number(dados.embalagem_compra),
       });
       toast.sucesso(`Insumo ${insumo.codigo} atualizado.`);
       onSalvo(data);
@@ -93,6 +96,25 @@ export function ModalEditarInsumo({ insumo, cores, onSalvo, onFechar }) {
             <label htmlFor="insumo-minimo">Estoque mínimo</label>
             <input id="insumo-minimo" type="number" min="0" step="0.001" inputMode="decimal" value={dados.estoque_minimo} onChange={alterar('estoque_minimo')} />
           </div>
+          {!ehRolo && (
+            <div className="cadastro-campo">
+              <label htmlFor="insumo-embalagem">Embalagem do fornecedor</label>
+              <input
+                id="insumo-embalagem"
+                type="number"
+                min="0"
+                step="0.001"
+                inputMode="decimal"
+                placeholder="Ex: 1000"
+                value={dados.embalagem_compra}
+                onChange={alterar('embalagem_compra')}
+              />
+              <small className="cadastro-dica">
+                Quantidade que o fornecedor vende fechada (caixa de 1000 etiquetas, rolo de 100 m).
+                A sugestão de compra pede múltiplos disso. Vazio = compra fracionada.
+              </small>
+            </div>
+          )}
         </div>
         <p className="painel-cadastro-vazio">Saldo e custo médio mudam pelas notas fiscais (Lançamento / Entrada NF).</p>
         <footer className="cadastro-modal-rodape">

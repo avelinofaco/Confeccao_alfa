@@ -256,3 +256,65 @@ def test_modelos_e_migracoes_estao_alinhados(tmp_path):
     url = f"sqlite:///{tmp_path / 'migracao.db'}"
     rodar_alembic("upgrade", "head", url=url)
     rodar_alembic("check", url=url)
+
+
+# ----------------- 013: acerto de contas do fluxo multi-contexto -----------------
+
+ANTERIOR_A_013 = "20261117_012_financeiro_despesas_recebimentos"
+TABELAS_DO_WORKFLOW = {"contextos_produto", "workflow_etapas", "apontamentos_etapa_workflow"}
+
+
+def _rodar_create_all(url):
+    """Reproduz o que o `main.py` faz no boot: cria as tabelas que faltam, e só isso.
+
+    `create_all` nunca adiciona coluna a tabela que já existe — é daí que vem o estado
+    misto do banco de produção que a migração 013 precisa tolerar.
+    """
+    codigo = (
+        "import sys; sys.path.insert(0, '.');"
+        "import app.main;"
+        "from app.database import Base, engine;"
+        "Base.metadata.create_all(bind=engine)"
+    )
+    resultado = subprocess.run(
+        [sys.executable, "-I", "-c", codigo],
+        cwd=BACKEND, env={**os.environ, "DATABASE_URL": url}, capture_output=True, text=True,
+    )
+    assert resultado.returncode == 0, resultado.stderr
+
+
+def test_013_cria_as_tabelas_do_workflow_em_banco_novo(tmp_path):
+    url = f"sqlite:///{tmp_path / 'novo.db'}"
+    rodar_alembic("upgrade", ANTERIOR_A_013, url=url)
+    assert not (TABELAS_DO_WORKFLOW & tabelas(url))
+
+    rodar_alembic("upgrade", "head", url=url)
+
+    assert TABELAS_DO_WORKFLOW.issubset(tabelas(url))
+
+
+def test_013_roda_sobre_banco_que_create_all_ja_tocou(tmp_path):
+    """O cenário de produção: as tabelas já existem, as colunas novas não.
+
+    Sem as guardas da 013 isto quebraria em "table already exists" no primeiro deploy
+    que rodasse as migrações.
+    """
+    url = f"sqlite:///{tmp_path / 'producao.db'}"
+    rodar_alembic("upgrade", ANTERIOR_A_013, url=url)
+    _rodar_create_all(url)
+    assert TABELAS_DO_WORKFLOW.issubset(tabelas(url)), "create_all deveria ter criado as tabelas"
+
+    rodar_alembic("upgrade", "head", url=url)
+
+    rodar_alembic("check", url=url)
+
+
+def test_013_vai_e_volta_sem_deixar_resto(tmp_path):
+    url = f"sqlite:///{tmp_path / 'ciclo.db'}"
+    rodar_alembic("upgrade", "head", url=url)
+
+    rodar_alembic("downgrade", ANTERIOR_A_013, url=url)
+    assert not (TABELAS_DO_WORKFLOW & tabelas(url))
+
+    rodar_alembic("upgrade", "head", url=url)
+    rodar_alembic("check", url=url)

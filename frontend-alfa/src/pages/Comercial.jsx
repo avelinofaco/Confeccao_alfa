@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { formatarMoeda } from '../utils/numeros';
 import { 
   LayoutDashboard, Package, FileText, ShoppingCart, Crop, Scissors, PackageCheck, Users, LogOut,
   Plus, Search, X, Calendar, Check, Trash2, Menu
@@ -212,7 +213,7 @@ function Comercial() {
                           </div>
                         </td>
                         <td className="font-bold text-green-600">
-                          R$ {Number(ped.valor_total).toFixed(2).replace('.', ',')}
+                          {formatarMoeda(ped.valor_total)}
                         </td>
                         <td>
                           {isEntregue ? (

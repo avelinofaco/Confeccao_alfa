@@ -5,12 +5,12 @@ import { useToast } from '../feedback/useToast';
 import { useConfirm } from '../feedback/useConfirm';
 import { mensagemDeErro } from '../feedback/mensagemErro';
 import { chaveCelula, somarValores, valoresParaLista } from '../../utils/grade';
+import { formatarPecas, formatarPercentual, formatarQuantidade } from '../../utils/numeros';
 import { GradeQuantidades } from './GradeQuantidades';
 
 const MARGEM_PADRAO = '3.00';
-const formatarNumero = (valor) => Number(valor).toLocaleString('pt-BR', { maximumFractionDigits: 3 });
 const descreverFalta = (falta) =>
-  `${falta.descricao} (${falta.codigo}): precisa ${formatarNumero(falta.necessario)} ${falta.unidade}, tem ${formatarNumero(falta.disponivel)} ${falta.unidade}`;
+  `${falta.descricao} (${falta.codigo}): precisa ${formatarQuantidade(falta.necessario, falta.unidade)}, tem ${formatarQuantidade(falta.disponivel, falta.unidade)}`;
 const disponiveisDa = (op) => Object.fromEntries(op.cortes.map((c) => [chaveCelula(c.id_cor, c.id_tamanho), c.disponivel]));
 const idVariacao = (op, idCor, idTamanho) => op.cortes.find((c) => c.id_cor === idCor && c.id_tamanho === idTamanho)?.id_variacao;
 
@@ -94,8 +94,8 @@ export function FormEnvioFaccao({ ops, onEnviado }) {
       if (!resposta) return;
       const avisos = resposta.data?.avisos || [];
       toast.sucesso(avisos.length > 0
-        ? `Lote de ${total} peças enviado para ${faccao.trim()}.`
-        : `Lote de ${total} peças enviado para ${faccao.trim()}. Aviamentos baixados com margem de ${formatarNumero(margem || MARGEM_PADRAO)}%.`);
+        ? `Lote de ${formatarPecas(total)} enviado para ${faccao.trim()}.`
+        : `Lote de ${formatarPecas(total)} enviado para ${faccao.trim()}. Aviamentos baixados com margem de ${formatarPercentual(margem || MARGEM_PADRAO, 2)}.`);
       avisos.forEach((aviso) => toast.aviso(aviso));
       limpar();
       onEnviado();

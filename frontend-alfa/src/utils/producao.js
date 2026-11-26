@@ -1,8 +1,10 @@
-/** Rendimento em peças por kg ("5.50 peças/kg"), ou "—" sem dados. */
+import { formatarPecasPorKg, formatarPeso } from './numeros';
+
+/** Rendimento em peças por kg ("5,50 peças/kg"), ou "—" sem dados. */
 export function formatarRendimento(pecas, pesoKg) {
   const peso = Number(pesoKg);
   if (!pecas || !(peso > 0)) return '—';
-  return `${(pecas / peso).toFixed(2)} peças/kg`;
+  return formatarPecasPorKg(pecas / peso);
 }
 
 /** Primeiro problema que impede abrir a OP (linha incompleta ou cor repetida), ou ''. */
@@ -25,7 +27,7 @@ export function faltasDeMalha(linhas, tecidos) {
   return Object.entries(pesoPorRolo)
     .map(([idRolo, peso]) => ({ rolo: tecidos.find((t) => String(t.id_insumo) === idRolo), peso }))
     .filter(({ rolo, peso }) => rolo && peso > parseFloat(rolo.saldo_atual || 0))
-    .map(({ rolo, peso }) => `O rolo ${rolo.codigo} tem ${parseFloat(rolo.saldo_atual || 0).toFixed(3)} kg e o enfesto pede ${peso.toFixed(3)} kg.`);
+    .map(({ rolo, peso }) => `O rolo ${rolo.codigo} tem ${formatarPeso(rolo.saldo_atual)} e o enfesto pede ${formatarPeso(peso)}.`);
 }
 
 /** "Preto: P20 M10 · Branco: G5" a partir dos itens de uma remessa. */

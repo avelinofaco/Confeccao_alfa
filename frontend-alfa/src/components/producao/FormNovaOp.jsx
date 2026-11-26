@@ -4,11 +4,12 @@ import api from '../../services/api';
 import { useToast } from '../feedback/useToast';
 import { mensagemDeErro } from '../feedback/mensagemErro';
 import { faltasDeMalha, problemasDoEnfesto } from '../../utils/producao';
+import { formatarPecas, formatarPeso } from '../../utils/numeros';
 import '../cadastros/cadastros.css';
 import './producao.css';
 
 const linhaVazia = (chave) => ({ chave, id_cor: '', id_insumo_tecido: '', peso_kg: '' });
-const rotuloRolo = (t) => `[${t.codigo}] ${t.tipo_malha_ou_aviamento}${t.nome_cor ? ` · ${t.nome_cor}` : ''} — ${parseFloat(t.saldo_atual || 0).toFixed(3)} kg`;
+const rotuloRolo = (t) => `[${t.codigo}] ${t.tipo_malha_ou_aviamento}${t.nome_cor ? ` · ${t.nome_cor}` : ''} — ${formatarPeso(t.saldo_atual)}`;
 
 /** Abertura de OP: modelo + vínculo opcional a pedido + uma linha por cor do enfesto (cor, rolo de malha e peso). */
 export function FormNovaOp({ modelos, tecidos, cores, pedidos = [], onCriada }) {
@@ -90,7 +91,7 @@ export function FormNovaOp({ modelos, tecidos, cores, pedidos = [], onCriada }) 
         id_pedido: idPedido ? Number(idPedido) : null,
         cores: linhas.map((l) => ({ id_cor: Number(l.id_cor), id_insumo_tecido: Number(l.id_insumo_tecido), peso_kg: parseFloat(l.peso_kg) })),
       });
-      toast.sucesso(`OP ${data.codigo_op} aberta: ${pesoTotal.toFixed(3)} kg de malha baixados do estoque.`);
+      toast.sucesso(`OP ${data.codigo_op} aberta: ${formatarPeso(pesoTotal)} de malha baixados do estoque.`);
       setIdPedido('');
       setLinhas([novaLinha()]);
       onCriada();
@@ -162,7 +163,7 @@ export function FormNovaOp({ modelos, tecidos, cores, pedidos = [], onCriada }) 
       </fieldset>
 
       <p className="producao-resumo" aria-live="polite">
-        Total na mesa: <strong>{pesoTotal.toFixed(3)} kg</strong> · previsão de <strong>{pecasPrevistas} peças</strong>
+        Total na mesa: <strong>{formatarPeso(pesoTotal)}</strong> · previsão de <strong>{formatarPecas(pecasPrevistas)}</strong>
       </p>
       {faltas.length > 0 && <ul className="producao-aviso" role="alert">{faltas.map((f) => <li key={f}>{f}</li>)}</ul>}
       <button type="submit" className="btn-abrir-op btn-acao-rapida" disabled={salvando || faltas.length > 0}>

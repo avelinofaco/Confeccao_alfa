@@ -13,6 +13,17 @@ def test_seed_cria_cores_pedidos_com_itens_e_estoque_por_sku(client):
     assert {m["motivo"] for m in movimentos} == {"Carga de demonstração"}
 
 
+def test_seed_nao_inventa_meses_fechados_no_financeiro(client):
+    """O seed gravava 12 meses de 2026 com valores fictícios e a observação
+    "Lançamento consolidado do período". O cálculo ignora os valores, mas a
+    observação ficava na tabela parecendo fechamento real."""
+    assert client.post("/camisetas/seed-inicial").status_code == 200
+
+    meses = client.get("/camisetas/financeiro/?ano=2026").json()
+    assert [m["observacoes"] for m in meses if m["observacoes"]] == []
+    assert all(m["id_registro"] is None for m in meses)
+
+
 def test_seed_recusa_em_producao(client, monkeypatch):
     from app.routers.camisetas import seed as rotas_seed
     monkeypatch.setattr(rotas_seed.config, "EM_PRODUCAO", True)

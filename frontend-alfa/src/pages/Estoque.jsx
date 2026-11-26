@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { formatarQuantidade } from "../utils/numeros";
 import {
   LayoutDashboard,
   Package,
@@ -278,10 +279,10 @@ function Estoque() {
                           <span style={{ fontSize: "11px", color: "#6b7280" }}>{item.categoria}</span>
                         </td>
                         <td className="font-bold text-gray-900">
-                          {item.quantidade_atual || 0} <span className="unit-label">{item.unidade_medida}</span>
+                          {formatarQuantidade(item.quantidade_atual, item.unidade_medida)}
                         </td>
                         <td className="text-gray-500">
-                          {item.estoque_minimo_seguranca} {item.unidade_medida}
+                          {formatarQuantidade(item.estoque_minimo_seguranca, item.unidade_medida)}
                         </td>
                         <td>
                           {eCritico ? (

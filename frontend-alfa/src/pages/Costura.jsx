@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { formatarQuantidade } from '../utils/numeros';
 import { 
   LayoutDashboard, Package, FileText, ShoppingCart, Crop, Scissors, PackageCheck, Users, LogOut,
   Plus, Search, CheckCircle, Activity, X, ArrowRight, Menu
@@ -99,7 +100,7 @@ function Costura() {
               
               return {
                 nome: insumoDetalhe.tipo || insumoDetalhe.nome_insumo || 'Aviamento',
-                quantidade: gastoTotal.toFixed(2),
+                quantidade: gastoTotal,
                 unidade: unidade === 'metros' ? 'm' : (insumoDetalhe.unidade_medida || 'un')
               };
             }
@@ -320,7 +321,7 @@ function Costura() {
                   <p style={{fontSize: '13px', fontWeight: 'bold', color: '#1e3a8a', marginBottom: '6px'}}>Prévia de Aviamentos Necessários:</p>
                   <ul style={{ margin: 0, paddingLeft: '16px', color: '#3b82f6', fontSize: '13px' }}>
                       {previaInsumos.map((item, index) => (
-                        <li key={index}><strong>{item.quantidade} {item.unidade}</strong> de {item.nome}</li>
+                        <li key={index}><strong>{formatarQuantidade(item.quantidade, item.unidade)}</strong> de {item.nome}</li>
                       ))}
                     </ul>
                 </div>

@@ -16,6 +16,7 @@ import {
   Scissors,
 } from 'lucide-react';
 import api from '../services/api';
+import { paraCampoNumerico } from '../utils/numeros';
 import Sidebar from '../components/Sidebar';
 import { useToast } from '../components/feedback/useToast';
 import { useConfirm } from '../components/feedback/useConfirm';
@@ -66,7 +67,7 @@ function PedidoCamisetas() {
   const valorExibido = valorManual
     ? formData.valor_total
     : valorTabelado > 0
-      ? valorTabelado.toFixed(2)
+      ? paraCampoNumerico(valorTabelado)
       : formData.valor_total;
 
   // Modais: entrega ao cliente, edição dos itens e exportação de PDF
