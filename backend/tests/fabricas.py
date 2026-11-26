@@ -110,15 +110,29 @@ def criar_pedido(db, modelo, codigo="PED-T-1", valor="1000.00", status="Aguardan
     ))
 
 
-def criar_op_cortada(db, modelo, codigo="OP-T-1", pecas=100, peso="20.000", tecido=None):
+def criar_op_cortada(db, modelo, codigo="OP-T-1", pecas=100, peso="20.000", tecido=None, pedido=None):
     return _salvar(db, CamisetaOrdemProducao(
         codigo_op=codigo,
         id_modelo=modelo.id_modelo,
+        id_pedido=pedido.id_pedido if pedido else None,
         id_insumo_tecido=tecido.id_insumo if tecido else None,
         peso_malha_enviado_kg=Decimal(peso),
         pecas_planejadas=pecas,
         pecas_reais_cortadas=pecas,
+        rendimento_real_pecas_kg=(Decimal(pecas) / Decimal(peso)).quantize(Decimal("0.01")),
         status_op="Cortado (Pronto para Costura)",
+    ))
+
+
+def criar_op_aberta(db, modelo, codigo="OP-T-A", peso="20.000", tecido=None, pedido=None):
+    """OP recém-aberta: o tecido já foi baixado do rolo, mas nada foi cortado ainda."""
+    return _salvar(db, CamisetaOrdemProducao(
+        codigo_op=codigo,
+        id_modelo=modelo.id_modelo,
+        id_pedido=pedido.id_pedido if pedido else None,
+        id_insumo_tecido=tecido.id_insumo if tecido else None,
+        peso_malha_enviado_kg=Decimal(peso),
+        status_op="Enfestado na Mesa",
     ))
 
 

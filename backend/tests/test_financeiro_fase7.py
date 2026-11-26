@@ -172,7 +172,8 @@ def test_pagamento_de_pedido_e_dre_mensal_completo(client, db):
     # E na listagem anual o mês 2026-10 também reflete o lucro_liquido de 2200.00
     meses = client.get("/camisetas/financeiro/?ano=2026").json()
     outubro = next(m for m in meses if m["mes_ano"] == "2026-10")
-    assert Decimal(outubro["outros_custos_operacionais"]) == Decimal("1300.00")
+    assert Decimal(outubro["outros_custos_avulsos"]) == Decimal("100.00")
+    assert Decimal(outubro["total_despesas_operacionais"]) == Decimal("1300.00")
     assert Decimal(outubro["lucro_liquido"]) == Decimal("2200.00")
     assert Decimal(outubro["receita_recebida"]) == Decimal("3000.00")
     assert Decimal(outubro["receita_a_receber"]) == Decimal("2000.00")

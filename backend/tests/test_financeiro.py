@@ -100,19 +100,20 @@ def test_api_lista_12_meses_calculados(client, db):
 def test_api_lanca_outros_custos_e_ignora_faturamento_enviado(client, db):
     resposta = client.post("/camisetas/financeiro/", json={
         "mes_ano": "2026-10",
-        "outros_custos_operacionais": "250.00",
+        "outros_custos_avulsos": "250.00",
         "faturamento_receita": "99999.00",
         "observacoes": "Energia e facção",
     })
     assert resposta.status_code == 201
     corpo = resposta.json()
     assert Decimal(corpo["faturamento_receita"]) == Decimal("0.00")
-    assert Decimal(corpo["outros_custos_operacionais"]) == Decimal("250.00")
+    assert Decimal(corpo["outros_custos_avulsos"]) == Decimal("250.00")
+    assert Decimal(corpo["total_despesas_operacionais"]) == Decimal("250.00")
     assert Decimal(corpo["lucro_liquido"]) == Decimal("-250.00")
 
 
 def test_api_outros_custos_negativo_retorna_400(client):
-    resposta = client.post("/camisetas/financeiro/", json={"mes_ano": "2026-10", "outros_custos_operacionais": "-1"})
+    resposta = client.post("/camisetas/financeiro/", json={"mes_ano": "2026-10", "outros_custos_avulsos": "-1"})
     assert resposta.status_code == 400
 
 

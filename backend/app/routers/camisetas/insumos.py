@@ -32,9 +32,10 @@ from app.schemas.camisetas import (
     CamisetaRegistroFinanceiroCreate, CamisetaRegistroFinanceiroResponse, CamisetaApuracaoMensalResponse,
     CamisetaDashboardCompletoResponse, CamisetaCardDestaque, CamisetaItemFinanceiroMensal
 )
-from app.schemas.camisetas import CamisetaInsumoUpdate
+from app.schemas.camisetas import CamisetaInsumoUpdate, CamisetaSugestaoCompraResponse
 from app.services.camisetas.cores import validar_cor_opcional
-from app.services.camisetas.estoque import calcular_custo_medio
+from app.services.camisetas.estoque import calcular_custo_medio, momento_da_nota
+from app.services.camisetas.sugestao_compra import sugerir_compra
 from app.services.camisetas.insumos import atualizar_insumo, excluir_insumo, montar_resposta_insumo
 from app.core.erros import ErroNegocio
 
@@ -51,6 +52,22 @@ def listar_insumos(categoria: Optional[str] = None, db: Session = Depends(get_db
         else:
             query = query.filter(CamisetaInsumo.categoria == cat_u)
     return [montar_resposta_insumo(i) for i in query.order_by(CamisetaInsumo.codigo.asc()).all()]
+
+@router.get("/insumos/sugestao-compra/", response_model=CamisetaSugestaoCompraResponse)
+def obter_sugestao_de_compra(
+    margem_percentual: Decimal = Query(
+        Decimal("5"), ge=0, le=100,
+        description="Margem de segurança sobre o consumo cadastrado, em %",
+    ),
+    db: Session = Depends(get_db),
+):
+    """Quanto comprar de cada insumo para os pedidos que vão entrar em produção.
+
+    Tecido conta só pedidos sem OP (a OP já baixa a malha do rolo); aviamento conta as
+    peças ainda não enviadas à facção.
+    """
+    return sugerir_compra(db, margem_percentual)
+
 
 @router.post("/insumos/", response_model=CamisetaInsumoResponse, status_code=status.HTTP_201_CREATED)
 def cadastrar_insumo(insumo_in: CamisetaInsumoCreate, db: Session = Depends(get_db)):
@@ -95,6 +112,7 @@ def cadastrar_insumo(insumo_in: CamisetaInsumoCreate, db: Session = Depends(get_
         saldo_atual=insumo_in.saldo_atual,
         estoque_minimo=insumo_in.estoque_minimo,
         preco_custo_medio=insumo_in.preco_custo_medio,
+        embalagem_compra=insumo_in.embalagem_compra,
         id_cor=insumo_in.id_cor,
     )
     db.add(novo_insumo)
@@ -111,7 +129,7 @@ def registrar_entrada_estoque(entrada_in: CamisetaEntradaInsumoCreate, db: Sessi
 
     if entrada_in.quantidade <= 0:
         raise HTTPException(status_code=400, detail="Quantidade deve ser maior que zero")
-    if (entrada_in.valor_total or Decimal("0")) < 0:
+    if entrada_in.valor_total < 0:
         raise HTTPException(status_code=400, detail="O valor da nota fiscal não pode ser negativo")
 
     nova_entrada = CamisetaEntradaInsumo(
@@ -120,7 +138,7 @@ def registrar_entrada_estoque(entrada_in: CamisetaEntradaInsumoCreate, db: Sessi
         fornecedor=entrada_in.fornecedor,
         quantidade=entrada_in.quantidade,
         valor_total=entrada_in.valor_total,
-        data_entrada=get_utc_now()
+        data_entrada=momento_da_nota(entrada_in.data_entrada),
     )
     db.add(nova_entrada)
 
@@ -130,7 +148,7 @@ def registrar_entrada_estoque(entrada_in: CamisetaEntradaInsumoCreate, db: Sessi
         saldo_anterior,
         insumo.preco_custo_medio or Decimal("0"),
         entrada_in.quantidade,
-        entrada_in.valor_total or Decimal("0"),
+        entrada_in.valor_total,
     )
     insumo.saldo_atual = saldo_anterior + entrada_in.quantidade
     insumo.atualizado_em = get_utc_now()

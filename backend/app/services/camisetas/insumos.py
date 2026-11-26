@@ -20,6 +20,7 @@ def montar_resposta_insumo(insumo: CamisetaInsumo) -> CamisetaInsumoResponse:
         saldo_atual=insumo.saldo_atual,
         estoque_minimo=insumo.estoque_minimo,
         preco_custo_medio=insumo.preco_custo_medio,
+        embalagem_compra=insumo.embalagem_compra,
         id_cor=insumo.id_cor,
         nome_cor=cor.nome if cor else None,
         hex_cor=cor.hex if cor else None,
@@ -71,6 +72,8 @@ def atualizar_insumo(db: Session, id_insumo: int, dados: CamisetaInsumoUpdate) -
     insumo.id_cor = dados.id_cor
     insumo.unidade_medida = dados.unidade_medida.lower()
     insumo.estoque_minimo = dados.estoque_minimo
+    # Campo ausente no corpo significa "sem embalagem fechada": o formulário sempre o envia.
+    insumo.embalagem_compra = dados.embalagem_compra
     insumo.atualizado_em = get_utc_now()
     db.commit()
     db.refresh(insumo)

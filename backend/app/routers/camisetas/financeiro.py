@@ -43,7 +43,8 @@ def para_resposta_registro(apuracao: ApuracaoMensal) -> CamisetaRegistroFinancei
         mes_ano=apuracao.mes_ano,
         valor_gasto_materiais=apuracao.gasto_materiais,
         faturamento_receita=apuracao.faturamento,
-        outros_custos_operacionais=apuracao.outros_custos,
+        outros_custos_avulsos=apuracao.outros_custos_avulsos,
+        total_despesas_operacionais=apuracao.outros_custos,
         lucro_liquido=apuracao.lucro,
         observacoes=apuracao.observacoes,
         criado_em=apuracao.criado_em,
@@ -93,17 +94,25 @@ def apurar_financeiro_mensal(
 
 @router.post("/financeiro/", response_model=CamisetaRegistroFinanceiroResponse, status_code=status.HTTP_201_CREATED)
 def lancar_outros_custos(reg_in: CamisetaRegistroFinanceiroCreate, db: Session = Depends(get_db)):
-    """Grava só os outros custos avulsos e as observações do mês; o resto é calculado."""
+    """Grava só o custo avulso e as observações do mês; o resto é calculado.
+
+    Campo que não veio no corpo não é alterado: salvar só a observação deixa o custo
+    avulso já gravado intacto.
+    """
     _validar_ou_422(reg_in.mes_ano)
-    if reg_in.outros_custos_operacionais < 0:
+    avulso = reg_in.outros_custos_avulsos
+    if avulso is not None and avulso < 0:
         raise HTTPException(status_code=400, detail="Outros custos não pode ser negativo.")
 
     registro = db.query(CamisetaRegistroFinanceiro).filter_by(mes_ano=reg_in.mes_ano).first()
     if registro is None:
-        registro = CamisetaRegistroFinanceiro(mes_ano=reg_in.mes_ano)
+        registro = CamisetaRegistroFinanceiro(mes_ano=reg_in.mes_ano, outros_custos_operacionais=0)
         db.add(registro)
-    registro.outros_custos_operacionais = reg_in.outros_custos_operacionais
-    registro.observacoes = reg_in.observacoes
+    enviados = reg_in.model_fields_set
+    if avulso is not None:
+        registro.outros_custos_operacionais = avulso
+    if "observacoes" in enviados:
+        registro.observacoes = reg_in.observacoes
     db.commit()
     return para_resposta_registro(apurar_mes(db, reg_in.mes_ano))
 

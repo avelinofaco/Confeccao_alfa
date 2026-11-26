@@ -16,7 +16,6 @@ from app.models.camisetas import (
     CamisetaPedido,
     CamisetaOrdemProducao,
     CamisetaCosturaFaccao,
-    CamisetaRegistroFinanceiro,
     get_utc_now
 )
 from app.models.camisetas_cadastros import CamisetaCor
@@ -327,31 +326,10 @@ def seed_camisetas(db: Session = Depends(get_db)):
             ),
         )
 
-    # 6. Registros Financeiros (12 meses em ordem crescente: Janeiro a Dezembro)
-    if db.query(CamisetaRegistroFinanceiro).count() == 0:
-        meses_dados = [
-            ("2026-01", Decimal("15000.00"), Decimal("40000.00"), Decimal("25000.00")),
-            ("2026-02", Decimal("16500.00"), Decimal("42000.00"), Decimal("25500.00")),
-            ("2026-03", Decimal("19200.00"), Decimal("45000.00"), Decimal("25800.00")),
-            ("2026-04", Decimal("21000.00"), Decimal("49000.00"), Decimal("28000.00")),
-            ("2026-05", Decimal("22500.00"), Decimal("52000.00"), Decimal("29500.00")),
-            ("2026-06", Decimal("19800.00"), Decimal("47000.00"), Decimal("27200.00")),
-            ("2026-07", Decimal("20400.00"), Decimal("48000.00"), Decimal("27600.00")),
-            ("2026-08", Decimal("23100.00"), Decimal("54000.00"), Decimal("30900.00")),
-            ("2026-09", Decimal("22000.00"), Decimal("51000.00"), Decimal("29000.00")),
-            ("2026-10", Decimal("25400.00"), Decimal("58000.00"), Decimal("32600.00")),
-            ("2026-11", Decimal("24000.00"), Decimal("56000.00"), Decimal("32000.00")),
-            ("2026-12", Decimal("28000.00"), Decimal("65000.00"), Decimal("37000.00")),
-        ]
-        for m, gast, fat, luc in meses_dados:
-            reg = CamisetaRegistroFinanceiro(
-                mes_ano=m,
-                valor_gasto_materiais=gast,
-                faturamento_receita=fat,
-                lucro_liquido=luc,
-                observacoes="Lançamento consolidado do período"
-            )
-            db.add(reg)
-        db.commit()
+    # 6. O financeiro NÃO é semeado de propósito.
+    # Faturamento, matéria-prima e lucro são apurados das entregas, notas fiscais e
+    # despesas reais. Gravar 12 meses de valores fictícios com a observação
+    # "Lançamento consolidado do período" dava a impressão de fechamento real na
+    # tabela "Mês a mês", com números que ninguém tinha lançado.
 
     return {"mensagem": "Dados iniciais de demonstração do segmento Camisetas carregados com sucesso! 👕"}
